@@ -72,3 +72,29 @@ Every money spec checks books integrity with `assertLedgerIntegrity`: trial bala
 GL 1100 per account; AP sub-ledger vs GL 2000 per supplier; inventory vs GL 1300 per vehicle.
 Earlier, the parallel builders ran their specs on isolated databases (`autohub_test_a`…`e`). Their
 results were then re-verified together on `autohub_test`.
+
+### Phase 3: review fixes (2026-10-16)
+| Command | Result |
+|---|---|
+| `pnpm --filter @autohub/shared test` | 2 files, **37 passed** |
+| `cd apps/api && npx tsc --noEmit -p tsconfig.json` | clean |
+| `npx eslint apps/api/src apps/api/test packages/shared/src` | clean |
+| `cd apps/api && npx vitest run` (fresh `autohub_test`, migrations 0000–0006) | **16 files, 174 passed** |
+
+New specs:
+- `vehicle-costs` (22 tests), `supplier-payments` (16), `cash-accounts` (10): core coverage.
+- `review-ledger` (19): the adversarial ledger review.
+
+Each of the 13 defects the reviewers found was first reproduced by a failing test, then fixed:
+- 10 from R1;
+- 3 from T, one of which duplicated an R1 finding.
+
+The four tests that encoded the old, defective semantics were updated to assert the corrected
+behaviour:
+- realized FX on carrying cost;
+- the rounding lock;
+- withdrawal of a pending purchase when it is edited;
+- the date included in the details of an overdraft refusal.
+
+Not yet done: the concurrency review (R2) and the authorization review (R3). Both stopped on a
+usage limit and will be re-run.

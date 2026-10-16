@@ -1,24 +1,20 @@
 # Execution Status
 
 **Current phase:** Phase 3 — Acquisitions & Cost Engine (backend integrated and green; verification + web in progress)
-**Last completed task:** Phase 3 backend integration. Five modules were built in parallel and integrated, the core bugs were fixed and B-016 maker-checker was enforced. 12 API test files, 107 tests passing. Pushed to `claude/fervent-johnson-39su60`.
-**In progress:** workflow `phase3-verify-and-web`. It runs:
-- the missing core specs (vehicle-costs, supplier-payments, cash-accounts);
-- 3 adversarial reviewers (ledger/reversals, concurrency/idempotency, authz/isolation), whose findings must come with failing tests;
-- 4 web feature agents (purchasing, costs/work orders/approvals, cash/expenses, ledger/reports);
-- a web integrator that does the wiring and browser verification.
+**Last completed task:**
+- Phase 3 review fixes (realized FX, date-safe cash, maker-checker on edits, tenant-safe references).
+- 16 API test files, 174 tests passing. Pushed.
+
+**Interrupted by usage limits (resume these):**
+- Phase 3 reviews R2 (concurrency) and R3 (authz) still need to run.
+- Phase 3 web pages need building (W1–W4 produced nothing).
+- Phase 4 module agents left partial files in the `phase4-wip` worktree: customers and leads services.
 
 **Exact next task:**
-1. Fix every reproduced review finding in `apps/api/src`. These files have a single owner, the main session.
-2. Run the full suite.
-3. Review the web integration and screenshots.
-4. Update TEST_REPORT and KNOWN_ISSUES, then commit and push.
-5. Start Phase 4. A draft schema is in the session scratchpad (`phase4/crm.schema.ts`, `crm.shared.ts`), not committed.
-
-**Autonomous continuation:**
-- The Product Owner asked for the master prompt to be executed to the end without waiting for them, including after usage limits.
-- An hourly scheduled task, "AutoHub Pro — continue master prompt", resumes this session at minute 35 of every hour.
-- Delete that scheduled task once the final report is delivered.
+1. Run the R2 and R3 reviews. Use a lean setup: 2 agents, and fix the findings myself.
+2. Build the Phase 3 web pages, using fewer and larger agents.
+3. Rebase `phase4-wip` onto main and renumber its migrations to 0007/0008, because main now has 0006.
+4. Finish the Phase 4 modules, then build Phase 4 web.
 
 | Phase | Status |
 |---|---|
