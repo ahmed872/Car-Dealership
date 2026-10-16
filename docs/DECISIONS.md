@@ -178,12 +178,26 @@ VIN is optional (some old or local vehicles lack a 17-character VIN). When provi
 (17 characters, no I/O/Q) is validated. The ISO 3779 check digit is enforced only for
 North-American-spec vehicles (where it is mandatory); for others a mismatch is only a warning.
 
-### B-016 Acquisition approval and payment **[PO-CONFIRM]**
-Recording a purchase creates the vehicle as `incoming` immediately (so preparation can start), but
-its cost is capitalised and becomes payable only on approval by a user with
-`acquisitions.approve`. The approver may be the creator when they hold the permission (owners of
-small dealerships); the audit log records both. Approval can settle the purchase immediately from a
-base-currency cash or bank account.
+### B-016 Acquisition approval and maker-checker (decided: conservative)
+Recording a purchase creates the vehicle as `incoming` right away, so preparation can start. Its
+cost is capitalised and becomes payable only when a user with `acquisitions.approve` approves it.
+Approval can settle the purchase immediately from a base-currency cash or bank account.
+**Maker-checker is enforced on the server.** This applies to every flow that has an approval request:
+- acquisitions;
+- work orders;
+- pending vehicle costs;
+- pending expenses.
+
+For each of these:
+- The document's creator, and the user who submitted it, cannot approve it, even when they hold
+  the approval permission. The API returns 403 `self_approval_forbidden`.
+- The approval inbox shows such items with `canDecide = false`.
+- Costs and expenses entered by a user who already holds `costs.approve` or `expenses.approve`
+  post directly, as before. No approval request exists for them.
+
+As a result, a company needs at least two users with approval rights to approve purchases. Relaxing
+this, for example for single-owner dealerships, requires explicit Product Owner approval. It would
+be added as an audited tenant setting.
 
 ### B-017 Cancelling a purchase
 A purchase can be cancelled while the vehicle is unsold and not in transit, and only after any

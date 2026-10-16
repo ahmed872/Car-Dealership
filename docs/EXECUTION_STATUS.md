@@ -1,15 +1,26 @@
 # Execution Status
 
-**Current phase:** Phase 3 — Acquisitions & Cost Engine (in progress)
-**Last completed task:** Phase 2 — Vehicles & Inventory (API + web; 37 unit + 44 API tests green)
-**Exact next task:** Phase 3 schema: suppliers, acquisitions, cost categories, vehicle costs, work orders, supplier payments, cash accounts/transactions (needed for payments), approval requests
+**Current phase:** Phase 3 — Acquisitions & Cost Engine (backend integrated and green; verification + web in progress)
+**Last completed task:** Phase 3 backend integration. Five modules were built in parallel and integrated, the core bugs were fixed and B-016 maker-checker was enforced. 12 API test files, 107 tests passing. Pushed to `claude/fervent-johnson-39su60`.
+**In progress:** workflow `phase3-verify-and-web`. It runs:
+- the missing core specs (vehicle-costs, supplier-payments, cash-accounts);
+- 3 adversarial reviewers (ledger/reversals, concurrency/idempotency, authz/isolation), whose findings must come with failing tests;
+- 4 web feature agents (purchasing, costs/work orders/approvals, cash/expenses, ledger/reports);
+- a web integrator that does the wiring and browser verification.
+
+**Exact next task:**
+1. Fix every reproduced review finding in `apps/api/src`. These files have a single owner, the main session.
+2. Run the full suite.
+3. Review the web integration and screenshots.
+4. Update TEST_REPORT and KNOWN_ISSUES, then commit and push.
+5. Start Phase 4. A draft schema is in the session scratchpad (`phase4/crm.schema.ts`, `crm.shared.ts`), not committed.
 
 | Phase | Status |
 |---|---|
 | 0 Discovery & Architecture | Complete |
 | 1 Foundation | Complete |
 | 2 Vehicles & Inventory | Complete |
-| 3 Acquisitions & Cost Engine | In progress |
+| 3 Acquisitions & Cost Engine | Backend complete & tested; web + adversarial review in progress |
 | 4 CRM & Operations | Not started |
 | 5 Sales & Financial | Not started |
 | 6 Dashboard & Reports | Not started |
@@ -37,6 +48,42 @@
   (scan/submit/reconcile with write-off), catalog, permission-checked file downloads.
 - Web: vehicle grid/table list with filters, sectioned form, Vehicle 360 page with tabs and action modals,
   inspection page with interactive SVG body diagram (colour + letter codes), transfers, stock counts.
+
+## Phase 3 — delivered so far
+- Migrations 0004/0005:
+  - tables: suppliers, cost categories (25 seeded), acquisitions, vehicle costs, cash accounts, cash
+    transactions (append-only), supplier payments with allocations (append-only), expenses, work
+    orders and items, approval requests;
+  - RLS on all of them;
+  - DELETE revoked on financial documents;
+  - posted-amount guard triggers.
+- FinanceModule (global):
+  - CashService: cash book and GL together; transfers and transfer reversal; closed-day hook.
+  - CashAccountsService: opening balance against equity (3000).
+  - PayablesService.
+  - SupplierPaymentsService: exact allocation, no overpayment, void.
+  - ApprovalsService: inbox, exact counts, maker-checker guard.
+- PurchasingModule:
+  - suppliers 360, duplicate check, GL statement;
+  - acquisitions: draft → submit → approve/reject → cancel, with pay-on-approval;
+  - cost engine: approve, reject, reverse, shared-cost allocation, costs posted after a sale go to
+    COGS, summary with expected profit;
+  - open payables, and aging reconciled to GL 2000.
+- ExpensesModule: post, approve, reject, reverse, pay-now, summaries.
+- WorkOrdersModule: approved items become posted costs, exactly once.
+- AccountingModule:
+  - transfers and reversal, cash book;
+  - chart, trial balance, journal, account statement;
+  - income statement and balance sheet;
+  - reconciliation of cash vs 1100, inventory vs 1300, AP vs 2000.
+- B-016 decided conservatively: the creator or submitter cannot approve their own purchase, work
+  order, pending cost or pending expense.
+- Cross-cutting fixes:
+  - idempotent replays of 200 POSTs keep status 200;
+  - branch filters use `inArray`;
+  - the `patchOf()` helper replaces zod `.partial()`, which wiped the VIN, reset `isSensitive`
+    and reactivated branches on PATCH;
+  - document numbers use the tenant's timezone year.
 
 ## Local environment notes (for resumption)
 - PostgreSQL 16 local cluster: `service postgresql start`.

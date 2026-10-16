@@ -47,3 +47,28 @@ stock count scan/submit/reconcile with write-off permission, search by VIN fragm
 
 Fixed during Phase 2: test fixtures (XMP segment length; expected transition reason for `incoming → reserved`);
 money strings in Arabic now use Unicode isolates instead of forced LTR (verified by measuring glyph positions).
+
+### Phase 3: backend integration (2026-10-16)
+Commands were run in this environment on the integrated tree, against a fresh test database
+migrated through 0005.
+
+| Command | Result |
+|---|---|
+| `pnpm --filter @autohub/shared run build` | success |
+| `cd apps/api && npx tsc --noEmit -p tsconfig.json` | clean |
+| `npx eslint apps/api/src apps/api/test packages/shared/src` | clean |
+| `cd apps/api && npx vitest run` | **12 files, 107 passed** |
+
+New specs:
+- `purchasing-core`
+- `acquisitions`
+- `suppliers-payables`
+- `expenses`
+- `work-orders`
+- `accounting`
+- `maker-checker`
+
+Every money spec checks books integrity with `assertLedgerIntegrity`: trial balance; cash book vs
+GL 1100 per account; AP sub-ledger vs GL 2000 per supplier; inventory vs GL 1300 per vehicle.
+Earlier, the parallel builders ran their specs on isolated databases (`autohub_test_a`…`e`). Their
+results were then re-verified together on `autohub_test`.
