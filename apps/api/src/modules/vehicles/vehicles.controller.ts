@@ -3,6 +3,7 @@ import { ApiConsumes, ApiTags } from '@nestjs/swagger';
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 import {
+  patchOf,
   zDocumentInput,
   zFeatureInput,
   zInspectionSave,
@@ -45,7 +46,7 @@ class OdometerDto extends createZodDto(zOdometerReading) {}
 class FeaturesDto extends createZodDto(zVehicleFeatures) {}
 class MediaUpdateDto extends createZodDto(zMediaUpdate) {}
 class MediaOrderDto extends createZodDto(zMediaOrder) {}
-class DocumentUpdateDto extends createZodDto(zDocumentInput.partial()) {}
+class DocumentUpdateDto extends createZodDto(patchOf(zDocumentInput)) {}
 class ReasonDto extends createZodDto(zReason) {}
 class MakeDto extends createZodDto(zMakeInput) {}
 class ModelDto extends createZodDto(zModelInput) {}

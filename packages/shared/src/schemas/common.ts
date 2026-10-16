@@ -115,3 +115,25 @@ export const zTenantSettings = z.object({
   statusLabels: z.record(z.string(), z.object({ ar: zText(40), en: zText(40) })).default({}),
 });
 export type TenantSettings = z.infer<typeof zTenantSettings>;
+
+type StripDefault<S> = S extends z.ZodDefault<infer I> ? I : S;
+
+function stripDefault(f: z.ZodType): z.ZodType {
+  let cur = f;
+  while (cur._zod.def.type === 'default' || cur._zod.def.type === 'prefault') {
+    cur = (cur._zod.def as unknown as { innerType: z.ZodType }).innerType;
+  }
+  return cur;
+}
+
+/**
+ * PATCH schema from a create schema: every field optional, and an ABSENT field stays absent.
+ * Zod 4's `.partial()` still applies field defaults (e.g. `isActive` → true, `priority` →
+ * 'normal'), which silently overwrites stored values on edit. Here each field loses its default
+ * before being made optional. Field transforms must map `undefined` to `undefined` (see `vin`).
+ */
+export function patchOf<T extends z.ZodRawShape>(schema: z.ZodObject<T>) {
+  const shape: Record<string, z.ZodType> = {};
+  for (const [k, f] of Object.entries(schema.shape)) shape[k] = stripDefault(f as z.ZodType).optional();
+  return z.object(shape) as unknown as z.ZodObject<{ [K in keyof T]: z.ZodOptional<StripDefault<T[K]>> }>;
+}

@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { and, desc, eq, inArray, isNull, or } from 'drizzle-orm';
+import { and, desc, eq, inArray, isNull, or, sql } from 'drizzle-orm';
 import { TenantContext } from '../../common/context';
+import { AppError } from '../../common/errors';
 import { DbService } from '../../db/db.service';
 import { approvalRequests, users } from '../../db/schema';
 
@@ -59,13 +60,55 @@ export class ApprovalsService {
       );
   }
 
-  /** Pending items the caller is allowed to decide (by permission and branch). */
-  async pendingFor(ctx: TenantContext) {
+  /**
+   * Maker-checker (B-016): whoever created or submitted a request may not approve it. `makers` are
+   * the document's creator(s); the pending request's requester is added automatically.
+   */
+  async assertNotSelfApproval(
+    ctx: TenantContext,
+    r: { type: ApprovalType; entityType: string; entityId: string; makers: Array<string | null | undefined> },
+  ): Promise<void> {
+    const [pending] = await this.dbs.db
+      .select({ requestedBy: approvalRequests.requestedBy })
+      .from(approvalRequests)
+      .where(
+        and(
+          eq(approvalRequests.type, r.type),
+          eq(approvalRequests.entityType, r.entityType),
+          eq(approvalRequests.entityId, r.entityId),
+          eq(approvalRequests.status, 'pending'),
+        ),
+      );
+    const makers = new Set([...r.makers, pending?.requestedBy].filter((x): x is string => !!x));
+    if (makers.has(ctx.userId)) {
+      throw new AppError('self_approval_forbidden', 403, 'You cannot approve a request you created or submitted; another approver must decide it');
+    }
+  }
+
+  private scope(ctx: TenantContext) {
     const perms = [...ctx.permissions];
-    if (!perms.length) return [];
     const branchCond = ctx.allBranches
       ? undefined
       : or(isNull(approvalRequests.branchId), inArray(approvalRequests.branchId, ctx.branchIds.length ? ctx.branchIds : ['00000000-0000-0000-0000-000000000000']));
+    return { perms, where: and(eq(approvalRequests.status, 'pending'), inArray(approvalRequests.requiredPermission, perms.length ? perms : ['-']), branchCond) };
+  }
+
+  /** Exact pending counts by type (no row cap), for inbox badges. */
+  async countPendingFor(ctx: TenantContext): Promise<Record<string, number>> {
+    const { perms, where } = this.scope(ctx);
+    if (!perms.length) return {};
+    const rows = await this.dbs.db
+      .select({ type: approvalRequests.type, n: sql<number>`count(*)::int` })
+      .from(approvalRequests)
+      .where(where)
+      .groupBy(approvalRequests.type);
+    return Object.fromEntries(rows.map((r) => [r.type, r.n]));
+  }
+
+  /** Pending items the caller is allowed to decide (by permission and branch). */
+  async pendingFor(ctx: TenantContext) {
+    const { perms, where } = this.scope(ctx);
+    if (!perms.length) return [];
     return this.dbs.db
       .select({
         id: approvalRequests.id,
@@ -76,11 +119,12 @@ export class ApprovalsService {
         payload: approvalRequests.payload,
         requestedAt: approvalRequests.requestedAt,
         requestedBy: users.fullName,
+        requestedById: approvalRequests.requestedBy,
         branchId: approvalRequests.branchId,
       })
       .from(approvalRequests)
       .leftJoin(users, eq(users.id, approvalRequests.requestedBy))
-      .where(and(eq(approvalRequests.status, 'pending'), inArray(approvalRequests.requiredPermission, perms), branchCond))
+      .where(where)
       .orderBy(desc(approvalRequests.requestedAt))
       .limit(500);
   }

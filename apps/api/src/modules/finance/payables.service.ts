@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { and, eq, sql } from 'drizzle-orm';
-import { d, money } from '@autohub/shared';
+import { d } from '@autohub/shared';
 import { notFound } from '../../common/errors';
 import { DbService } from '../../db/db.service';
-import { acquisitions, expenses, supplierPaymentAllocations, supplierPayments, vehicleCosts } from '../../db/schema';
+import { acquisitions, expenses, supplierPaymentAllocations, supplierPayments, vehicleCosts, vehicles } from '../../db/schema';
 
 export type PayableType = 'acquisition' | 'vehicle_cost' | 'expense';
 
@@ -67,9 +67,11 @@ export class PayablesService {
       const q = db.select().from(vehicleCosts).where(eq(vehicleCosts.id, targetId));
       const [c] = lock ? await q.for('update') : await q;
       if (!c) throw notFound('Vehicle cost');
-      // Acquisition purchase costs are settled against the acquisition document, not the cost row.
-      const payable = c.status === 'posted' && c.sourceType !== 'acquisition';
-      info = { targetType, targetId, supplierId: c.supplierId, branchId: null, label: c.description, payable, totalBase: payable ? c.amountBase : '0.00' };
+      const [v] = await db.select({ branchId: vehicles.branchId }).from(vehicles).where(eq(vehicles.id, c.vehicleId));
+      // Purchase costs are settled against the acquisition document; trade-in costs credit the
+      // customer (2100), not a supplier payable, so neither can be paid as a vehicle cost.
+      const payable = c.status === 'posted' && c.sourceType !== 'acquisition' && c.sourceType !== 'trade_in';
+      info = { targetType, targetId, supplierId: c.supplierId, branchId: v?.branchId ?? null, label: c.description, payable, totalBase: payable ? c.amountBase : '0.00' };
     } else {
       const q = db.select().from(expenses).where(eq(expenses.id, targetId));
       const [e] = lock ? await q.for('update') : await q;
@@ -86,6 +88,6 @@ export class PayablesService {
     }
     const paidBase = await this.paidBase(targetType, targetId);
     const outstanding = d(info.totalBase).minus(paidBase);
-    return { ...info, paidBase, outstandingBase: money(outstanding.isNegative() ? 0 : outstanding, 'SAR') };
+    return { ...info, paidBase, outstandingBase: (outstanding.isNegative() ? d(0) : outstanding).toFixed(2) };
   }
 }

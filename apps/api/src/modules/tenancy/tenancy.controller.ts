@@ -3,7 +3,7 @@ import { ApiTags } from '@nestjs/swagger';
 import { and, asc, eq, sql } from 'drizzle-orm';
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
-import { zBranchInput, zTenantSettings, TenantSettings } from '@autohub/shared';
+import { patchOf, zBranchInput, zTenantSettings, TenantSettings } from '@autohub/shared';
 import { Ctx, RequirePermissions, TenantContext, Authenticated } from '../../common/context';
 import { AppError, notFound } from '../../common/errors';
 import { DbService } from '../../db/db.service';
@@ -12,11 +12,11 @@ import { AuditService, diff } from '../audit/audit.service';
 import { SubscriptionService } from './subscription.service';
 
 class BranchDto extends createZodDto(zBranchInput) {}
-class BranchUpdateDto extends createZodDto(zBranchInput.partial()) {}
+class BranchUpdateDto extends createZodDto(patchOf(zBranchInput)) {}
 
 const zSettingsUpdate = z.object({
   name: z.string().trim().min(2).max(200).optional(),
-  settings: zTenantSettings.partial().optional(),
+  settings: patchOf(zTenantSettings).optional(),
 });
 class SettingsUpdateDto extends createZodDto(zSettingsUpdate) {}
 

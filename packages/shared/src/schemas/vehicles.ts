@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { VEHICLE_STATUSES } from '../vehicle-lifecycle';
-import { zIsoDate, zMoneyNonNeg, zOptText, zPaginationQuery, zPercent, zText, zUuid } from './common';
+import { zIsoDate, zMoneyNonNeg, zOptText, zPaginationQuery, zPercent, zText, zUuid, patchOf } from './common';
 
 export const BODY_TYPES = ['sedan', 'suv', 'crossover', 'hatchback', 'coupe', 'convertible', 'pickup', 'van', 'wagon', 'bus', 'truck', 'other'] as const;
 export const FUEL_TYPES = ['petrol', 'diesel', 'hybrid', 'plugin_hybrid', 'electric', 'lpg', 'cng', 'other'] as const;
@@ -37,7 +37,8 @@ const vehicleCore = {
     .pipe(z.string().max(17))
     .optional()
     .nullable()
-    .transform((v) => (v ? v : null)),
+    // Absent stays absent (PATCH must not wipe a stored VIN); empty string means "clear it".
+    .transform((v) => (v === undefined ? undefined : v ? v : null)),
   /** Old or locally-registered vehicles may carry a non-ISO chassis number. */
   vinNonStandard: z.boolean().default(false),
   engineNumber: zOptText(40),
@@ -82,7 +83,7 @@ export const zVehicleCreate = z.object({
 });
 export type VehicleCreateInput = z.infer<typeof zVehicleCreate>;
 
-export const zVehicleUpdate = z.object(vehicleCore).partial().extend({ version: z.number().int().min(1) });
+export const zVehicleUpdate = patchOf(z.object(vehicleCore)).extend({ version: z.number().int().min(1) });
 export type VehicleUpdateInput = z.infer<typeof zVehicleUpdate>;
 
 export const zVehicleStatusChange = z.object({

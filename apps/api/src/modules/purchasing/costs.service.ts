@@ -216,6 +216,7 @@ export class CostsService {
     const v = await this.vehicles.lock(c.vehicleId);
     assertBranchAccess(ctx, v.branchId);
     if (c.status !== 'pending_approval') throw conflict('cost_not_pending', 'This cost is not awaiting approval');
+    await this.approvals.assertNotSelfApproval(ctx, { type: 'vehicle_cost', entityType: 'vehicle_cost', entityId: id, makers: [c.createdBy] });
     if (v.status === 'removed') throw conflict('vehicle_removed', 'The vehicle was removed from stock');
     // If the sale was recognised while the cost waited for approval, it now hits COGS.
     const postSale = !!v.costLockedAt;
@@ -266,7 +267,29 @@ export class CostsService {
       .where(eq(vehicleCosts.id, id))
       .returning();
     const today = todayInZone(ctx.tenant.settings.timezone);
-    await this.posting.reverse({ sourceType: 'vehicle_cost', sourceId: id, event: 'cost.posted' }, 'cost.reversed', c.costDate > today ? c.costDate : today, `Reversal: ${reason}`);
+    const date = c.costDate > today ? c.costDate : today;
+    await this.posting.reverse({ sourceType: 'vehicle_cost', sourceId: id, event: 'cost.posted' }, 'cost.reversed', date, `Reversal: ${reason}`);
+    if (v.status === 'removed' && !c.postSale) {
+      // Removing the vehicle already wrote this cost off (Dr 6300 / Cr 1300), so the mirrored
+      // reversal just pushed the vehicle's inventory below zero. Undo that part of the write-off:
+      // inventory of a removed vehicle stays at zero and 6300 shrinks by the reversed amount.
+      const bal = await this.posting.balance(ACCOUNTS.INVENTORY, { vehicleId: v.id });
+      if (d(bal).isNegative()) {
+        const amount = d(bal).negated().gt(c.amountBase) ? c.amountBase : d(bal).negated().toFixed(2);
+        await this.posting.post({
+          sourceType: 'vehicle_cost',
+          sourceId: id,
+          event: 'cost.write_off_reversed',
+          date,
+          description: `${v.stockNumber}: write-off of reversed cost undone`,
+          branchId: v.branchId,
+          lines: [
+            { account: ACCOUNTS.INVENTORY, debit: amount, vehicleId: v.id },
+            { account: ACCOUNTS.INVENTORY_ADJUSTMENTS, credit: amount, vehicleId: v.id },
+          ],
+        });
+      }
+    }
     await this.audit.record({ action: 'vehicle_cost.reversed', entityType: 'vehicle', entityId: c.vehicleId, before: { status: 'posted', amountBase: c.amountBase }, after: { costId: id, reason } });
     return after!;
   }

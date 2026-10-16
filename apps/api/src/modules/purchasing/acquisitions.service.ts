@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { and, desc, eq, gte, lte, SQL, sql } from 'drizzle-orm';
+import { and, desc, eq, gte, inArray, lte, SQL, sql } from 'drizzle-orm';
 import {
   AcquisitionApproveInput,
   AcquisitionCreateInput,
@@ -172,6 +172,7 @@ export class AcquisitionsService {
     const a = await this.lock(id);
     assertBranchAccess(ctx, a.branchId);
     if (!['draft', 'pending_approval'].includes(a.status)) throw conflict('acquisition_not_pending', 'This purchase is not awaiting approval');
+    await this.approvals.assertNotSelfApproval(ctx, { type: 'acquisition', entityType: 'acquisition', entityId: a.id, makers: [a.createdBy] });
     const v = await this.vehicles.get(a.vehicleId);
     if (v.status === 'removed') throw conflict('vehicle_removed', 'The vehicle was removed from stock');
     const purchase = await this.costs.categoryByCode('purchase');
@@ -297,7 +298,8 @@ export class AcquisitionsService {
     if (q.branchId) conds.push(eq(acquisitions.branchId, q.branchId));
     if (q.from) conds.push(gte(acquisitions.purchaseDate, q.from));
     if (q.to) conds.push(lte(acquisitions.purchaseDate, q.to));
-    if (!ctx.allBranches) conds.push(sql`${acquisitions.branchId} = ANY(${ctx.branchIds.length ? ctx.branchIds : ['00000000-0000-0000-0000-000000000000']}::uuid[])`);
+    // inArray, not `= ANY(${array}::uuid[])`: Drizzle expands a JS array in sql`` into a param list.
+    if (!ctx.allBranches) conds.push(ctx.branchIds.length ? inArray(acquisitions.branchId, ctx.branchIds) : sql`false`);
     if (q.q) {
       const like = `%${q.q.replace(/[\\%_]/g, (m) => `\\${m}`)}%`;
       conds.push(sql`(${acquisitions.number} ILIKE ${like} OR ${vehicles.stockNumber} ILIKE ${like} OR ${vehicles.vin} ILIKE ${like} OR ${suppliers.name} ILIKE ${like})`);

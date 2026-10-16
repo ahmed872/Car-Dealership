@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { zCurrency, zIsoDate, zMoney, zMoneyNonNeg, zMoneyPos, zOptText, zPaginationQuery, zRate, zText, zUuid } from './common';
+import { zCurrency, zIsoDate, zMoney, zMoneyNonNeg, zMoneyPos, zOptText, zPaginationQuery, zRate, zText, zUuid, patchOf } from './common';
 import { zVehicleCreate } from './vehicles';
 
 export const SUPPLIER_TYPES = ['individual', 'company', 'auction', 'importer', 'dealer', 'workshop', 'other'] as const;
@@ -214,7 +214,7 @@ export const zWorkOrderCreate = z.object({
   supplierId: zUuid.optional().nullable(),
   estimatedCost: zMoneyNonNeg.optional().nullable(),
 });
-export const zWorkOrderUpdate = zWorkOrderCreate.omit({ vehicleId: true }).partial();
+export const zWorkOrderUpdate = patchOf(zWorkOrderCreate.omit({ vehicleId: true }));
 export const zWorkOrderItem = z.object({
   kind: z.enum(WORK_ORDER_ITEM_KINDS),
   description: zText(300).min(2),

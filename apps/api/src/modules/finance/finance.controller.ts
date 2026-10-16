@@ -4,6 +4,7 @@ import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 import { zCashAccountCreate, zCashAccountUpdate, zPaginationQuery, zReasonRequired, zSupplierPaymentCreate, zUuid } from '@autohub/shared';
 import { Authenticated, Ctx, Idempotent, RequirePermissions, TenantContext } from '../../common/context';
+import { APPROVAL_TYPES } from '../../db/schema';
 import { ApprovalsService } from './approvals.service';
 import { CashAccountsService } from './cash-accounts.service';
 import { SupplierPaymentsService } from './supplier-payments.service';
@@ -59,11 +60,25 @@ export class SupplierPaymentsController {
 export class ApprovalsController {
   constructor(private readonly approvals: ApprovalsService) {}
 
-  /** What the caller can decide right now (filtered by permission and branch). */
+  /**
+   * What awaits a decision the caller is permitted to make (permission + branch). Items the caller
+   * raised are flagged `canDecide: false` — maker-checker forbids approving your own request.
+   */
   @Get()
   @Authenticated()
-  pending(@Ctx() ctx: TenantContext) {
-    return this.approvals.pendingFor(ctx);
+  async pending(@Ctx() ctx: TenantContext) {
+    const items = await this.approvals.pendingFor(ctx);
+    return items.map((i) => ({ ...i, canDecide: i.requestedById !== ctx.userId }));
+  }
+
+  /** Exact inbox badge counts (same permission/branch filter as GET /approvals, no row cap). */
+  @Get('summary')
+  @Authenticated()
+  async summary(@Ctx() ctx: TenantContext) {
+    const counts = await this.approvals.countPendingFor(ctx);
+    const byType = Object.fromEntries(APPROVAL_TYPES.map((t) => [t, counts[t] ?? 0])) as Record<string, number>;
+    const total = Object.values(byType).reduce((a, b) => a + b, 0);
+    return { total, byType, truncated: false };
   }
 }
 

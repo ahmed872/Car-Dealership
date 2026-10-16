@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { and, desc, eq, inArray, sql, SQL } from 'drizzle-orm';
+import { and, desc, eq, inArray, isNull, or, sql, SQL } from 'drizzle-orm';
 import { CurrencyCode, d, money, SupplierPaymentInput, sum, todayInZone } from '@autohub/shared';
 import { assertBranchAccess, assertPermission, TenantContext } from '../../common/context';
 import { conflict, notFound, unprocessable } from '../../common/errors';
@@ -142,7 +142,8 @@ export class SupplierPaymentsService {
     if (f.status) conds.push(eq(supplierPayments.status, f.status));
     // Payments from a branch's cash box are visible to that branch; company-level accounts to all.
     if (!ctx.allBranches) {
-      conds.push(sql`(${cashAccounts.branchId} IS NULL OR ${cashAccounts.branchId} = ANY(${ctx.branchIds.length ? ctx.branchIds : ['00000000-0000-0000-0000-000000000000']}::uuid[]))`);
+      // inArray, not `= ANY(${array}::uuid[])`: Drizzle expands a JS array in sql`` into a param list.
+      conds.push(ctx.branchIds.length ? or(isNull(cashAccounts.branchId), inArray(cashAccounts.branchId, ctx.branchIds))! : isNull(cashAccounts.branchId));
     }
     const where = conds.length ? and(...conds) : undefined;
     const items = await this.dbs.db

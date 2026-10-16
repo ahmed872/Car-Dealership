@@ -9,17 +9,12 @@ import {
   zCostAllocation,
   zDecisionNote,
   zOwnershipTransfer,
-  zPaginationQuery,
   zReasonRequired,
-  zSupplierInput,
-  SUPPLIER_TYPES,
   zVehicleCostCreate,
 } from '@autohub/shared';
-import { z } from 'zod';
 import { Authenticated, Ctx, Idempotent, RequirePermissions, TenantContext } from '../../common/context';
 import { AcquisitionsService } from './acquisitions.service';
 import { CostsService } from './costs.service';
-import { SuppliersService } from './suppliers.service';
 
 class AcquisitionCreateDto extends createZodDto(zAcquisitionCreate) {}
 class AcquisitionUpdateDto extends createZodDto(zAcquisitionUpdate) {}
@@ -30,41 +25,6 @@ class ReasonDto extends createZodDto(zReasonRequired) {}
 class NoteDto extends createZodDto(zDecisionNote) {}
 class CostCreateDto extends createZodDto(zVehicleCostCreate) {}
 class CostAllocationDto extends createZodDto(zCostAllocation) {}
-class SupplierDto extends createZodDto(zSupplierInput) {}
-class SupplierUpdateDto extends createZodDto(zSupplierInput.partial()) {}
-class SupplierListQueryDto extends createZodDto(
-  zPaginationQuery.extend({ type: z.enum(SUPPLIER_TYPES).optional(), active: z.enum(['true', 'false']).optional() }),
-) {}
-
-@ApiTags('purchasing')
-@Controller('suppliers')
-export class SuppliersController {
-  constructor(private readonly suppliers: SuppliersService) {}
-
-  @Get()
-  @RequirePermissions('suppliers.read')
-  list(@Query() q: SupplierListQueryDto) {
-    return this.suppliers.list(q);
-  }
-
-  @Post()
-  @RequirePermissions('suppliers.manage')
-  create(@Ctx() ctx: TenantContext, @Body() body: SupplierDto) {
-    return this.suppliers.create(ctx, body);
-  }
-
-  @Get(':id')
-  @RequirePermissions('suppliers.read')
-  get(@Param('id', ParseUUIDPipe) id: string) {
-    return this.suppliers.get(id);
-  }
-
-  @Patch(':id')
-  @RequirePermissions('suppliers.manage')
-  update(@Ctx() ctx: TenantContext, @Param('id', ParseUUIDPipe) id: string, @Body() body: SupplierUpdateDto) {
-    return this.suppliers.update(ctx, id, body);
-  }
-}
 
 @ApiTags('purchasing')
 @Controller('acquisitions')

@@ -108,8 +108,9 @@ export class IdempotencyInterceptor implements NestInterceptor {
     }
 
     const result = await lastValueFrom(next.handle(), { defaultValue: undefined });
-    const status =
-      res.statusCode && res.statusCode !== 200 ? res.statusCode : req.method === 'POST' ? 201 : 200;
+    // Nest applies the route's status (@HttpCode or the POST default 201) before interceptors run,
+    // so res.statusCode already holds the status the client receives.
+    const status = res.statusCode || (req.method === 'POST' ? 201 : 200);
     await db
       .update(idempotencyKeys)
       .set({ responseStatus: status, responseBody: (result ?? null) as object })

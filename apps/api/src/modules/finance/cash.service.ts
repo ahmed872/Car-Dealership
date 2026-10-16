@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { and, eq, sql } from 'drizzle-orm';
+import { and, eq, inArray, sql } from 'drizzle-orm';
 import { CurrencyCode, d, money } from '@autohub/shared';
 import { TenantContext } from '../../common/context';
 import { conflict, forbidden, notFound, unprocessable } from '../../common/errors';
@@ -212,8 +212,10 @@ export class CashService {
       description: t.description,
       branchId: from.branchId,
       lines: [
-        { account: ACCOUNTS.CASH, debit: amountBase, cashAccountId: to.id, memo: 'transfer_in' },
-        { account: ACCOUNTS.CASH, credit: amountBase, cashAccountId: from.id, memo: 'transfer_out' },
+        // Each leg carries its own account's branch (falls back to the entry branch when the
+        // destination is a company-level account), so per-branch GL 1100 matches the cash book.
+        { account: ACCOUNTS.CASH, debit: amountBase, cashAccountId: to.id, branchId: to.branchId, memo: 'transfer_in' },
+        { account: ACCOUNTS.CASH, credit: amountBase, cashAccountId: from.id, branchId: from.branchId, memo: 'transfer_out' },
       ],
     });
     const rateTo = d(amountBase).dividedBy(amountTo).toDecimalPlaces(8).toFixed(8);
@@ -223,5 +225,74 @@ export class CashService {
       { ...common, cashAccountId: to.id, direction: 'in', amount: amountTo, amountBase, exchangeRate: rateTo, kind: 'transfer_in' },
     ]);
     return { amount, amountTo, amountBase, journalEntryId };
+  }
+
+  /**
+   * Reverses a whole transfer: ONE mirrored GL entry (`cash_transfer.reversed`) and two opposite
+   * cash-book rows, each pointing at the leg it reverses. Both accounts are locked in the same
+   * stable order as transfer(); the destination must still hold the money it received when it is
+   * a cash box. A transfer can be reversed once (checked under the locks, and by the unique
+   * reversal_of_id / source-event indexes).
+   */
+  async reverseTransfer(ctx: TenantContext, transferId: string, businessDate: string, reason: string) {
+    const legs = await this.dbs.db
+      .select()
+      .from(cashTransactions)
+      .where(and(eq(cashTransactions.sourceType, 'cash_transfer'), eq(cashTransactions.sourceId, transferId), sql`${cashTransactions.reversalOfId} IS NULL`));
+    if (legs.length === 0) throw notFound('Cash transfer');
+    const out = legs.find((l) => l.kind === 'transfer_out');
+    const inn = legs.find((l) => l.kind === 'transfer_in');
+    if (legs.length !== 2 || !out || !inn) throw conflict('invalid_transfer', 'This transfer does not have exactly one outgoing and one incoming leg');
+
+    const [firstId, secondId] = [out.cashAccountId, inn.cashAccountId].sort();
+    const first = await this.lockAccount(ctx, firstId!);
+    const second = await this.lockAccount(ctx, secondId!);
+    const from = first.id === out.cashAccountId ? first : second;
+    const to = first.id === inn.cashAccountId ? first : second;
+
+    // Re-read under the locks: a concurrent reversal that committed meanwhile is now visible.
+    const reversed = await this.dbs.db
+      .select({ id: cashTransactions.id })
+      .from(cashTransactions)
+      .where(inArray(cashTransactions.reversalOfId, [out.id, inn.id]))
+      .limit(1);
+    if (reversed.length > 0 || (await this.posting.hasEvent('cash_transfer', transferId, 'cash_transfer.reversed'))) {
+      throw conflict('already_reversed', 'This transfer has already been reversed');
+    }
+    for (const a of [from, to]) {
+      if (!a.isActive) throw conflict('cash_account_inactive', `Cash account ${a.name} is inactive`);
+      if (CashService.closedDateChecker && (await CashService.closedDateChecker(this.dbs, a.id, businessDate))) {
+        throw conflict('cash_day_closed', `The cash day ${businessDate} is already closed for ${a.name}`);
+      }
+    }
+    if (to.type === 'cashbox') {
+      const bal = await this.balance(to.id);
+      if (d(bal.amount).lt(inn.amount)) {
+        throw conflict('insufficient_cash', 'The destination cash box no longer holds the transferred money', { available: bal.amount, required: inn.amount });
+      }
+    }
+    const description = `Reversal: ${reason}`.slice(0, 500);
+    const journalEntryId = await this.posting.reverse(
+      { sourceType: 'cash_transfer', sourceId: transferId, event: 'cash_transfer.posted' },
+      'cash_transfer.reversed',
+      businessDate,
+      description,
+    );
+    if (!journalEntryId) throw conflict('transfer_not_posted', 'The ledger entry of this transfer was not found');
+    const common = { tenantId: ctx.tenant.id, sourceType: 'cash_transfer', sourceId: transferId, businessDate, description, journalEntryId, createdBy: ctx.userId };
+    const rows = await this.dbs.db
+      .insert(cashTransactions)
+      .values([
+        { ...common, cashAccountId: from.id, direction: 'in', amount: out.amount, amountBase: out.amountBase, exchangeRate: out.exchangeRate, kind: 'transfer_out_reversal', reference: out.reference, reversalOfId: out.id },
+        { ...common, cashAccountId: to.id, direction: 'out', amount: inn.amount, amountBase: inn.amountBase, exchangeRate: inn.exchangeRate, kind: 'transfer_in_reversal', reference: inn.reference, reversalOfId: inn.id },
+      ])
+      .returning({ id: cashTransactions.id, reversalOfId: cashTransactions.reversalOfId });
+    return {
+      transferId,
+      journalEntryId,
+      businessDate,
+      fromReversalId: rows.find((r) => r.reversalOfId === out.id)!.id,
+      toReversalId: rows.find((r) => r.reversalOfId === inn.id)!.id,
+    };
   }
 }
