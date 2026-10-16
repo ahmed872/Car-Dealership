@@ -12,3 +12,7 @@ export * from './schemas/common';
 export * from './schemas/admin';
 export * from './schemas/vehicles';
 export * from './schemas/purchasing';
+export * from './schemas/expenses';
+export * from './schemas/work-orders';
+export * from './schemas/accounting';
+export * from './schemas/suppliers';

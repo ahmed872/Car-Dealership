@@ -72,6 +72,27 @@ It matches the pre-installed Chromium build 1194, so no browser download is need
 Business rules (no double sale, delivery conditions) depend on fixed state semantics. Tenants can
 rename labels and choose whether inspection is mandatory before listing.
 
+### D-015 Cash book + GL written by one service
+Every money movement goes through `CashService.move/reverse/transfer`. It writes the append-only
+cash-book row and the balanced 1100 journal entry in the same transaction, so the cash book can
+never drift from the ledger. Modules never insert `cash_transactions` directly.
+
+### D-016 Payables by document allocation (no free-floating supplier balance)
+Supplier payments are allocated to specific approved documents (acquisition, vehicle cost,
+expense). Outstanding = document total − allocations of non-voided payments. This gives exact
+per-document paid status, aging by due date, and prevents overpayment, at the cost of not
+supporting unallocated advances to suppliers in v1. Supplier advances are a known gap (KNOWN_ISSUES).
+
+### D-017 Approval inbox table
+Each module owns its own status machine; `approval_requests` mirrors what is pending (type,
+entity, required permission, branch) so approvers have a single inbox filtered by their permissions.
+A partial unique index allows one pending request per (entity, type).
+
+### D-018 Phase 3 delivers expenses and cash transfers early
+The schema for operating expenses, cash accounts and transfers was needed for supplier payments, so
+these features ship in Phase 3 instead of Phase 5. Daily cash closing remains in Phase 5
+(the `CashService.closedDateChecker` hook is already enforced on every movement).
+
 ## Business assumptions
 
 ### B-001 Revenue recognition default = on delivery **[PO-CONFIRM]**
@@ -156,3 +177,29 @@ fields). All values can be overridden per tenant.
 VIN is optional (some old or local vehicles lack a 17-character VIN). When provided, the structure
 (17 characters, no I/O/Q) is validated. The ISO 3779 check digit is enforced only for
 North-American-spec vehicles (where it is mandatory); for others a mismatch is only a warning.
+
+### B-016 Acquisition approval and payment **[PO-CONFIRM]**
+Recording a purchase creates the vehicle as `incoming` immediately (so preparation can start), but
+its cost is capitalised and becomes payable only on approval by a user with
+`acquisitions.approve`. The approver may be the creator when they hold the permission (owners of
+small dealerships); the audit log records both. Approval can settle the purchase immediately from a
+base-currency cash or bank account.
+
+### B-017 Cancelling a purchase
+A purchase can be cancelled while the vehicle is unsold and not in transit, and only after any
+supplier payments are voided. Cancelling reverses the purchase price and removes the vehicle from
+stock; other capitalised costs (transport, repairs) are written off to inventory adjustments
+because they were genuinely incurred.
+
+### B-018 Cost approval threshold
+v1 uses permission-based approval: users with `costs.approve` / `expenses.approve` post directly;
+others create pending items. Amount-based thresholds per role are a future enhancement.
+
+### B-019 Cash box overdraft
+Cash boxes cannot go negative (physical cash). Bank accounts may be overdrawn (overdraft facilities
+are common) — reports flag negative bank balances.
+
+### B-020 Opening balances
+A cash/bank opening balance is posted against owner's equity (3000) and requires
+`ledger.post_manual`. Opening inventory for vehicles already in stock is entered as acquisitions
+(source "other") so each vehicle carries its own cost.

@@ -29,9 +29,18 @@ export type NumberKind = keyof typeof NUMBER_PREFIXES;
 export class NumberingService {
   constructor(private readonly dbs: DbService) {}
 
-  async next(kind: NumberKind, year: number = new Date().getUTCFullYear()): Promise<string> {
+  /** @param year defaults to the current year in the tenant's timezone (not UTC). */
+  async next(kind: NumberKind, year?: number): Promise<string> {
+    year ??= await this.tenantYear();
     const key = `${kind}:${year}`;
     const [row] = await this.dbs.query<{ n: string }>(`SELECT app_next_number($1) AS n`, [key]);
     return `${NUMBER_PREFIXES[kind]}-${year}-${String(row!.n).padStart(6, '0')}`;
+  }
+
+  private async tenantYear(): Promise<number> {
+    const [row] = await this.dbs.query<{ y: number }>(
+      `SELECT extract(year FROM now() AT TIME ZONE coalesce((SELECT settings->>'timezone' FROM tenants WHERE id = app_current_tenant()), 'UTC'))::int AS y`,
+    );
+    return Number(row!.y);
   }
 }
