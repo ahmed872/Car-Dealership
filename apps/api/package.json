@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
+    "build": "tsc -p tsconfig.build.json && node -e \"require('fs').cpSync('src/db/migrations','dist/db/migrations',{recursive:true})\"",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "start": "node dist/main.js",
     "dev": "node --watch -r @swc-node/register src/main.ts",
@@ -12,7 +12,8 @@
     "db:reset": "node -r @swc-node/register src/db/reset.ts",
     "db:seed:dev": "node -r @swc-node/register src/db/seed-dev.ts",
     "cli": "node -r @swc-node/register src/cli.ts",
-    "test": "vitest run"
+    "test": "vitest run",
+    "db:migrate:prod": "node dist/db/migrate.js"
   },
   "dependencies": {
     "@autohub/shared": "workspace:*",

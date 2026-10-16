@@ -32,15 +32,13 @@ async function main() {
         if (existing) {
           await dbs.db.update(users).set({ isPlatformAdmin: true }).where(eq(users.id, existing.id));
         } else {
-          await dbs.db
-            .insert(users)
-            .values({
-              email,
-              fullName,
-              passwordHash: hash,
-              isPlatformAdmin: true,
-              passwordChangedAt: new Date(),
-            });
+          await dbs.db.insert(users).values({
+            email,
+            fullName,
+            passwordHash: hash,
+            isPlatformAdmin: true,
+            passwordChangedAt: new Date(),
+          });
         }
       });
       console.log(`Platform admin ready: ${email}`);
