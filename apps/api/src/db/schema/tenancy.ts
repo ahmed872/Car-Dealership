@@ -51,7 +51,10 @@ export const branches = pgTable(
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
-  (t) => [uniqueIndex('branches_tenant_code_uq').on(t.tenantId, t.code), index('branches_tenant_idx').on(t.tenantId)],
+  (t) => [
+    uniqueIndex('branches_tenant_code_uq').on(t.tenantId, t.code),
+    index('branches_tenant_idx').on(t.tenantId),
+  ],
 );
 
 export const users = pgTable(
@@ -87,7 +90,10 @@ export const roles = pgTable(
     key: text('key'),
     name: text('name').notNull(),
     description: text('description'),
-    permissions: text('permissions').array().notNull().default(sql`'{}'::text[]`),
+    permissions: text('permissions')
+      .array()
+      .notNull()
+      .default(sql`'{}'::text[]`),
     maxDiscountPct: pct('max_discount_pct').notNull().default('0'),
     isSystem: boolean('is_system').notNull().default(false),
     createdAt: createdAt(),
@@ -95,7 +101,9 @@ export const roles = pgTable(
   },
   (t) => [
     uniqueIndex('roles_tenant_name_uq').on(t.tenantId, t.name),
-    uniqueIndex('roles_tenant_key_uq').on(t.tenantId, t.key).where(sql`key IS NOT NULL`),
+    uniqueIndex('roles_tenant_key_uq')
+      .on(t.tenantId, t.key)
+      .where(sql`key IS NOT NULL`),
     check('roles_discount_chk', sql`max_discount_pct >= 0 AND max_discount_pct <= 100`),
   ],
 );
@@ -243,7 +251,10 @@ export const subscriptionPlans = pgTable(
     maxUsers: integer('max_users'),
     maxBranches: integer('max_branches'),
     maxVehicles: integer('max_vehicles'),
-    features: text('features').array().notNull().default(sql`'{}'::text[]`),
+    features: text('features')
+      .array()
+      .notNull()
+      .default(sql`'{}'::text[]`),
     priceMonthly: money('price_monthly'),
     currency: text('currency'),
     isActive: boolean('is_active').notNull().default(true),

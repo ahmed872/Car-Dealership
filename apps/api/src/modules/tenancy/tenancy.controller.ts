@@ -62,17 +62,30 @@ export class TenancyController {
         const key = k as keyof TenantSettings;
         const prev = current.settings[key];
         (merged as Record<string, unknown>)[key] =
-          prev && typeof prev === 'object' && !Array.isArray(prev) && typeof v === 'object' && !Array.isArray(v) ? { ...prev, ...v } : v;
+          prev &&
+          typeof prev === 'object' &&
+          !Array.isArray(prev) &&
+          typeof v === 'object' &&
+          !Array.isArray(v)
+            ? { ...prev, ...v }
+            : v;
       }
     }
     const validated = zTenantSettings.parse(merged);
-    const changedLocked = LOCKED_AFTER_POSTING.filter((k) => JSON.stringify(validated[k]) !== JSON.stringify(current.settings[k]));
+    const changedLocked = LOCKED_AFTER_POSTING.filter(
+      (k) => JSON.stringify(validated[k]) !== JSON.stringify(current.settings[k]),
+    );
     if (changedLocked.length) {
       const [posted] = await db.select({ n: sql<number>`count(*)::int` }).from(journalEntries);
       if ((posted?.n ?? 0) > 0) {
-        throw new AppError('setting_locked', 409, 'These settings cannot change after financial transactions exist', {
-          settings: changedLocked,
-        });
+        throw new AppError(
+          'setting_locked',
+          409,
+          'These settings cannot change after financial transactions exist',
+          {
+            settings: changedLocked,
+          },
+        );
       }
     }
     const [updated] = await db
@@ -80,8 +93,16 @@ export class TenancyController {
       .set({ name: body.name ?? current.name, settings: validated, updatedAt: new Date() })
       .where(eq(tenants.id, ctx.tenant.id))
       .returning();
-    const changes = diff({ name: current.name, settings: current.settings }, { name: updated!.name, settings: updated!.settings });
-    await this.audit.record({ action: 'company.updated', entityType: 'tenant', entityId: ctx.tenant.id, ...changes });
+    const changes = diff(
+      { name: current.name, settings: current.settings },
+      { name: updated!.name, settings: updated!.settings },
+    );
+    await this.audit.record({
+      action: 'company.updated',
+      entityType: 'tenant',
+      entityId: ctx.tenant.id,
+      ...changes,
+    });
     return { id: updated!.id, name: updated!.name, settings: updated!.settings };
   }
 
@@ -110,16 +131,24 @@ export class TenancyController {
     const [before] = await db.select().from(branches).where(eq(branches.id, id)).for('update');
     if (!before) throw notFound('Branch');
     if (body.isActive === false && before.isActive) {
-      const [active] = await db.select({ n: sql<number>`count(*)::int` }).from(branches).where(and(eq(branches.isActive, true)));
-      if ((active?.n ?? 0) <= 1) throw new AppError('last_branch', 409, 'At least one branch must remain active');
+      const [active] = await db
+        .select({ n: sql<number>`count(*)::int` })
+        .from(branches)
+        .where(and(eq(branches.isActive, true)));
+      if ((active?.n ?? 0) <= 1)
+        throw new AppError('last_branch', 409, 'At least one branch must remain active');
     }
     const [after] = await db
       .update(branches)
       .set({ ...body, updatedAt: new Date() })
       .where(eq(branches.id, id))
       .returning();
-    await this.audit.record({ action: 'branch.updated', entityType: 'branch', entityId: id, ...diff(before, after!) });
+    await this.audit.record({
+      action: 'branch.updated',
+      entityType: 'branch',
+      entityId: id,
+      ...diff(before, after!),
+    });
     return after;
   }
-
 }

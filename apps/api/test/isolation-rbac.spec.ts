@@ -1,7 +1,16 @@
 import type { INestApplication } from '@nestjs/common';
 import { Pool } from 'pg';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { addMember, Client, closeApp, createPlatformAdmin, createTenant, getApp, PASSWORD, TestTenant } from './helpers';
+import {
+  addMember,
+  Client,
+  closeApp,
+  createPlatformAdmin,
+  createTenant,
+  getApp,
+  PASSWORD,
+  TestTenant,
+} from './helpers';
 
 describe('tenant isolation', () => {
   let app: INestApplication;
@@ -65,7 +74,9 @@ describe('tenant isolation', () => {
       await client.query(`SELECT set_config('app.tenant_id', $1, true)`, [a.tenantId]);
       const { rows } = await client.query('SELECT DISTINCT tenant_id FROM branches');
       expect(rows.map((r) => r.tenant_id)).toEqual([a.tenantId]);
-      const other = await client.query('SELECT count(*)::int AS n FROM audit_logs WHERE tenant_id = $1', [b.tenantId]);
+      const other = await client.query('SELECT count(*)::int AS n FROM audit_logs WHERE tenant_id = $1', [
+        b.tenantId,
+      ]);
       expect(other.rows[0].n).toBe(0);
       // Writing a row for another tenant violates the policy.
       await expect(
@@ -97,7 +108,9 @@ describe('role-based access control', () => {
   it('sales rep cannot manage users, roles or settings', async () => {
     const rep = await addMember(app, t, 'sales_rep');
     expect((await rep.client.get('/users')).status).toBe(403);
-    expect((await rep.client.post('/roles', { name: 'Mine', permissions: ['users.manage'] })).status).toBe(403);
+    expect((await rep.client.post('/roles', { name: 'Mine', permissions: ['users.manage'] })).status).toBe(
+      403,
+    );
     expect((await rep.client.patch('/company', { name: 'Renamed' })).status).toBe(403);
     const forbidden = await rep.client.post('/branches', { name: 'B9', code: 'B9' });
     expect(forbidden.status).toBe(403);
@@ -142,10 +155,20 @@ describe('role-based access control', () => {
 
   it('custom roles: create, assign, enforce, and refuse deleting while in use', async () => {
     const t2 = await createTenant(app, await createPlatformAdmin(app));
-    const role = await t2.owner.post('/roles', { name: 'Viewer', permissions: ['users.read'], maxDiscountPct: '0' });
+    const role = await t2.owner.post('/roles', {
+      name: 'Viewer',
+      permissions: ['users.read'],
+      maxDiscountPct: '0',
+    });
     expect(role.status).toBe(201);
     const email = `viewer${Date.now()}@x.test`;
-    const add = await t2.owner.post('/users', { email, fullName: 'Viewer', password: PASSWORD, roleId: role.body.id, allBranches: true });
+    const add = await t2.owner.post('/users', {
+      email,
+      fullName: 'Viewer',
+      password: PASSWORD,
+      roleId: role.body.id,
+      allBranches: true,
+    });
     expect(add.status).toBe(201);
     const viewer = await Client.login(app, email);
     expect((await viewer.get('/users')).status).toBe(200);

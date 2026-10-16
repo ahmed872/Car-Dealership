@@ -8,7 +8,10 @@ import { ALLOCATION_COMPONENTS } from '../finance/installments';
 export const zUuid = z.uuid();
 export const zMoney = z.string().trim().regex(MONEY_REGEX, 'invalid_amount');
 export const zMoneyNonNeg = zMoney.refine((v) => !v.startsWith('-'), 'must_be_non_negative');
-export const zMoneyPos = zMoney.refine((v) => !v.startsWith('-') && !/^0+(\.0+)?$/.test(v), 'must_be_positive');
+export const zMoneyPos = zMoney.refine(
+  (v) => !v.startsWith('-') && !/^0+(\.0+)?$/.test(v),
+  'must_be_positive',
+);
 export const zRate = z.string().trim().regex(RATE_REGEX, 'invalid_rate');
 export const zPercent = z.string().trim().regex(PERCENT_REGEX, 'invalid_percent');
 export const zIsoDate = z.string().regex(ISO_DATE_REGEX, 'invalid_date');
@@ -77,7 +80,10 @@ export const zTenantSettings = z.object({
   installments: z.object({
     enabled: z.boolean().default(false),
     defaultMethod: z.enum(INSTALLMENT_METHODS).default('flat'),
-    allocationOrder: z.array(z.enum(ALLOCATION_COMPONENTS)).length(3).default(['fees', 'interest', 'principal']),
+    allocationOrder: z
+      .array(z.enum(ALLOCATION_COMPONENTS))
+      .length(3)
+      .default(['fees', 'interest', 'principal']),
     futureInterestPolicyFlat: z.enum(FUTURE_INTEREST_POLICIES).default('charge_all'),
     futureInterestPolicyReducing: z.enum(FUTURE_INTEREST_POLICIES).default('charge_current_period'),
     lateFeePolicy: z.literal('none').default('none'),

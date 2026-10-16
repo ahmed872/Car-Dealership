@@ -37,18 +37,20 @@ export class SessionService {
     const token = randomToken(32);
     const csrfToken = randomToken(24);
     const expiresAt = new Date(Date.now() + env.SESSION_ABSOLUTE_HOURS * 3600_000);
-    const [row] = await this.noTenant(() => this.dbs.db
-      .insert(sessions)
-      .values({
-        userId,
-        tenantId,
-        tokenHash: sha256Hex(token),
-        csrfHash: sha256Hex(csrfToken),
-        ip,
-        userAgent: userAgent?.slice(0, 300) ?? null,
-        expiresAt,
-      })
-      .returning({ id: sessions.id }));
+    const [row] = await this.noTenant(() =>
+      this.dbs.db
+        .insert(sessions)
+        .values({
+          userId,
+          tenantId,
+          tokenHash: sha256Hex(token),
+          csrfHash: sha256Hex(csrfToken),
+          ip,
+          userAgent: userAgent?.slice(0, 300) ?? null,
+          expiresAt,
+        })
+        .returning({ id: sessions.id }),
+    );
     return { token, csrfToken, sessionId: row!.id, expiresAt };
   }
 
@@ -104,12 +106,17 @@ export class SessionService {
   }
 
   async setTenant(sessionId: string, tenantId: string | null): Promise<void> {
-    await this.noTenant(() => this.dbs.db.update(sessions).set({ tenantId }).where(eq(sessions.id, sessionId)));
+    await this.noTenant(() =>
+      this.dbs.db.update(sessions).set({ tenantId }).where(eq(sessions.id, sessionId)),
+    );
   }
 
   async revoke(sessionId: string): Promise<void> {
     await this.noTenant(() =>
-      this.dbs.db.update(sessions).set({ revokedAt: new Date() }).where(and(eq(sessions.id, sessionId), isNull(sessions.revokedAt))),
+      this.dbs.db
+        .update(sessions)
+        .set({ revokedAt: new Date() })
+        .where(and(eq(sessions.id, sessionId), isNull(sessions.revokedAt))),
     );
   }
 
@@ -117,7 +124,11 @@ export class SessionService {
   async revokeAllForUser(userId: string, exceptSessionId?: string): Promise<void> {
     const conds = [eq(sessions.userId, userId), isNull(sessions.revokedAt)];
     if (exceptSessionId) conds.push(ne(sessions.id, exceptSessionId));
-    const run = () => this.dbs.db.update(sessions).set({ revokedAt: new Date() }).where(and(...conds));
+    const run = () =>
+      this.dbs.db
+        .update(sessions)
+        .set({ revokedAt: new Date() })
+        .where(and(...conds));
     if (this.dbs.inTransaction) await run();
     else await this.noTenant(run);
   }
@@ -126,7 +137,10 @@ export class SessionService {
    * Loads the tenant membership, role permissions and branch scope for a user.
    * Returns null when the user is not an active member of the tenant.
    */
-  async loadTenantContext(userId: string, tenantId: string): Promise<Omit<AuthContext, 'sessionId' | 'email' | 'fullName' | 'isPlatformAdmin' | 'userId'> | null> {
+  async loadTenantContext(
+    userId: string,
+    tenantId: string,
+  ): Promise<Omit<AuthContext, 'sessionId' | 'email' | 'fullName' | 'isPlatformAdmin' | 'userId'> | null> {
     return this.dbs.runInTenant({ tenantId, userId }, async () => {
       const db = this.dbs.db;
       const rows = await db
@@ -190,7 +204,9 @@ export class SessionService {
         .select({ tenantId: tenants.id, name: tenants.name, slug: tenants.slug })
         .from(memberships)
         .innerJoin(tenants, eq(tenants.id, memberships.tenantId))
-        .where(and(eq(memberships.userId, userId), eq(memberships.status, 'active'), eq(tenants.status, 'active')));
+        .where(
+          and(eq(memberships.userId, userId), eq(memberships.status, 'active'), eq(tenants.status, 'active')),
+        );
     // Inside a request transaction the user context is already set (policy own_membership_read).
     if (this.dbs.inTransaction && this.dbs.context?.userId === userId) return run();
     return this.dbs.runInTenant({ tenantId: null, userId }, run);

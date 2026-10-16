@@ -51,10 +51,13 @@ function equalPartsLastAbsorbs(total: Dec, n: number, currency: CurrencyCode, mo
 
 export function validateScheduleInput(input: ScheduleInput): string[] {
   const errors: string[] = [];
-  if (!Number.isInteger(input.count) || input.count < 1 || input.count > 360) errors.push('count must be 1..360');
-  if (![1, 2, 3, 6, 12].includes(input.frequencyMonths)) errors.push('frequencyMonths must be 1, 2, 3, 6 or 12');
+  if (!Number.isInteger(input.count) || input.count < 1 || input.count > 360)
+    errors.push('count must be 1..360');
+  if (![1, 2, 3, 6, 12].includes(input.frequencyMonths))
+    errors.push('frequencyMonths must be 1, 2, 3, 6 or 12');
   if (d(input.principal).lte(0)) errors.push('principal must be positive');
-  if (d(input.annualRatePct).isNegative() || d(input.annualRatePct).gt(100)) errors.push('annualRatePct must be 0..100');
+  if (d(input.annualRatePct).isNegative() || d(input.annualRatePct).gt(100))
+    errors.push('annualRatePct must be 0..100');
   if (input.feesTotal && d(input.feesTotal).isNegative()) errors.push('feesTotal must be >= 0');
   try {
     parseIsoDate(input.firstDueDate);
@@ -130,7 +133,12 @@ export function buildSchedule(input: ScheduleInput): Schedule {
   if (!d(totals.total).eq(d(totals.principal).plus(totals.interest).plus(totals.fees))) {
     throw new Error('Schedule total mismatch');
   }
-  return { method: input.method, periodicRatePct: periodic.times(100).toDecimalPlaces(8).toString(), lines, totals };
+  return {
+    method: input.method,
+    periodicRatePct: periodic.times(100).toDecimalPlaces(8).toString(),
+    lines,
+    totals,
+  };
 }
 
 export const ALLOCATION_COMPONENTS = ['fees', 'interest', 'principal'] as const;
@@ -179,7 +187,11 @@ export function allocatePayment(
       interest: d(inst.interestDue).minus(inst.interestPaid),
       principal: d(inst.principalDue).minus(inst.principalPaid),
     };
-    const taken: Record<AllocationComponent, Dec> = { fees: new Dec(0), interest: new Dec(0), principal: new Dec(0) };
+    const taken: Record<AllocationComponent, Dec> = {
+      fees: new Dec(0),
+      interest: new Dec(0),
+      principal: new Dec(0),
+    };
     for (const comp of order) {
       if (remaining.isZero()) break;
       const take = Dec.min(remaining, Dec.max(outstanding[comp], 0));

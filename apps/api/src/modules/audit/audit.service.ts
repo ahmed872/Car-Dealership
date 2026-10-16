@@ -71,7 +71,15 @@ export class AuditService {
     });
   }
 
-  async list(filter: { entityType?: string; entityId?: string; actorUserId?: string; from?: string; to?: string; page: number; pageSize: number }) {
+  async list(filter: {
+    entityType?: string;
+    entityId?: string;
+    actorUserId?: string;
+    from?: string;
+    to?: string;
+    page: number;
+    pageSize: number;
+  }) {
     const db = this.dbs.db;
     const conds: SQL[] = [];
     if (filter.entityType) conds.push(eq(auditLogs.entityType, filter.entityType));
@@ -103,16 +111,32 @@ export class AuditService {
         .orderBy(desc(auditLogs.seq))
         .limit(filter.pageSize)
         .offset((filter.page - 1) * filter.pageSize),
-      db.select({ total: sql<number>`count(*)::int` }).from(auditLogs).where(where),
+      db
+        .select({ total: sql<number>`count(*)::int` })
+        .from(auditLogs)
+        .where(where),
     ]);
     return { items, total: count?.total ?? 0, page: filter.page, pageSize: filter.pageSize };
   }
 
-  async verify(): Promise<{ ok: boolean; checked: number; firstBadSeq: number | null; reason: string | null }> {
-    const rows = await this.dbs.query<{ ok: boolean; checked: string; first_bad_seq: string | null; reason: string | null }>(
-      'SELECT * FROM audit_verify_chain()',
-    );
+  async verify(): Promise<{
+    ok: boolean;
+    checked: number;
+    firstBadSeq: number | null;
+    reason: string | null;
+  }> {
+    const rows = await this.dbs.query<{
+      ok: boolean;
+      checked: string;
+      first_bad_seq: string | null;
+      reason: string | null;
+    }>('SELECT * FROM audit_verify_chain()');
     const r = rows[0]!;
-    return { ok: r.ok, checked: Number(r.checked), firstBadSeq: r.first_bad_seq === null ? null : Number(r.first_bad_seq), reason: r.reason };
+    return {
+      ok: r.ok,
+      checked: Number(r.checked),
+      firstBadSeq: r.first_bad_seq === null ? null : Number(r.first_bad_seq),
+      reason: r.reason,
+    };
   }
 }

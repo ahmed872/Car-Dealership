@@ -43,7 +43,8 @@ export interface CommissionResult {
 export function validateCommissionRule(rule: CommissionRule): string[] {
   const errors: string[] = [];
   const pct = (v: string | undefined, name: string) => {
-    if (v === undefined || !/^\d{1,3}(\.\d{1,4})?$/.test(v) || d(v).gt(100)) errors.push(`${name} must be 0..100`);
+    if (v === undefined || !/^\d{1,3}(\.\d{1,4})?$/.test(v) || d(v).gt(100))
+      errors.push(`${name} must be 0..100`);
   };
   if (rule.type === 'pct_of_profit' || rule.type === 'pct_of_sale') pct(rule.ratePct, 'ratePct');
   if (rule.type === 'fixed' && (rule.fixedAmount === undefined || d(rule.fixedAmount).isNegative())) {
@@ -53,10 +54,12 @@ export function validateCommissionRule(rule: CommissionRule): string[] {
     if (!rule.tiers?.length) errors.push('tiers required');
     rule.tiers?.forEach((t, i) => pct(t.ratePct, `tiers[${i}].ratePct`));
     const froms = (rule.tiers ?? []).map((t) => d(t.from));
-    for (let i = 1; i < froms.length; i++) if (!froms[i]!.gt(froms[i - 1]!)) errors.push('tiers must be strictly ascending');
+    for (let i = 1; i < froms.length; i++)
+      if (!froms[i]!.gt(froms[i - 1]!)) errors.push('tiers must be strictly ascending');
     if (froms[0] && !froms[0].isZero()) errors.push('first tier must start at 0');
   }
-  if (rule.minAmount && rule.capAmount && d(rule.minAmount).gt(rule.capAmount)) errors.push('minAmount > capAmount');
+  if (rule.minAmount && rule.capAmount && d(rule.minAmount).gt(rule.capAmount))
+    errors.push('minAmount > capAmount');
   return errors;
 }
 
@@ -64,7 +67,11 @@ export function computeCommission(rule: CommissionRule, input: CommissionInput):
   const cur = input.currency;
   const profit = d(input.grossProfit);
   const saleNet = d(input.saleNet);
-  const zero = (why: string): CommissionResult => ({ base: money(0, cur), amount: money(0, cur), explanation: why });
+  const zero = (why: string): CommissionResult => ({
+    base: money(0, cur),
+    amount: money(0, cur),
+    explanation: why,
+  });
 
   if (rule.requirePositiveProfit && profit.lte(0)) return zero('no commission: gross profit is not positive');
 
@@ -112,7 +119,8 @@ export function computeCommission(rule: CommissionRule, input: CommissionInput):
   }
 
   amount = roundMoney(amount, cur);
-  if (rule.minAmount && amount.gt(0) && amount.lt(d(rule.minAmount))) amount = roundMoney(rule.minAmount, cur);
+  if (rule.minAmount && amount.gt(0) && amount.lt(d(rule.minAmount)))
+    amount = roundMoney(rule.minAmount, cur);
   if (rule.capAmount && amount.gt(d(rule.capAmount))) amount = roundMoney(rule.capAmount, cur);
   return { base: money(base, cur), amount: money(amount, cur), explanation };
 }

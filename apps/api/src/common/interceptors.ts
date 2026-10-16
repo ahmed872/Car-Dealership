@@ -21,12 +21,19 @@ export class TenantTransactionInterceptor implements NestInterceptor {
   ) {}
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
-    const noTx = this.reflector.getAllAndOverride<boolean>(NO_TRANSACTION, [context.getHandler(), context.getClass()]);
+    const noTx = this.reflector.getAllAndOverride<boolean>(NO_TRANSACTION, [
+      context.getHandler(),
+      context.getClass(),
+    ]);
     if (noTx) return next.handle();
     const req = context.switchToHttp().getRequest<AppRequest>();
     const tenantId = req.auth?.tenant?.id ?? null;
     const userId = req.auth?.userId ?? null;
-    return from(this.dbs.runInTenant({ tenantId, userId }, () => lastValueFrom(next.handle(), { defaultValue: undefined })));
+    return from(
+      this.dbs.runInTenant({ tenantId, userId }, () =>
+        lastValueFrom(next.handle(), { defaultValue: undefined }),
+      ),
+    );
   }
 }
 
@@ -46,7 +53,10 @@ export class IdempotencyInterceptor implements NestInterceptor {
   ) {}
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
-    const enabled = this.reflector.getAllAndOverride<boolean>(IDEMPOTENT, [context.getHandler(), context.getClass()]);
+    const enabled = this.reflector.getAllAndOverride<boolean>(IDEMPOTENT, [
+      context.getHandler(),
+      context.getClass(),
+    ]);
     if (!enabled) return next.handle();
     return from(this.handle(context, next));
   }
@@ -57,13 +67,18 @@ export class IdempotencyInterceptor implements NestInterceptor {
     const raw = req.headers['idempotency-key'];
     const key = Array.isArray(raw) ? raw[0] : raw;
     if (!key || !KEY_RE.test(key)) {
-      throw badRequest('idempotency_key_required', 'An Idempotency-Key header (8-128 safe characters) is required');
+      throw badRequest(
+        'idempotency_key_required',
+        'An Idempotency-Key header (8-128 safe characters) is required',
+      );
     }
     const tenantId = req.auth?.tenant?.id;
     const userId = req.auth?.userId;
     if (!tenantId || !userId) throw new AppError('no_active_tenant', 403, 'Select a company to continue');
     const path = req.route?.path ? `${req.baseUrl ?? ''}${req.route.path}` : req.path;
-    const requestHash = sha256Hex(`${req.method} ${req.originalUrl.split('?')[0]} ${stableStringify(req.body ?? null)}`);
+    const requestHash = sha256Hex(
+      `${req.method} ${req.originalUrl.split('?')[0]} ${stableStringify(req.body ?? null)}`,
+    );
 
     const db = this.dbs.db;
     const inserted = await db
@@ -79,16 +94,22 @@ export class IdempotencyInterceptor implements NestInterceptor {
         .where(sql`${idempotencyKeys.tenantId} = ${tenantId} AND ${idempotencyKeys.key} = ${key}`);
       if (!existing) throw conflict('idempotency_retry', 'Please retry the request');
       if (existing.requestHash !== requestHash || existing.userId !== userId) {
-        throw new AppError('idempotency_key_reused', 422, 'This Idempotency-Key was already used for a different request');
+        throw new AppError(
+          'idempotency_key_reused',
+          422,
+          'This Idempotency-Key was already used for a different request',
+        );
       }
-      if (existing.responseStatus === null) throw conflict('idempotency_in_progress', 'The original request is still being processed');
+      if (existing.responseStatus === null)
+        throw conflict('idempotency_in_progress', 'The original request is still being processed');
       res.status(existing.responseStatus);
       res.setHeader('Idempotent-Replayed', 'true');
       return existing.responseBody;
     }
 
     const result = await lastValueFrom(next.handle(), { defaultValue: undefined });
-    const status = res.statusCode && res.statusCode !== 200 ? res.statusCode : req.method === 'POST' ? 201 : 200;
+    const status =
+      res.statusCode && res.statusCode !== 200 ? res.statusCode : req.method === 'POST' ? 201 : 200;
     await db
       .update(idempotencyKeys)
       .set({ responseStatus: status, responseBody: (result ?? null) as object })

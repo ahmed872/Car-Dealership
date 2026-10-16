@@ -16,7 +16,10 @@ import { DbService } from './db/db.service';
 
 export async function createApp(opts: { logger?: boolean } = {}): Promise<INestApplication> {
   const env = getEnv();
-  const app = await NestFactory.create<NestExpressApplication>(AppModule, { bufferLogs: true, bodyParser: false });
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, {
+    bufferLogs: true,
+    bodyParser: false,
+  });
   if (opts.logger !== false) app.useLogger(app.get(Logger));
   app.set('trust proxy', env.TRUST_PROXY ? 1 : false);
   app.disable('x-powered-by');
@@ -30,14 +33,20 @@ export async function createApp(opts: { logger?: boolean } = {}): Promise<INestA
   app.use(urlencoded({ extended: false, limit: '256kb' }));
   app.use(cookieParser());
   app.use(requestInfoMiddleware);
-  app.enableCors({ origin: env.origins, credentials: true, exposedHeaders: ['X-Request-Id', 'Idempotent-Replayed', 'Content-Disposition'] });
+  app.enableCors({
+    origin: env.origins,
+    credentials: true,
+    exposedHeaders: ['X-Request-Id', 'Idempotent-Replayed', 'Content-Disposition'],
+  });
   app.setGlobalPrefix('api/v1');
   app.useGlobalFilters(new GlobalErrorFilter());
 
   if (env.NODE_ENV !== 'production') {
     const config = new DocumentBuilder()
       .setTitle('AutoHub Pro API')
-      .setDescription('Dealership management platform — REST API v1. Cookie session + X-CSRF-Token for mutations.')
+      .setDescription(
+        'Dealership management platform — REST API v1. Cookie session + X-CSRF-Token for mutations.',
+      )
       .setVersion('1.0')
       .addCookieAuth('ah_sid')
       .build();

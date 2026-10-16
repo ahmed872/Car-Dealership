@@ -41,10 +41,20 @@ export function computeTax(input: TaxInput): TaxResult {
     if (input.amountIncludesTax) {
       const tax = roundMoney(amount.times(rate).dividedBy(rate.plus(100)), cur, mode);
       const net = amount.minus(tax);
-      return { net: money(net, cur), tax: money(tax, cur), gross: money(amount, cur), taxableBase: money(net, cur) };
+      return {
+        net: money(net, cur),
+        tax: money(tax, cur),
+        gross: money(amount, cur),
+        taxableBase: money(net, cur),
+      };
     }
     const tax = roundMoney(amount.times(rate).dividedBy(100), cur, mode);
-    return { net: money(amount, cur), tax: money(tax, cur), gross: money(amount.plus(tax), cur), taxableBase: money(amount, cur) };
+    return {
+      net: money(amount, cur),
+      tax: money(tax, cur),
+      gross: money(amount.plus(tax), cur),
+      taxableBase: money(amount, cur),
+    };
   }
 
   // Margin scheme: tax applies only to the positive margin over the vehicle's cost.
@@ -61,5 +71,10 @@ export function computeTax(input: TaxInput): TaxResult {
     };
   }
   const tax = roundMoney(margin.times(rate).dividedBy(100), cur, mode);
-  return { net: money(amount, cur), tax: money(tax, cur), gross: money(amount.plus(tax), cur), taxableBase: money(margin, cur) };
+  return {
+    net: money(amount, cur),
+    tax: money(tax, cur),
+    gross: money(amount.plus(tax), cur),
+    taxableBase: money(margin, cur),
+  };
 }

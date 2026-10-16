@@ -39,10 +39,18 @@ export class SubscriptionService {
 
   async usage() {
     const [[u], [b]] = await Promise.all([
-      this.dbs.db.select({ n: sql<number>`count(*)::int` }).from(memberships).where(eq(memberships.status, 'active')),
-      this.dbs.db.select({ n: sql<number>`count(*)::int` }).from(branches).where(eq(branches.isActive, true)),
+      this.dbs.db
+        .select({ n: sql<number>`count(*)::int` })
+        .from(memberships)
+        .where(eq(memberships.status, 'active')),
+      this.dbs.db
+        .select({ n: sql<number>`count(*)::int` })
+        .from(branches)
+        .where(eq(branches.isActive, true)),
     ]);
-    const vehicles = SubscriptionService.vehicleCounter ? await SubscriptionService.vehicleCounter(this.dbs) : 0;
+    const vehicles = SubscriptionService.vehicleCounter
+      ? await SubscriptionService.vehicleCounter(this.dbs)
+      : 0;
     return { users: u?.n ?? 0, branches: b?.n ?? 0, vehicles };
   }
 
@@ -50,15 +58,25 @@ export class SubscriptionService {
   async assertWithinLimit(kind: LimitKind): Promise<void> {
     const sub = await this.current();
     if (!sub) throw new AppError('subscription_inactive', 402, 'Your subscription is not active');
-    const limit = kind === 'users' ? sub.plan.maxUsers : kind === 'branches' ? sub.plan.maxBranches : sub.plan.maxVehicles;
+    const limit =
+      kind === 'users'
+        ? sub.plan.maxUsers
+        : kind === 'branches'
+          ? sub.plan.maxBranches
+          : sub.plan.maxVehicles;
     if (limit === null || limit === undefined) return;
     const usage = await this.usage();
     if (usage[kind] >= limit) {
-      throw new AppError('plan_limit_reached', 402, `Your plan allows up to ${limit} ${kind}. Upgrade to add more.`, {
-        kind,
-        limit,
-        usage: usage[kind],
-      });
+      throw new AppError(
+        'plan_limit_reached',
+        402,
+        `Your plan allows up to ${limit} ${kind}. Upgrade to add more.`,
+        {
+          kind,
+          limit,
+          usage: usage[kind],
+        },
+      );
     }
   }
 
@@ -67,4 +85,3 @@ export class SubscriptionService {
     return !!sub?.plan.features.includes(feature);
   }
 }
-

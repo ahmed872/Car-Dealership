@@ -3,9 +3,11 @@ import { defineConfig } from 'vitest/config';
 
 const testEnv = {
   NODE_ENV: 'test',
-  DATABASE_URL: process.env.TEST_DATABASE_URL ?? 'postgres://autohub_app:autohub_app_dev@localhost:5432/autohub_test',
+  DATABASE_URL:
+    process.env.TEST_DATABASE_URL ?? 'postgres://autohub_app:autohub_app_dev@localhost:5432/autohub_test',
   DATABASE_MIGRATION_URL:
-    process.env.TEST_DATABASE_MIGRATION_URL ?? 'postgres://autohub_owner:autohub_owner_dev@localhost:5432/autohub_test',
+    process.env.TEST_DATABASE_MIGRATION_URL ??
+    'postgres://autohub_owner:autohub_owner_dev@localhost:5432/autohub_test',
   APP_ORIGINS: 'http://localhost:5173',
   APP_ENCRYPTION_KEY: 'MDEyMzQ1Njc4OWFiY2RlZjAxMjM0NTY3ODlhYmNkZWY=',
   STORAGE_DRIVER: 'local',

@@ -9,22 +9,46 @@ export const PERMISSIONS = {
   'vehicles.create': { group: 'vehicles', en: 'Create vehicles', ar: 'إضافة سيارات' },
   'vehicles.update': { group: 'vehicles', en: 'Edit vehicles', ar: 'تعديل السيارات' },
   'vehicles.change_status': { group: 'vehicles', en: 'Change vehicle status', ar: 'تغيير حالة السيارة' },
-  'vehicles.remove': { group: 'vehicles', en: 'Remove vehicle from inventory', ar: 'استبعاد سيارة من المخزون' },
+  'vehicles.remove': {
+    group: 'vehicles',
+    en: 'Remove vehicle from inventory',
+    ar: 'استبعاد سيارة من المخزون',
+  },
   'vehicles.view_cost': { group: 'vehicles', en: 'View cost & profit', ar: 'عرض التكلفة والربح' },
   'vehicles.manage_media': { group: 'vehicles', en: 'Manage photos & videos', ar: 'إدارة الصور والفيديو' },
-  'vehicles.manage_documents': { group: 'vehicles', en: 'Manage vehicle documents', ar: 'إدارة مستندات السيارة' },
-  'documents.read_sensitive': { group: 'vehicles', en: 'Read sensitive documents', ar: 'الاطلاع على المستندات الحساسة' },
+  'vehicles.manage_documents': {
+    group: 'vehicles',
+    en: 'Manage vehicle documents',
+    ar: 'إدارة مستندات السيارة',
+  },
+  'documents.read_sensitive': {
+    group: 'vehicles',
+    en: 'Read sensitive documents',
+    ar: 'الاطلاع على المستندات الحساسة',
+  },
 
   'pricing.update': { group: 'pricing', en: 'Update asking price', ar: 'تعديل سعر العرض' },
   'pricing.set_floor': { group: 'pricing', en: 'Set minimum sale price', ar: 'تحديد الحد الأدنى للبيع' },
 
   'inspections.read': { group: 'inspections', en: 'View inspections', ar: 'عرض الفحوصات' },
   'inspections.perform': { group: 'inspections', en: 'Perform inspections', ar: 'إجراء الفحوصات' },
-  'inspections.manage_templates': { group: 'inspections', en: 'Manage inspection templates', ar: 'إدارة قوالب الفحص' },
+  'inspections.manage_templates': {
+    group: 'inspections',
+    en: 'Manage inspection templates',
+    ar: 'إدارة قوالب الفحص',
+  },
 
-  'inventory.transfer': { group: 'inventory', en: 'Transfer vehicles between branches', ar: 'نقل السيارات بين الفروع' },
+  'inventory.transfer': {
+    group: 'inventory',
+    en: 'Transfer vehicles between branches',
+    ar: 'نقل السيارات بين الفروع',
+  },
   'inventory.count': { group: 'inventory', en: 'Run stock counts', ar: 'إجراء الجرد' },
-  'inventory.reconcile': { group: 'inventory', en: 'Reconcile stock count differences', ar: 'تسوية فروقات الجرد' },
+  'inventory.reconcile': {
+    group: 'inventory',
+    en: 'Reconcile stock count differences',
+    ar: 'تسوية فروقات الجرد',
+  },
 
   'suppliers.read': { group: 'purchasing', en: 'View suppliers', ar: 'عرض الموردين' },
   'suppliers.manage': { group: 'purchasing', en: 'Manage suppliers', ar: 'إدارة الموردين' },
@@ -42,7 +66,11 @@ export const PERMISSIONS = {
 
   'work_orders.read': { group: 'work_orders', en: 'View work orders', ar: 'عرض أوامر العمل' },
   'work_orders.manage': { group: 'work_orders', en: 'Manage work orders', ar: 'إدارة أوامر العمل' },
-  'work_orders.approve': { group: 'work_orders', en: 'Approve work order costs', ar: 'اعتماد تكاليف أوامر العمل' },
+  'work_orders.approve': {
+    group: 'work_orders',
+    en: 'Approve work order costs',
+    ar: 'اعتماد تكاليف أوامر العمل',
+  },
 
   'customers.read': { group: 'crm', en: 'View customers', ar: 'عرض العملاء' },
   'customers.read_all': { group: 'crm', en: "View all staff's customers", ar: 'عرض عملاء جميع الموظفين' },
@@ -52,7 +80,11 @@ export const PERMISSIONS = {
   'leads.manage': { group: 'crm', en: 'Manage leads', ar: 'إدارة الفرص البيعية' },
   'leads.assign': { group: 'crm', en: 'Assign leads', ar: 'توزيع الفرص البيعية' },
   'appointments.read': { group: 'crm', en: 'View appointments', ar: 'عرض المواعيد' },
-  'appointments.manage': { group: 'crm', en: 'Manage appointments & test drives', ar: 'إدارة المواعيد وتجارب القيادة' },
+  'appointments.manage': {
+    group: 'crm',
+    en: 'Manage appointments & test drives',
+    ar: 'إدارة المواعيد وتجارب القيادة',
+  },
 
   'reservations.read': { group: 'sales', en: 'View reservations', ar: 'عرض الحجوزات' },
   'reservations.create': { group: 'sales', en: 'Create reservations', ar: 'إنشاء الحجوزات' },
@@ -61,10 +93,18 @@ export const PERMISSIONS = {
   'sales.read': { group: 'sales', en: 'View sales', ar: 'عرض المبيعات' },
   'sales.create': { group: 'sales', en: 'Create sales', ar: 'إنشاء المبيعات' },
   'sales.approve_discount': { group: 'sales', en: 'Approve discounts', ar: 'اعتماد الخصومات' },
-  'sales.approve_below_floor': { group: 'sales', en: 'Approve sale below minimum', ar: 'اعتماد البيع أقل من الحد الأدنى' },
+  'sales.approve_below_floor': {
+    group: 'sales',
+    en: 'Approve sale below minimum',
+    ar: 'اعتماد البيع أقل من الحد الأدنى',
+  },
   'sales.confirm': { group: 'sales', en: 'Confirm sales', ar: 'تأكيد المبيعات' },
   'sales.deliver': { group: 'sales', en: 'Deliver vehicles', ar: 'تسليم السيارات' },
-  'sales.deliver_with_balance': { group: 'sales', en: 'Deliver with outstanding balance', ar: 'التسليم مع وجود رصيد مستحق' },
+  'sales.deliver_with_balance': {
+    group: 'sales',
+    en: 'Deliver with outstanding balance',
+    ar: 'التسليم مع وجود رصيد مستحق',
+  },
   'sales.cancel': { group: 'sales', en: 'Cancel draft sales', ar: 'إلغاء مسودات البيع' },
   'sales.cancel_confirmed': { group: 'sales', en: 'Cancel confirmed sales', ar: 'إلغاء المبيعات المؤكدة' },
   'sales.return': { group: 'sales', en: 'Process returns', ar: 'معالجة المرتجعات' },
@@ -81,7 +121,11 @@ export const PERMISSIONS = {
   'installments.collect': { group: 'finance', en: 'Collect installments', ar: 'تحصيل الأقساط' },
   'installments.settle': { group: 'finance', en: 'Early settlement', ar: 'السداد المبكر' },
   'cash.read': { group: 'finance', en: 'View cash & bank', ar: 'عرض الخزينة والبنوك' },
-  'cash.manage_accounts': { group: 'finance', en: 'Manage cash & bank accounts', ar: 'إدارة الخزائن والحسابات البنكية' },
+  'cash.manage_accounts': {
+    group: 'finance',
+    en: 'Manage cash & bank accounts',
+    ar: 'إدارة الخزائن والحسابات البنكية',
+  },
   'cash.transfer': { group: 'finance', en: 'Transfer between accounts', ar: 'التحويل بين الحسابات' },
   'cash.close': { group: 'finance', en: 'Daily cash closing', ar: 'إغلاق يومية الخزينة' },
   'cash.reopen': { group: 'finance', en: 'Reopen closed days', ar: 'إعادة فتح يوم مغلق' },
@@ -94,7 +138,11 @@ export const PERMISSIONS = {
 
   'commissions.read_own': { group: 'commissions', en: 'View own commissions', ar: 'عرض عمولاتي' },
   'commissions.read': { group: 'commissions', en: 'View all commissions', ar: 'عرض جميع العمولات' },
-  'commissions.manage_policies': { group: 'commissions', en: 'Manage commission policies', ar: 'إدارة سياسات العمولات' },
+  'commissions.manage_policies': {
+    group: 'commissions',
+    en: 'Manage commission policies',
+    ar: 'إدارة سياسات العمولات',
+  },
   'commissions.approve': { group: 'commissions', en: 'Approve commissions', ar: 'اعتماد العمولات' },
   'commissions.pay': { group: 'commissions', en: 'Pay commissions', ar: 'صرف العمولات' },
 
@@ -102,7 +150,11 @@ export const PERMISSIONS = {
   'reports.financial': { group: 'reports', en: 'View financial reports', ar: 'عرض التقارير المالية' },
   'reports.export': { group: 'reports', en: 'Export reports', ar: 'تصدير التقارير' },
 
-  'showroom.manage': { group: 'showroom', en: 'Publish vehicles to showroom', ar: 'نشر السيارات في المعرض الرقمي' },
+  'showroom.manage': {
+    group: 'showroom',
+    en: 'Publish vehicles to showroom',
+    ar: 'نشر السيارات في المعرض الرقمي',
+  },
 
   'settings.read': { group: 'admin', en: 'View settings', ar: 'عرض الإعدادات' },
   'settings.manage': { group: 'admin', en: 'Manage company settings', ar: 'إدارة إعدادات الشركة' },
@@ -143,13 +195,19 @@ interface RoleTemplate {
 }
 
 const readOnly = ALL_PERMISSIONS.filter(
-  (p) => p.endsWith('.read') || p.endsWith('.view') || p === 'vehicles.view_cost' || p === 'reports.financial',
+  (p) =>
+    p.endsWith('.read') || p.endsWith('.view') || p === 'vehicles.view_cost' || p === 'reports.financial',
 );
 
 const without = (exclude: Permission[]) => ALL_PERMISSIONS.filter((p) => !exclude.includes(p));
 
 export const SYSTEM_ROLES: Record<SystemRoleKey, RoleTemplate> = {
-  owner: { nameEn: 'Company Owner', nameAr: 'مالك الشركة', permissions: [...ALL_PERMISSIONS], maxDiscountPct: '100' },
+  owner: {
+    nameEn: 'Company Owner',
+    nameAr: 'مالك الشركة',
+    permissions: [...ALL_PERMISSIONS],
+    maxDiscountPct: '100',
+  },
   branch_manager: {
     nameEn: 'Branch Manager',
     nameAr: 'مدير الفرع',
@@ -330,7 +388,12 @@ export const SYSTEM_ROLES: Record<SystemRoleKey, RoleTemplate> = {
   auditor: {
     nameEn: 'Read-only Auditor',
     nameAr: 'مدقق (قراءة فقط)',
-    permissions: [...readOnly, 'commissions.read', 'customers.read_all', 'documents.read_sensitive'] as Permission[],
+    permissions: [
+      ...readOnly,
+      'commissions.read',
+      'customers.read_all',
+      'documents.read_sensitive',
+    ] as Permission[],
     maxDiscountPct: '0',
   },
 };

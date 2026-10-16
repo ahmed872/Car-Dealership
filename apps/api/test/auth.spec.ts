@@ -1,6 +1,16 @@
 import request from 'supertest';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { Client, closeApp, createPlatformAdmin, createTenant, extractCookie, getApp, ORIGIN, PASSWORD, TestTenant } from './helpers';
+import {
+  Client,
+  closeApp,
+  createPlatformAdmin,
+  createTenant,
+  extractCookie,
+  getApp,
+  ORIGIN,
+  PASSWORD,
+  TestTenant,
+} from './helpers';
 import type { INestApplication } from '@nestjs/common';
 
 describe('authentication & sessions', () => {
@@ -31,8 +41,12 @@ describe('authentication & sessions', () => {
   });
 
   it('rejects wrong password and unknown email with the same error', async () => {
-    const a = await request(app.getHttpServer()).post('/api/v1/auth/login').send({ email: tenant.ownerEmail, password: 'wrong-password-1' });
-    const b = await request(app.getHttpServer()).post('/api/v1/auth/login').send({ email: 'nobody@nowhere.test', password: 'wrong-password-1' });
+    const a = await request(app.getHttpServer())
+      .post('/api/v1/auth/login')
+      .send({ email: tenant.ownerEmail, password: 'wrong-password-1' });
+    const b = await request(app.getHttpServer())
+      .post('/api/v1/auth/login')
+      .send({ email: 'nobody@nowhere.test', password: 'wrong-password-1' });
     expect(a.status).toBe(401);
     expect(b.status).toBe(401);
     expect(a.body.error.code).toBe('invalid_credentials');
@@ -57,7 +71,10 @@ describe('authentication & sessions', () => {
   });
 
   it('rejects mutations without the CSRF token or from foreign origins', async () => {
-    const noToken = await tenant.owner.agent.post('/api/v1/branches').set('Origin', ORIGIN).send({ name: 'B2', code: 'B2' });
+    const noToken = await tenant.owner.agent
+      .post('/api/v1/branches')
+      .set('Origin', ORIGIN)
+      .send({ name: 'B2', code: 'B2' });
     expect(noToken.status).toBe(403);
     expect(noToken.body.error.code).toBe('csrf_failed');
     const wrongToken = await tenant.owner.agent
@@ -98,10 +115,14 @@ describe('authentication & sessions', () => {
   it('locks the account after repeated failures, then unlocks after the window', async () => {
     const t = await createTenant(app, admin);
     for (let i = 0; i < 5; i++) {
-      const r = await request(app.getHttpServer()).post('/api/v1/auth/login').send({ email: t.ownerEmail, password: 'bad-password-123' });
+      const r = await request(app.getHttpServer())
+        .post('/api/v1/auth/login')
+        .send({ email: t.ownerEmail, password: 'bad-password-123' });
       expect(r.status).toBe(401);
     }
-    const locked = await request(app.getHttpServer()).post('/api/v1/auth/login').send({ email: t.ownerEmail, password: PASSWORD });
+    const locked = await request(app.getHttpServer())
+      .post('/api/v1/auth/login')
+      .send({ email: t.ownerEmail, password: PASSWORD });
     expect(locked.status).toBe(429);
     expect(locked.body.error.code).toBe('account_locked');
   });
@@ -109,7 +130,10 @@ describe('authentication & sessions', () => {
   it('change password revokes other sessions but keeps the current one', async () => {
     const t = await createTenant(app, admin);
     const second = await Client.login(app, t.ownerEmail);
-    const res = await t.owner.post('/auth/change-password', { currentPassword: PASSWORD, newPassword: 'N3wPassword!x' });
+    const res = await t.owner.post('/auth/change-password', {
+      currentPassword: PASSWORD,
+      newPassword: 'N3wPassword!x',
+    });
     expect(res.status).toBe(200);
     expect((await t.owner.get('/auth/me')).status).toBe(200);
     expect((await second.get('/auth/me')).status).toBe(401);
@@ -118,7 +142,10 @@ describe('authentication & sessions', () => {
   });
 
   it('rejects weak passwords', async () => {
-    const res = await tenant.owner.post('/auth/change-password', { currentPassword: PASSWORD, newPassword: 'short' });
+    const res = await tenant.owner.post('/auth/change-password', {
+      currentPassword: PASSWORD,
+      newPassword: 'short',
+    });
     expect(res.status).toBe(422);
     expect(res.body.error.code).toBe('validation_failed');
   });
@@ -138,7 +165,13 @@ describe('authentication & sessions', () => {
     const res = await request(app.getHttpServer())
       .post('/api/v1/platform/signup')
       .set('Origin', ORIGIN)
-      .send({ name: 'New Co', slug: 'new-co', market: 'EG', branchName: 'HQ', owner: { email: 'n@x.test', fullName: 'N N', password: PASSWORD } });
+      .send({
+        name: 'New Co',
+        slug: 'new-co',
+        market: 'EG',
+        branchName: 'HQ',
+        owner: { email: 'n@x.test', fullName: 'N N', password: PASSWORD },
+      });
     expect(res.status).toBe(403);
     expect(res.body.error.code).toBe('signup_disabled');
   });
@@ -157,11 +190,17 @@ describe('authentication & sessions', () => {
     });
     expect(add.status).toBe(201);
     expect(add.body.accountCreated).toBe(false);
-    const login = await request(app.getHttpServer()).post('/api/v1/auth/login').set('Origin', ORIGIN).send({ email: tenant.ownerEmail, password: PASSWORD });
+    const login = await request(app.getHttpServer())
+      .post('/api/v1/auth/login')
+      .set('Origin', ORIGIN)
+      .send({ email: tenant.ownerEmail, password: PASSWORD });
     expect(login.body.requiresTenantSelection).toBe(true);
     expect(login.body.tenants).toHaveLength(2);
     const agent = request.agent(app.getHttpServer());
-    const l2 = await agent.post('/api/v1/auth/login').set('Origin', ORIGIN).send({ email: tenant.ownerEmail, password: PASSWORD });
+    const l2 = await agent
+      .post('/api/v1/auth/login')
+      .set('Origin', ORIGIN)
+      .send({ email: tenant.ownerEmail, password: PASSWORD });
     const c = new Client(agent);
     c.csrf = extractCookie(l2.headers['set-cookie'] as unknown as string[], 'ah_csrf')!;
     expect((await c.get('/branches')).body.error.code).toBe('no_active_tenant');

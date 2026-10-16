@@ -16,7 +16,12 @@ class ChangePasswordDto extends createZodDto(zChangePassword) {}
 
 export function serializeAuth(auth: AuthContext) {
   return {
-    user: { id: auth.userId, email: auth.email, fullName: auth.fullName, isPlatformAdmin: auth.isPlatformAdmin },
+    user: {
+      id: auth.userId,
+      email: auth.email,
+      fullName: auth.fullName,
+      isPlatformAdmin: auth.isPlatformAdmin,
+    },
     tenant: auth.tenant
       ? {
           id: auth.tenant.id,
@@ -86,7 +91,9 @@ export class AuthController {
   @AllowNoTenant()
   @NoTransaction()
   @HttpCode(200)
-  @Throttle({ default: { limit: () => Math.max(3, Math.floor(getEnv().AUTH_RATE_LIMIT_PER_MIN / 2)), ttl: 60_000 } })
+  @Throttle({
+    default: { limit: () => Math.max(3, Math.floor(getEnv().AUTH_RATE_LIMIT_PER_MIN / 2)), ttl: 60_000 },
+  })
   async changePassword(@AuthCtx() auth: AuthContext, @Body() body: ChangePasswordDto) {
     await this.auth.changePassword(auth, body.currentPassword, body.newPassword);
     return { ok: true };

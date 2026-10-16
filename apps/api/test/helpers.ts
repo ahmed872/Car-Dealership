@@ -42,13 +42,19 @@ export class Client {
   csrf = '';
   constructor(readonly agent: TestAgent) {}
 
-  static async login(app: INestApplication, email: string, password = PASSWORD, tenantSlug?: string): Promise<Client> {
+  static async login(
+    app: INestApplication,
+    email: string,
+    password = PASSWORD,
+    tenantSlug?: string,
+  ): Promise<Client> {
     const agent = request.agent(app.getHttpServer());
     const res = await agent
       .post('/api/v1/auth/login')
       .set('Origin', ORIGIN)
       .send({ email, password, ...(tenantSlug ? { tenantSlug } : {}) });
-    if (res.status !== 200) throw new Error(`login failed for ${email}: ${res.status} ${JSON.stringify(res.body)}`);
+    if (res.status !== 200)
+      throw new Error(`login failed for ${email}: ${res.status} ${JSON.stringify(res.body)}`);
     const c = new Client(agent);
     c.csrf = extractCookie(res.headers['set-cookie'], 'ah_csrf') ?? '';
     return c;
@@ -58,13 +64,26 @@ export class Client {
     return this.agent.get(`/api/v1${path}`).set('Origin', ORIGIN);
   }
   post(path: string, body?: unknown, headers: Record<string, string> = {}) {
-    return this.agent.post(`/api/v1${path}`).set('Origin', ORIGIN).set('X-CSRF-Token', this.csrf).set(headers).send(body as object);
+    return this.agent
+      .post(`/api/v1${path}`)
+      .set('Origin', ORIGIN)
+      .set('X-CSRF-Token', this.csrf)
+      .set(headers)
+      .send(body as object);
   }
   put(path: string, body?: unknown) {
-    return this.agent.put(`/api/v1${path}`).set('Origin', ORIGIN).set('X-CSRF-Token', this.csrf).send(body as object);
+    return this.agent
+      .put(`/api/v1${path}`)
+      .set('Origin', ORIGIN)
+      .set('X-CSRF-Token', this.csrf)
+      .send(body as object);
   }
   patch(path: string, body?: unknown) {
-    return this.agent.patch(`/api/v1${path}`).set('Origin', ORIGIN).set('X-CSRF-Token', this.csrf).send(body as object);
+    return this.agent
+      .patch(`/api/v1${path}`)
+      .set('Origin', ORIGIN)
+      .set('X-CSRF-Token', this.csrf)
+      .send(body as object);
   }
   delete(path: string) {
     return this.agent.delete(`/api/v1${path}`).set('Origin', ORIGIN).set('X-CSRF-Token', this.csrf);
@@ -85,7 +104,9 @@ export async function createPlatformAdmin(app: INestApplication): Promise<Client
   const dbs = app.get(DbService);
   const hash = await app.get(PasswordService).hash(PASSWORD);
   await dbs.runInTenant({ tenantId: null, userId: null }, () =>
-    dbs.db.insert(users).values({ email, fullName: 'Platform Admin', passwordHash: hash, isPlatformAdmin: true }),
+    dbs.db
+      .insert(users)
+      .values({ email, fullName: 'Platform Admin', passwordHash: hash, isPlatformAdmin: true }),
   );
   return Client.login(app, email);
 }
@@ -138,7 +159,12 @@ export async function addMember(
     branchIds: opts.branchIds ?? [],
   });
   if (res.status !== 201) throw new Error(`add member failed: ${res.status} ${JSON.stringify(res.body)}`);
-  return { client: await Client.login(app, email), email, membershipId: res.body.membershipId, userId: res.body.userId };
+  return {
+    client: await Client.login(app, email),
+    email,
+    membershipId: res.body.membershipId,
+    userId: res.body.userId,
+  };
 }
 
 export const idem = () => ({ 'Idempotency-Key': `test-${randomUUID()}` });

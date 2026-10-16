@@ -27,7 +27,8 @@ export function evaluateSalePrice(input: PriceEvaluationInput): PriceEvaluation 
   const floor = input.floorPrice ? d(input.floorPrice) : null;
 
   const discount = asking && agreed.lt(asking) ? asking.minus(agreed) : new Dec(0);
-  const discountPct = asking && asking.gt(0) ? discount.dividedBy(asking).times(100).toDecimalPlaces(4) : new Dec(0);
+  const discountPct =
+    asking && asking.gt(0) ? discount.dividedBy(asking).times(100).toDecimalPlaces(4) : new Dec(0);
   const belowFloor = floor !== null && agreed.lt(floor);
   const exceedsRoleLimit = discountPct.gt(d(input.maxDiscountPct));
   return {
@@ -36,7 +37,11 @@ export function evaluateSalePrice(input: PriceEvaluationInput): PriceEvaluation 
     belowFloor,
     exceedsRoleLimit,
     requiresApproval: belowFloor || exceedsRoleLimit,
-    approvalPermission: belowFloor ? 'sales.approve_below_floor' : exceedsRoleLimit ? 'sales.approve_discount' : null,
+    approvalPermission: belowFloor
+      ? 'sales.approve_below_floor'
+      : exceedsRoleLimit
+        ? 'sales.approve_discount'
+        : null,
   };
 }
 

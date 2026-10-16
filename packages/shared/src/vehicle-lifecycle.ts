@@ -72,7 +72,8 @@ export function checkTransition(from: VehicleStatus, to: VehicleStatus, system: 
   if (!system) {
     if (SYSTEM_ONLY_STATUSES.has(to)) return { ok: false, reason: 'system_only' };
     // Leaving reserved/sale_pending/sold/delivered manually would bypass the workflow that owns them.
-    if (['reserved', 'sale_pending', 'sold', 'delivered'].includes(from)) return { ok: false, reason: 'system_only' };
+    if (['reserved', 'sale_pending', 'sold', 'delivered'].includes(from))
+      return { ok: false, reason: 'system_only' };
   }
   return { ok: true };
 }
@@ -105,7 +106,13 @@ export const UNSOLD_STATUSES: readonly VehicleStatus[] = [
 ];
 
 export function isPreSaleStatus(s: VehicleStatus): boolean {
-  return ['incoming', 'awaiting_inspection', 'in_inspection', 'in_preparation', 'ready', 'available', 'returned'].includes(
-    s,
-  );
+  return [
+    'incoming',
+    'awaiting_inspection',
+    'in_inspection',
+    'in_preparation',
+    'ready',
+    'available',
+    'returned',
+  ].includes(s);
 }

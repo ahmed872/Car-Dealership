@@ -54,7 +54,10 @@ export class AuthService {
           })
           .where(eq(users.id, user.id));
       });
-      this.logger.warn({ event: 'login_failed', reason: 'bad_password', userId: user.id, ip }, 'login failed');
+      this.logger.warn(
+        { event: 'login_failed', reason: 'bad_password', userId: user.id, ip },
+        'login failed',
+      );
       throw new AppError('invalid_credentials', 401, 'Invalid email or password');
     }
 
@@ -78,7 +81,12 @@ export class AuthService {
     const session = await this.sessions.create(user.id, activeTenantId, ip, userAgent);
     if (activeTenantId) {
       await this.dbs.runInTenant({ tenantId: activeTenantId, userId: user.id }, () =>
-        this.audit.record({ action: 'auth.login', entityType: 'user', entityId: user.id, summary: `Signed in: ${user.email}` }),
+        this.audit.record({
+          action: 'auth.login',
+          entityType: 'user',
+          entityId: user.id,
+          summary: `Signed in: ${user.email}`,
+        }),
       );
     }
     return { session, userId: user.id, activeTenantId, tenants };
@@ -100,10 +108,14 @@ export class AuthService {
     if (!user || !(await this.passwords.verify(user.passwordHash, currentPassword))) {
       throw new AppError('invalid_credentials', 401, 'Current password is incorrect');
     }
-    if (currentPassword === newPassword) throw new AppError('password_unchanged', 422, 'Choose a different password');
+    if (currentPassword === newPassword)
+      throw new AppError('password_unchanged', 422, 'Choose a different password');
     const hash = await this.passwords.hash(newPassword);
     await this.dbs.runInTenant({ tenantId: null, userId: null }, () =>
-      this.dbs.db.update(users).set({ passwordHash: hash, passwordChangedAt: new Date(), updatedAt: new Date() }).where(eq(users.id, user.id)),
+      this.dbs.db
+        .update(users)
+        .set({ passwordHash: hash, passwordChangedAt: new Date(), updatedAt: new Date() })
+        .where(eq(users.id, user.id)),
     );
     await this.sessions.revokeAllForUser(user.id, auth.sessionId);
     if (auth.tenant) {

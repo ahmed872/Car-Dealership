@@ -13,7 +13,9 @@ export async function resetDatabase(url: string): Promise<void> {
   }
   const pool = new Pool({ connectionString: url, max: 1 });
   try {
-    await pool.query('DROP SCHEMA IF EXISTS drizzle CASCADE; DROP SCHEMA IF EXISTS public CASCADE; CREATE SCHEMA public;');
+    await pool.query(
+      'DROP SCHEMA IF EXISTS drizzle CASCADE; DROP SCHEMA IF EXISTS public CASCADE; CREATE SCHEMA public;',
+    );
   } finally {
     await pool.end();
   }

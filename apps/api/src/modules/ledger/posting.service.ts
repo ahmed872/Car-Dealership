@@ -46,21 +46,28 @@ export class PostingService {
     for (const l of lines) {
       const dr = d(l.debit ?? 0);
       const cr = d(l.credit ?? 0);
-      if (dr.isNegative() || cr.isNegative()) throw new UnbalancedPostingError(`Negative amount on ${l.account}`);
-      if (!dr.isZero() && !cr.isZero()) throw new UnbalancedPostingError(`Line on ${l.account} has both debit and credit`);
-      if (dr.decimalPlaces() > 2 || cr.decimalPlaces() > 2) throw new UnbalancedPostingError('Amounts must be rounded to 2 decimals');
+      if (dr.isNegative() || cr.isNegative())
+        throw new UnbalancedPostingError(`Negative amount on ${l.account}`);
+      if (!dr.isZero() && !cr.isZero())
+        throw new UnbalancedPostingError(`Line on ${l.account} has both debit and credit`);
+      if (dr.decimalPlaces() > 2 || cr.decimalPlaces() > 2)
+        throw new UnbalancedPostingError('Amounts must be rounded to 2 decimals');
     }
     if (lines.length === 0) return null; // nothing to post (e.g. zero-value event)
     const totalDr = sum(lines.map((l) => l.debit ?? 0));
     const totalCr = sum(lines.map((l) => l.credit ?? 0));
     if (!totalDr.eq(totalCr)) {
-      throw new UnbalancedPostingError(`Unbalanced posting ${req.event}: debit ${totalDr.toFixed(2)} credit ${totalCr.toFixed(2)}`);
+      throw new UnbalancedPostingError(
+        `Unbalanced posting ${req.event}: debit ${totalDr.toFixed(2)} credit ${totalCr.toFixed(2)}`,
+      );
     }
     if (lines.length < 2) throw new UnbalancedPostingError('A journal entry needs at least two lines');
 
     const ctx = this.dbs.context;
     if (!ctx?.tenantId) throw new Error('Posting requires tenant context');
-    const [{ n }] = (await this.dbs.query<{ n: string }>(`SELECT app_next_number('journal') AS n`)) as [{ n: string }];
+    const [{ n }] = (await this.dbs.query<{ n: string }>(`SELECT app_next_number('journal') AS n`)) as [
+      { n: string },
+    ];
     const [entry] = await this.dbs.db
       .insert(journalEntries)
       .values({
@@ -117,7 +124,11 @@ export class PostingService {
       )
       .limit(1);
     if (!entry) return null;
-    const lines = await db.select().from(journalLines).where(eq(journalLines.entryId, entry.id)).orderBy(asc(journalLines.lineNo));
+    const lines = await db
+      .select()
+      .from(journalLines)
+      .where(eq(journalLines.entryId, entry.id))
+      .orderBy(asc(journalLines.lineNo));
     return this.post({
       sourceType: original.sourceType,
       sourceId: original.sourceId,
@@ -143,7 +154,12 @@ export class PostingService {
   }
 
   /** Balance (debit − credit) of an account, optionally filtered by a dimension. */
-  async balance(account: AccountCode, dims: Partial<Record<'vehicleId' | 'customerId' | 'supplierId' | 'cashAccountId' | 'saleId' | 'userId', string>> = {}): Promise<string> {
+  async balance(
+    account: AccountCode,
+    dims: Partial<
+      Record<'vehicleId' | 'customerId' | 'supplierId' | 'cashAccountId' | 'saleId' | 'userId', string>
+    > = {},
+  ): Promise<string> {
     const conds = [eq(journalLines.accountCode, account)];
     if (dims.vehicleId) conds.push(eq(journalLines.vehicleId, dims.vehicleId));
     if (dims.customerId) conds.push(eq(journalLines.customerId, dims.customerId));
@@ -152,7 +168,9 @@ export class PostingService {
     if (dims.saleId) conds.push(eq(journalLines.saleId, dims.saleId));
     if (dims.userId) conds.push(eq(journalLines.userId, dims.userId));
     const [row] = await this.dbs.db
-      .select({ bal: sql<string>`coalesce(sum(${journalLines.debit} - ${journalLines.credit}), 0)::numeric(18,2)::text` })
+      .select({
+        bal: sql<string>`coalesce(sum(${journalLines.debit} - ${journalLines.credit}), 0)::numeric(18,2)::text`,
+      })
       .from(journalLines)
       .where(and(...conds));
     return row?.bal ?? '0.00';
@@ -162,7 +180,13 @@ export class PostingService {
     const rows = await this.dbs.db
       .select({ id: journalEntries.id })
       .from(journalEntries)
-      .where(and(eq(journalEntries.sourceType, sourceType), eq(journalEntries.sourceId, sourceId), eq(journalEntries.event, event)))
+      .where(
+        and(
+          eq(journalEntries.sourceType, sourceType),
+          eq(journalEntries.sourceId, sourceId),
+          eq(journalEntries.event, event),
+        ),
+      )
       .limit(1);
     return rows.length > 0;
   }

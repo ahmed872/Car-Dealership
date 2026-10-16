@@ -43,7 +43,12 @@ export function diffDays(fromIso: string, toIso: string): number {
 
 /** Today's calendar date in an IANA time zone (e.g. "Asia/Riyadh"). */
 export function todayInZone(timeZone: string, now: Date = new Date()): string {
-  const parts = new Intl.DateTimeFormat('en-CA', { timeZone, year: 'numeric', month: '2-digit', day: '2-digit' })
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  })
     .formatToParts(now)
     .reduce<Record<string, string>>((acc, p) => ((acc[p.type] = p.value), acc), {});
   return `${parts.year}-${parts.month}-${parts.day}`;

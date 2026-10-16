@@ -1,0 +1,43 @@
+import js from '@eslint/js';
+import globals from 'globals';
+import reactHooks from 'eslint-plugin-react-hooks';
+import tseslint from 'typescript-eslint';
+
+export default tseslint.config(
+  {
+    ignores: [
+      '**/dist/**',
+      '**/node_modules/**',
+      '**/coverage/**',
+      'apps/api/src/db/migrations/**',
+      '**/*.tmp.mjs',
+      'e2e/test-results/**',
+      'e2e/playwright-report/**',
+    ],
+  },
+  js.configs.recommended,
+  ...tseslint.configs.recommended,
+  {
+    languageOptions: { globals: { ...globals.node }, ecmaVersion: 2023, sourceType: 'module' },
+    rules: {
+      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
+      '@typescript-eslint/no-explicit-any': 'error',
+      '@typescript-eslint/consistent-type-imports': 'off',
+      'no-console': ['warn', { allow: ['error', 'warn', 'log'] }],
+      eqeqeq: ['error', 'always', { null: 'ignore' }],
+    },
+  },
+  {
+    files: ['apps/web/**/*.{ts,tsx}'],
+    languageOptions: { globals: { ...globals.browser } },
+    plugins: { 'react-hooks': reactHooks },
+    rules: {
+      'react-hooks/rules-of-hooks': 'error',
+      'react-hooks/exhaustive-deps': 'warn',
+    },
+  },
+  {
+    files: ['**/*.spec.ts', '**/*.test.ts', 'apps/api/test/**'],
+    rules: { '@typescript-eslint/no-non-null-assertion': 'off' },
+  },
+);

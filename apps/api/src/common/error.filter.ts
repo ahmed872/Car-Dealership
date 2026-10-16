@@ -28,11 +28,21 @@ export interface ErrorBody {
 
 export function toErrorResponse(err: unknown): { status: number; body: ErrorBody; log: boolean } {
   if (err instanceof AppError) {
-    return { status: err.status, body: { error: { code: err.code, message: err.message, details: err.details } }, log: false };
+    return {
+      status: err.status,
+      body: { error: { code: err.code, message: err.message, details: err.details } },
+      log: false,
+    };
   }
   if (err instanceof ZodValidationException) {
-    const zerr = err.getZodError() as { issues?: Array<{ path: PropertyKey[]; message: string; code: string }> };
-    const issues = (zerr.issues ?? []).map((i) => ({ path: i.path.map(String).join('.'), message: i.message, code: i.code }));
+    const zerr = err.getZodError() as {
+      issues?: Array<{ path: PropertyKey[]; message: string; code: string }>;
+    };
+    const issues = (zerr.issues ?? []).map((i) => ({
+      path: i.path.map(String).join('.'),
+      message: i.message,
+      code: i.code,
+    }));
     return {
       status: HttpStatus.UNPROCESSABLE_ENTITY,
       body: { error: { code: 'validation_failed', message: 'Some fields are invalid', details: { issues } } },
@@ -40,7 +50,11 @@ export function toErrorResponse(err: unknown): { status: number; body: ErrorBody
     };
   }
   if (err instanceof ThrottlerException) {
-    return { status: 429, body: { error: { code: 'rate_limited', message: 'Too many requests, please slow down' } }, log: false };
+    return {
+      status: 429,
+      body: { error: { code: 'rate_limited', message: 'Too many requests, please slow down' } },
+      log: false,
+    };
   }
   if (err instanceof HttpException) {
     const status = err.getStatus();
@@ -54,7 +68,11 @@ export function toErrorResponse(err: unknown): { status: number; body: ErrorBody
       415: 'unsupported_media_type',
     };
     const msg = status === 404 ? 'Resource not found' : err.message;
-    return { status, body: { error: { code: codeByStatus[status] ?? 'http_error', message: msg } }, log: status >= 500 };
+    return {
+      status,
+      body: { error: { code: codeByStatus[status] ?? 'http_error', message: msg } },
+      log: status >= 500,
+    };
   }
   const pg = unwrapPg(err);
   if (pg?.code) {
@@ -63,20 +81,36 @@ export function toErrorResponse(err: unknown): { status: number; body: ErrorBody
         const mapped = pg.constraint ? UNIQUE_CONSTRAINT_MESSAGES[pg.constraint] : undefined;
         return {
           status: HttpStatus.CONFLICT,
-          body: { error: { code: mapped?.code ?? 'duplicate', message: mapped?.message ?? 'This record already exists' } },
+          body: {
+            error: {
+              code: mapped?.code ?? 'duplicate',
+              message: mapped?.message ?? 'This record already exists',
+            },
+          },
           log: !mapped,
         };
       }
       case '23503':
         return {
           status: HttpStatus.UNPROCESSABLE_ENTITY,
-          body: { error: { code: 'invalid_reference', message: 'A referenced record does not exist or is still in use' } },
+          body: {
+            error: {
+              code: 'invalid_reference',
+              message: 'A referenced record does not exist or is still in use',
+            },
+          },
           log: false,
         };
       case '23514':
         return {
           status: HttpStatus.UNPROCESSABLE_ENTITY,
-          body: { error: { code: 'constraint_violation', message: 'The data violates a business rule', details: { constraint: pg.constraint } } },
+          body: {
+            error: {
+              code: 'constraint_violation',
+              message: 'The data violates a business rule',
+              details: { constraint: pg.constraint },
+            },
+          },
           log: true,
         };
       case '40001':
@@ -84,22 +118,53 @@ export function toErrorResponse(err: unknown): { status: number; body: ErrorBody
       case '55P03':
         return {
           status: HttpStatus.CONFLICT,
-          body: { error: { code: 'concurrent_update', message: 'The record was changed by another user. Please retry.' } },
+          body: {
+            error: {
+              code: 'concurrent_update',
+              message: 'The record was changed by another user. Please retry.',
+            },
+          },
           log: true,
         };
       case '42501':
-        return { status: HttpStatus.FORBIDDEN, body: { error: { code: 'forbidden', message: 'Access denied' } }, log: true };
+        return {
+          status: HttpStatus.FORBIDDEN,
+          body: { error: { code: 'forbidden', message: 'Access denied' } },
+          log: true,
+        };
       case '22P02':
-        return { status: HttpStatus.BAD_REQUEST, body: { error: { code: 'bad_request', message: 'Malformed identifier or value' } }, log: false };
+        return {
+          status: HttpStatus.BAD_REQUEST,
+          body: { error: { code: 'bad_request', message: 'Malformed identifier or value' } },
+          log: false,
+        };
       case 'AH001':
-        return { status: HttpStatus.CONFLICT, body: { error: { code: 'immutable_record', message: 'Posted records cannot be modified' } }, log: true };
+        return {
+          status: HttpStatus.CONFLICT,
+          body: { error: { code: 'immutable_record', message: 'Posted records cannot be modified' } },
+          log: true,
+        };
       case 'AH002':
-        return { status: 500, body: { error: { code: 'ledger_unbalanced', message: 'Financial posting failed integrity checks' } }, log: true };
+        return {
+          status: 500,
+          body: {
+            error: { code: 'ledger_unbalanced', message: 'Financial posting failed integrity checks' },
+          },
+          log: true,
+        };
       case '57014':
-        return { status: 503, body: { error: { code: 'timeout', message: 'The operation took too long' } }, log: true };
+        return {
+          status: 503,
+          body: { error: { code: 'timeout', message: 'The operation took too long' } },
+          log: true,
+        };
     }
   }
-  return { status: 500, body: { error: { code: 'internal_error', message: 'Unexpected server error' } }, log: true };
+  return {
+    status: 500,
+    body: { error: { code: 'internal_error', message: 'Unexpected server error' } },
+    log: true,
+  };
 }
 
 @Catch()
@@ -115,7 +180,13 @@ export class GlobalErrorFilter implements ExceptionFilter {
     if (log || process.env.DEBUG_ERRORS) {
       if (process.env.DEBUG_ERRORS) console.error(exception);
       const e = exception as Error;
-      this.logger.error({ err: { message: e?.message, stack: getEnv().NODE_ENV === 'production' ? undefined : e?.stack }, requestId: req?.id }, 'request failed');
+      this.logger.error(
+        {
+          err: { message: e?.message, stack: getEnv().NODE_ENV === 'production' ? undefined : e?.stack },
+          requestId: req?.id,
+        },
+        'request failed',
+      );
     }
     if (res.headersSent) return;
     res.status(status).json(body);

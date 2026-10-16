@@ -38,11 +38,15 @@ export class PlatformController {
   @NoTransaction()
   @Throttle({ default: { limit: 3, ttl: 3_600_000 } })
   async signup(@Body() body: ProvisionDto) {
-    if (!getEnv().ALLOW_TENANT_SELF_SIGNUP) throw new AppError('signup_disabled', 403, 'Self-service sign-up is disabled');
+    if (!getEnv().ALLOW_TENANT_SELF_SIGNUP)
+      throw new AppError('signup_disabled', 403, 'Self-service sign-up is disabled');
     const exists = await this.dbs.runInTenant({ tenantId: null, userId: null }, () =>
-      this.dbs.query<{ n: number }>('SELECT count(*)::int AS n FROM users WHERE email = $1', [body.owner.email]),
+      this.dbs.query<{ n: number }>('SELECT count(*)::int AS n FROM users WHERE email = $1', [
+        body.owner.email,
+      ]),
     );
-    if ((exists[0]?.n ?? 0) > 0) throw conflict('email_taken', 'An account with this email already exists. Sign in instead.');
+    if ((exists[0]?.n ?? 0) > 0)
+      throw conflict('email_taken', 'An account with this email already exists. Sign in instead.');
     const result = await this.provisioning.provision(body, null);
     return { tenantId: result.tenantId };
   }

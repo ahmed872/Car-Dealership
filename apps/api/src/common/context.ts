@@ -80,7 +80,8 @@ export function hasPermission(ctx: AuthContext, perm: Permission): boolean {
 }
 
 export function assertPermission(ctx: AuthContext, perm: Permission): void {
-  if (!ctx.permissions.has(perm)) throw forbidden('You do not have permission to perform this action', { permission: perm });
+  if (!ctx.permissions.has(perm))
+    throw forbidden('You do not have permission to perform this action', { permission: perm });
 }
 
 /** Branch scope: null means "all branches". */

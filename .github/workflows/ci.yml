@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+    branches: [main, 'claude/**']
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      PGHOST: localhost
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      TEST_DATABASE_URL: postgres://autohub_app:ci_app_pw@localhost:5432/autohub_test
+      TEST_DATABASE_MIGRATION_URL: postgres://autohub_owner:ci_owner_pw@localhost:5432/autohub_test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Bootstrap database roles
+        run: psql -v owner_password=ci_owner_pw -v app_password=ci_app_pw -v db_name=autohub_test -f infra/db/bootstrap-roles.sql
+      - run: pnpm lint
+      - run: pnpm --filter @autohub/shared build
+      - run: pnpm typecheck
+      - run: pnpm --filter @autohub/shared test
+      - name: API integration tests (real PostgreSQL)
+        run: pnpm --filter @autohub/api test
+        env:
+          CHROMIUM_PATH: ''
+      - run: pnpm build

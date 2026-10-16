@@ -4,7 +4,12 @@ import Decimal from 'decimal.js';
  * All monetary arithmetic goes through this module. Amounts travel as strings
  * ("150000.00") and are never converted to JS numbers for calculation.
  */
-export const Dec = Decimal.clone({ precision: 40, rounding: Decimal.ROUND_HALF_UP, toExpNeg: -40, toExpPos: 40 });
+export const Dec = Decimal.clone({
+  precision: 40,
+  rounding: Decimal.ROUND_HALF_UP,
+  toExpNeg: -40,
+  toExpPos: 40,
+});
 export type Dec = Decimal;
 export type DecimalInput = Decimal.Value;
 
@@ -21,10 +26,38 @@ export interface CurrencyDef {
 }
 
 export const CURRENCIES: Record<CurrencyCode, CurrencyDef> = {
-  EGP: { code: 'EGP', minorUnits: 2, symbolEn: 'EGP', symbolAr: 'ج.م', nameEn: 'Egyptian Pound', nameAr: 'جنيه مصري' },
-  SAR: { code: 'SAR', minorUnits: 2, symbolEn: 'SAR', symbolAr: 'ر.س', nameEn: 'Saudi Riyal', nameAr: 'ريال سعودي' },
-  AED: { code: 'AED', minorUnits: 2, symbolEn: 'AED', symbolAr: 'د.إ', nameEn: 'UAE Dirham', nameAr: 'درهم إماراتي' },
-  USD: { code: 'USD', minorUnits: 2, symbolEn: 'USD', symbolAr: 'دولار', nameEn: 'US Dollar', nameAr: 'دولار أمريكي' },
+  EGP: {
+    code: 'EGP',
+    minorUnits: 2,
+    symbolEn: 'EGP',
+    symbolAr: 'ج.م',
+    nameEn: 'Egyptian Pound',
+    nameAr: 'جنيه مصري',
+  },
+  SAR: {
+    code: 'SAR',
+    minorUnits: 2,
+    symbolEn: 'SAR',
+    symbolAr: 'ر.س',
+    nameEn: 'Saudi Riyal',
+    nameAr: 'ريال سعودي',
+  },
+  AED: {
+    code: 'AED',
+    minorUnits: 2,
+    symbolEn: 'AED',
+    symbolAr: 'د.إ',
+    nameEn: 'UAE Dirham',
+    nameAr: 'درهم إماراتي',
+  },
+  USD: {
+    code: 'USD',
+    minorUnits: 2,
+    symbolEn: 'USD',
+    symbolAr: 'دولار',
+    nameEn: 'US Dollar',
+    nameAr: 'دولار أمريكي',
+  },
   EUR: { code: 'EUR', minorUnits: 2, symbolEn: 'EUR', symbolAr: 'يورو', nameEn: 'Euro', nameAr: 'يورو' },
 };
 
@@ -55,7 +88,11 @@ export function minorUnits(currency: CurrencyCode): number {
   return def.minorUnits;
 }
 
-export function roundMoney(value: DecimalInput, currency: CurrencyCode, mode: RoundingMode = 'half_up'): Decimal {
+export function roundMoney(
+  value: DecimalInput,
+  currency: CurrencyCode,
+  mode: RoundingMode = 'half_up',
+): Decimal {
   return d(value).toDecimalPlaces(minorUnits(currency), ROUNDING_MAP[mode]);
 }
 

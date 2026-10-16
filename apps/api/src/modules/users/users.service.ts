@@ -55,7 +55,10 @@ export class UsersService {
       .innerJoin(roles, eq(roles.id, memberships.roleId))
       .orderBy(asc(users.fullName));
     const links = await db.select().from(membershipBranches);
-    return rows.map((r) => ({ ...r, branchIds: links.filter((l) => l.membershipId === r.membershipId).map((l) => l.branchId) }));
+    return rows.map((r) => ({
+      ...r,
+      branchIds: links.filter((l) => l.membershipId === r.membershipId).map((l) => l.branchId),
+    }));
   }
 
   private async getRole(roleId: string) {
@@ -66,7 +69,10 @@ export class UsersService {
 
   private async assertBranches(ids: string[]) {
     if (!ids.length) return;
-    const found = await this.dbs.db.select({ id: branches.id }).from(branches).where(inArray(branches.id, ids));
+    const found = await this.dbs.db
+      .select({ id: branches.id })
+      .from(branches)
+      .where(inArray(branches.id, ids));
     if (found.length !== new Set(ids).size) throw notFound('Branch');
   }
 
@@ -75,7 +81,11 @@ export class UsersService {
     const role = await this.getRole(input.roleId);
     this.assertCanGrant(ctx, role.permissions, role.maxDiscountPct);
     if (!input.allBranches && input.branchIds.length === 0) {
-      throw new AppError('branch_required', 422, 'Assign at least one branch or grant access to all branches');
+      throw new AppError(
+        'branch_required',
+        422,
+        'Assign at least one branch or grant access to all branches',
+      );
     }
     await this.assertBranches(input.branchIds);
     const db = this.dbs.db;
@@ -100,14 +110,24 @@ export class UsersService {
       .values({ tenantId: ctx.tenant.id, userId: user!.id, roleId: role.id, allBranches: input.allBranches })
       .returning();
     if (!input.allBranches) {
-      await db.insert(membershipBranches).values(input.branchIds.map((branchId) => ({ tenantId: ctx.tenant.id, membershipId: m!.id, branchId })));
+      await db
+        .insert(membershipBranches)
+        .values(
+          input.branchIds.map((branchId) => ({ tenantId: ctx.tenant.id, membershipId: m!.id, branchId })),
+        );
     }
     await this.audit.record({
       action: 'user.added',
       entityType: 'membership',
       entityId: m!.id,
       summary: `${input.email} added with role ${role.name}`,
-      after: { email: input.email, roleId: role.id, allBranches: input.allBranches, branchIds: input.branchIds, newAccount: created },
+      after: {
+        email: input.email,
+        roleId: role.id,
+        allBranches: input.allBranches,
+        branchIds: input.branchIds,
+        newAccount: created,
+      },
     });
     // An existing account keeps its own password; we never overwrite another tenant's user credentials.
     return { membershipId: m!.id, userId: user!.id, accountCreated: created };
@@ -126,7 +146,10 @@ export class UsersService {
     const db = this.dbs.db;
     const [m] = await db.select().from(memberships).where(eq(memberships.id, membershipId)).for('update');
     if (!m) throw notFound('User');
-    if (m.userId === ctx.userId && (input.roleId || input.status || input.allBranches !== undefined || input.branchIds)) {
+    if (
+      m.userId === ctx.userId &&
+      (input.roleId || input.status || input.allBranches !== undefined || input.branchIds)
+    ) {
       throw forbidden('You cannot change your own role, status or branch access');
     }
     const currentRole = await this.getRole(m.roleId);
@@ -138,7 +161,9 @@ export class UsersService {
       this.assertCanGrant(ctx, newRole.permissions, newRole.maxDiscountPct);
     }
     const losingOwner =
-      currentRole.key === 'owner' && m.status === 'active' && (newRole.key !== 'owner' || input.status === 'suspended');
+      currentRole.key === 'owner' &&
+      m.status === 'active' &&
+      (newRole.key !== 'owner' || input.status === 'suspended');
     if (losingOwner && (await this.ownerCount()) <= 1) {
       throw conflict('last_owner', 'The company must keep at least one active owner');
     }
@@ -155,17 +180,28 @@ export class UsersService {
       if (!allBranches) {
         const ids = input.branchIds ?? [];
         if (!ids.length) throw new AppError('branch_required', 422, 'Assign at least one branch');
-        await db.insert(membershipBranches).values(ids.map((branchId) => ({ tenantId: ctx.tenant.id, membershipId, branchId })));
+        await db
+          .insert(membershipBranches)
+          .values(ids.map((branchId) => ({ tenantId: ctx.tenant.id, membershipId, branchId })));
       }
     }
     if (input.fullName || input.phone !== undefined) {
       await this.assertSoleTenant(m.userId);
       await db
         .update(users)
-        .set({ fullName: input.fullName ?? undefined, phone: input.phone === undefined ? undefined : input.phone, updatedAt: new Date() })
+        .set({
+          fullName: input.fullName ?? undefined,
+          phone: input.phone === undefined ? undefined : input.phone,
+          updatedAt: new Date(),
+        })
         .where(eq(users.id, m.userId));
     }
-    await this.audit.record({ action: 'user.updated', entityType: 'membership', entityId: membershipId, ...diff(m, after!) });
+    await this.audit.record({
+      action: 'user.updated',
+      entityType: 'membership',
+      entityId: membershipId,
+      ...diff(m, after!),
+    });
     return after;
   }
 
@@ -187,10 +223,19 @@ export class UsersService {
     await this.assertSoleTenant(m.userId);
     await db
       .update(users)
-      .set({ passwordHash: await this.passwords.hash(newPassword), passwordChangedAt: new Date(), failedLoginCount: 0, lockedUntil: null })
+      .set({
+        passwordHash: await this.passwords.hash(newPassword),
+        passwordChangedAt: new Date(),
+        failedLoginCount: 0,
+        lockedUntil: null,
+      })
       .where(eq(users.id, m.userId));
     await this.sessions.revokeAllForUser(m.userId);
-    await this.audit.record({ action: 'user.password_reset', entityType: 'membership', entityId: membershipId });
+    await this.audit.record({
+      action: 'user.password_reset',
+      entityType: 'membership',
+      entityId: membershipId,
+    });
     return { ok: true };
   }
 
@@ -240,7 +285,12 @@ export class UsersService {
       })
       .where(eq(roles.id, roleId))
       .returning();
-    await this.audit.record({ action: 'role.updated', entityType: 'role', entityId: roleId, ...diff(before, after!) });
+    await this.audit.record({
+      action: 'role.updated',
+      entityType: 'role',
+      entityId: roleId,
+      ...diff(before, after!),
+    });
     return after;
   }
 
@@ -249,7 +299,10 @@ export class UsersService {
     const [role] = await db.select().from(roles).where(eq(roles.id, roleId));
     if (!role) throw notFound('Role');
     if (role.isSystem) throw forbidden('System roles cannot be deleted');
-    const [used] = await db.select({ n: sql<number>`count(*)::int` }).from(memberships).where(eq(memberships.roleId, roleId));
+    const [used] = await db
+      .select({ n: sql<number>`count(*)::int` })
+      .from(memberships)
+      .where(eq(memberships.roleId, roleId));
     if ((used?.n ?? 0) > 0) throw conflict('role_in_use', 'Reassign users before deleting this role');
     await db.delete(roles).where(and(eq(roles.id, roleId), ne(roles.isSystem, true)));
     await this.audit.record({ action: 'role.deleted', entityType: 'role', entityId: roleId, before: role });

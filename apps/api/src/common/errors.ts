@@ -15,8 +15,10 @@ export class AppError extends Error {
 export const notFound = (entity: string, details?: Record<string, unknown>) =>
   new AppError('not_found', HttpStatus.NOT_FOUND, `${entity} not found`, details);
 
-export const forbidden = (message = 'You do not have permission to perform this action', details?: Record<string, unknown>) =>
-  new AppError('forbidden', HttpStatus.FORBIDDEN, message, details);
+export const forbidden = (
+  message = 'You do not have permission to perform this action',
+  details?: Record<string, unknown>,
+) => new AppError('forbidden', HttpStatus.FORBIDDEN, message, details);
 
 export const unauthorized = (message = 'Authentication required') =>
   new AppError('unauthorized', HttpStatus.UNAUTHORIZED, message);
@@ -37,7 +39,10 @@ export const UNIQUE_CONSTRAINT_MESSAGES: Record<string, { code: string; message:
   branches_tenant_code_uq: { code: 'branch_code_taken', message: 'Branch code already exists' },
   roles_tenant_name_uq: { code: 'role_name_taken', message: 'A role with this name already exists' },
   memberships_tenant_user_uq: { code: 'already_member', message: 'User is already a member of this company' },
-  journal_entries_source_event_uq: { code: 'already_posted', message: 'This transaction has already been posted' },
+  journal_entries_source_event_uq: {
+    code: 'already_posted',
+    message: 'This transaction has already been posted',
+  },
 };
 
 export function registerUniqueConstraint(name: string, code: string, message: string): void {

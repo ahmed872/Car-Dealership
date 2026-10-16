@@ -50,7 +50,14 @@ const env = getEnv();
     CoreModule,
     ...DOMAIN_MODULES,
   ],
-  controllers: [HealthController, AuthController, TenancyController, UsersController, AuditController, PlatformController],
+  controllers: [
+    HealthController,
+    AuthController,
+    TenancyController,
+    UsersController,
+    AuditController,
+    PlatformController,
+  ],
   providers: [
     AuthService,
     ProvisioningService,

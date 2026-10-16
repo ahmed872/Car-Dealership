@@ -1,0 +1,186 @@
+@import 'tailwindcss';
+@import '@fontsource/ibm-plex-sans-arabic/300.css';
+@import '@fontsource/ibm-plex-sans-arabic/400.css';
+@import '@fontsource/ibm-plex-sans-arabic/500.css';
+@import '@fontsource/ibm-plex-sans-arabic/600.css';
+@import '@fontsource/ibm-plex-sans-arabic/700.css';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+ * AutoHub design tokens. Components use semantic utilities (bg-surface, text-muted, border-line…)
+ * so light/dark themes switch by redefining variables only.
+ */
+:root {
+  --bg: #f4f5f7;
+  --surface: #ffffff;
+  --surface-2: #f0f2f5;
+  --surface-3: #e7eaef;
+  --line: #e1e5eb;
+  --line-strong: #c9cfd8;
+  --ink: #0d1424;
+  --muted: #5a6476;
+  --subtle: #8a93a3;
+  --brand: #f59e0b;
+  --brand-strong: #d97706;
+  --brand-ink: #1a1203;
+  --brand-soft: #fff4dc;
+  --focus: #f59e0b;
+  --nav: #0b1220;
+  --nav-2: #131c2e;
+  --nav-ink: #c9d1df;
+  --nav-active: #f59e0b;
+  --success: #15803d;
+  --success-soft: #e7f6ec;
+  --warning: #b45309;
+  --warning-soft: #fdf3e2;
+  --danger: #b91c1c;
+  --danger-soft: #fdecec;
+  --info: #1d4ed8;
+  --info-soft: #e8efff;
+  --accent: #6d28d9;
+  --accent-soft: #f1eafe;
+  --shadow: 0 1px 2px rgb(13 20 36 / 0.06), 0 1px 1px rgb(13 20 36 / 0.04);
+  --shadow-lg: 0 12px 32px -8px rgb(13 20 36 / 0.18);
+  color-scheme: light;
+}
+
+.dark {
+  --bg: #080d17;
+  --surface: #0f1625;
+  --surface-2: #151e30;
+  --surface-3: #1c2740;
+  --line: #222d43;
+  --line-strong: #33415e;
+  --ink: #e7ebf3;
+  --muted: #9ba5b8;
+  --subtle: #6d7890;
+  --brand: #fbbf24;
+  --brand-strong: #f59e0b;
+  --brand-ink: #1a1203;
+  --brand-soft: #2a2110;
+  --focus: #fbbf24;
+  --nav: #060a13;
+  --nav-2: #0f1625;
+  --nav-ink: #b3bdd0;
+  --success: #4ade80;
+  --success-soft: #0f2a1a;
+  --warning: #fbbf24;
+  --warning-soft: #2b2010;
+  --danger: #f87171;
+  --danger-soft: #2d1414;
+  --info: #93b4ff;
+  --info-soft: #121e3a;
+  --accent: #c4a5ff;
+  --accent-soft: #221636;
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.4);
+  --shadow-lg: 0 16px 40px -12px rgb(0 0 0 / 0.6);
+  color-scheme: dark;
+}
+
+@theme inline {
+  --font-sans: 'IBM Plex Sans Arabic', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-subtle: var(--subtle);
+  --color-brand: var(--brand);
+  --color-brand-strong: var(--brand-strong);
+  --color-brand-ink: var(--brand-ink);
+  --color-brand-soft: var(--brand-soft);
+  --color-nav: var(--nav);
+  --color-nav-2: var(--nav-2);
+  --color-nav-ink: var(--nav-ink);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-info: var(--info);
+  --color-info-soft: var(--info-soft);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --shadow-card: var(--shadow);
+  --shadow-pop: var(--shadow-lg);
+  --radius-card: 14px;
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    @apply bg-bg text-ink font-sans antialiased;
+    font-size: 14.5px;
+    line-height: 1.55;
+  }
+  :focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+  /* Financial figures align in columns. */
+  .num {
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: 'tnum';
+    direction: ltr;
+    unicode-bidi: isolate;
+  }
+  ::selection {
+    background: color-mix(in srgb, var(--brand) 35%, transparent);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-surface border border-line rounded-[var(--radius-card)] shadow-card;
+  }
+  .input {
+    @apply w-full rounded-lg border border-line-strong bg-surface px-3 py-2 text-sm text-ink placeholder:text-subtle
+      transition-colors focus:border-brand focus:outline-none focus:ring-2 focus:ring-brand/30 disabled:opacity-60 disabled:bg-surface-2;
+  }
+  .input[aria-invalid='true'] {
+    @apply border-danger focus:ring-danger/25;
+  }
+  .label {
+    @apply mb-1.5 block text-[13px] font-medium text-ink;
+  }
+  .scrollbar-thin {
+    scrollbar-width: thin;
+  }
+}
+
+@keyframes ah-slide-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-in {
+  animation: ah-slide-in 160ms ease-out;
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+}

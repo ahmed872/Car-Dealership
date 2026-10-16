@@ -10,7 +10,23 @@ import { SubscriptionService } from './modules/tenancy/subscription.service';
 /** Cross-cutting services shared by every domain module. */
 @Global()
 @Module({
-  providers: [DbService, AuditService, PasswordService, SessionService, PostingService, NumberingService, SubscriptionService],
-  exports: [DbService, AuditService, PasswordService, SessionService, PostingService, NumberingService, SubscriptionService],
+  providers: [
+    DbService,
+    AuditService,
+    PasswordService,
+    SessionService,
+    PostingService,
+    NumberingService,
+    SubscriptionService,
+  ],
+  exports: [
+    DbService,
+    AuditService,
+    PasswordService,
+    SessionService,
+    PostingService,
+    NumberingService,
+    SubscriptionService,
+  ],
 })
 export class CoreModule {}

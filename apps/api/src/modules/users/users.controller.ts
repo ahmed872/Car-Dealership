@@ -1,4 +1,15 @@
-import { Body, Controller, Delete, Get, HttpCode, Param, ParseUUIDPipe, Patch, Post, Put } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  Param,
+  ParseUUIDPipe,
+  Patch,
+  Post,
+  Put,
+} from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { createZodDto } from 'nestjs-zod';
 import { PERMISSIONS, zCreateUser, zResetPassword, zRoleInput, zUpdateMembership } from '@autohub/shared';
@@ -29,14 +40,22 @@ export class UsersController {
 
   @Patch('users/:membershipId')
   @RequirePermissions('users.manage')
-  update(@Ctx() ctx: TenantContext, @Param('membershipId', ParseUUIDPipe) id: string, @Body() body: UpdateMembershipDto) {
+  update(
+    @Ctx() ctx: TenantContext,
+    @Param('membershipId', ParseUUIDPipe) id: string,
+    @Body() body: UpdateMembershipDto,
+  ) {
     return this.users.update(ctx, id, body);
   }
 
   @Post('users/:membershipId/reset-password')
   @HttpCode(200)
   @RequirePermissions('users.manage')
-  resetPassword(@Ctx() ctx: TenantContext, @Param('membershipId', ParseUUIDPipe) id: string, @Body() body: ResetPasswordDto) {
+  resetPassword(
+    @Ctx() ctx: TenantContext,
+    @Param('membershipId', ParseUUIDPipe) id: string,
+    @Body() body: ResetPasswordDto,
+  ) {
     return this.users.resetPassword(ctx, id, body.newPassword);
   }
 

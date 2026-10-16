@@ -37,7 +37,9 @@ export class SessionGuard implements CanActivate {
     if (!found) throw new AppError('session_expired', 401, 'Your session has expired. Please sign in again.');
     const { session, user } = found;
 
-    const tenantCtx = session.tenantId ? await this.sessions.loadTenantContext(user.id, session.tenantId) : null;
+    const tenantCtx = session.tenantId
+      ? await this.sessions.loadTenantContext(user.id, session.tenantId)
+      : null;
     req.auth = {
       sessionId: session.id,
       userId: user.id,
@@ -119,7 +121,10 @@ export class PermissionGuard implements CanActivate {
       if (missing.length) throw forbidden('You do not have permission to perform this action', { missing });
       return true;
     }
-    if (meta<boolean>(this.reflector, AUTHENTICATED_ONLY, context) || meta<boolean>(this.reflector, ALLOW_NO_TENANT, context)) {
+    if (
+      meta<boolean>(this.reflector, AUTHENTICATED_ONLY, context) ||
+      meta<boolean>(this.reflector, ALLOW_NO_TENANT, context)
+    ) {
       return true;
     }
     // Secure by default: an undecorated route is a programming error, never an open door.

@@ -64,7 +64,12 @@ describe('installment schedules', () => {
       method: 'flat',
       currency: 'SAR',
     });
-    expect(s.totals).toEqual({ principal: '120000.00', interest: '24000.00', fees: '0.00', total: '144000.00' });
+    expect(s.totals).toEqual({
+      principal: '120000.00',
+      interest: '24000.00',
+      fees: '0.00',
+      total: '144000.00',
+    });
     expect(s.lines[0]).toMatchObject({ principal: '5000.00', interest: '1000.00', total: '6000.00' });
     expect(s.lines[23]!.dueDate).toBe('2028-01-01');
     expect(s.lines[23]!.balanceAfter).toBe('0.00');
@@ -104,7 +109,12 @@ describe('installment schedules', () => {
     });
     expect(s.lines.map((l) => l.principal)).toEqual(['33333.33', '33333.33', '33333.34']);
     expect(s.lines.map((l) => l.fees)).toEqual(['33.33', '33.33', '33.34']);
-    expect(s.totals).toEqual({ principal: '100000.00', interest: '0.00', fees: '100.00', total: '100100.00' });
+    expect(s.totals).toEqual({
+      principal: '100000.00',
+      interest: '0.00',
+      fees: '100.00',
+      total: '100100.00',
+    });
   });
 
   it('rejects invalid input', () => {
@@ -123,15 +133,52 @@ describe('installment schedules', () => {
   });
 
   const state = (): InstallmentState[] => [
-    { id: 'a', seq: 1, dueDate: '2026-01-01', principalDue: '900', interestDue: '100', feesDue: '10', principalPaid: '0', interestPaid: '0', feesPaid: '0' },
-    { id: 'b', seq: 2, dueDate: '2026-02-01', principalDue: '900', interestDue: '100', feesDue: '10', principalPaid: '0', interestPaid: '0', feesPaid: '0' },
-    { id: 'c', seq: 3, dueDate: '2026-03-01', principalDue: '900', interestDue: '100', feesDue: '10', principalPaid: '0', interestPaid: '0', feesPaid: '0' },
+    {
+      id: 'a',
+      seq: 1,
+      dueDate: '2026-01-01',
+      principalDue: '900',
+      interestDue: '100',
+      feesDue: '10',
+      principalPaid: '0',
+      interestPaid: '0',
+      feesPaid: '0',
+    },
+    {
+      id: 'b',
+      seq: 2,
+      dueDate: '2026-02-01',
+      principalDue: '900',
+      interestDue: '100',
+      feesDue: '10',
+      principalPaid: '0',
+      interestPaid: '0',
+      feesPaid: '0',
+    },
+    {
+      id: 'c',
+      seq: 3,
+      dueDate: '2026-03-01',
+      principalDue: '900',
+      interestDue: '100',
+      feesDue: '10',
+      principalPaid: '0',
+      interestPaid: '0',
+      feesPaid: '0',
+    },
   ];
 
   it('allocates oldest first, fees → interest → principal', () => {
     const r = allocatePayment(state(), '1500', 'SAR');
     expect(r.lines).toEqual([
-      { installmentId: 'a', seq: 1, principal: '900.00', interest: '100.00', fees: '10.00', total: '1010.00' },
+      {
+        installmentId: 'a',
+        seq: 1,
+        principal: '900.00',
+        interest: '100.00',
+        fees: '10.00',
+        total: '1010.00',
+      },
       { installmentId: 'b', seq: 2, principal: '380.00', interest: '100.00', fees: '10.00', total: '490.00' },
     ]);
     expect(r.unallocated).toBe('0.00');
@@ -141,7 +188,10 @@ describe('installment schedules', () => {
 
   it('quotes early settlement under each interest policy', () => {
     const asOf = '2026-01-15';
-    expect(earlySettlementQuote(state(), asOf, 'charge_all', 'SAR')).toMatchObject({ interest: '300.00', total: '3030.00' });
+    expect(earlySettlementQuote(state(), asOf, 'charge_all', 'SAR')).toMatchObject({
+      interest: '300.00',
+      total: '3030.00',
+    });
     expect(earlySettlementQuote(state(), asOf, 'charge_current_period', 'SAR')).toMatchObject({
       interest: '200.00',
       waivedInterest: '100.00',
@@ -158,7 +208,15 @@ describe('installment schedules', () => {
 
 describe('tax', () => {
   it('standard inclusive (SA 15%)', () => {
-    expect(computeTax({ amount: '115000', amountIncludesTax: true, mode: 'standard', ratePct: '15', currency: 'SAR' })).toEqual({
+    expect(
+      computeTax({
+        amount: '115000',
+        amountIncludesTax: true,
+        mode: 'standard',
+        ratePct: '15',
+        currency: 'SAR',
+      }),
+    ).toEqual({
       net: '100000.00',
       tax: '15000.00',
       gross: '115000.00',
@@ -166,24 +224,55 @@ describe('tax', () => {
     });
   });
   it('standard exclusive (EG 14%)', () => {
-    expect(computeTax({ amount: '100000', amountIncludesTax: false, mode: 'standard', ratePct: '14', currency: 'EGP' })).toMatchObject({
+    expect(
+      computeTax({
+        amount: '100000',
+        amountIncludesTax: false,
+        mode: 'standard',
+        ratePct: '14',
+        currency: 'EGP',
+      }),
+    ).toMatchObject({
       tax: '14000.00',
       gross: '114000.00',
     });
   });
   it('margin scheme taxes only the positive margin', () => {
     expect(
-      computeTax({ amount: '115000', amountIncludesTax: true, mode: 'margin', ratePct: '15', cost: '92000', currency: 'SAR' }),
+      computeTax({
+        amount: '115000',
+        amountIncludesTax: true,
+        mode: 'margin',
+        ratePct: '15',
+        cost: '92000',
+        currency: 'SAR',
+      }),
     ).toEqual({ net: '112000.00', tax: '3000.00', gross: '115000.00', taxableBase: '20000.00' });
     expect(
-      computeTax({ amount: '90000', amountIncludesTax: true, mode: 'margin', ratePct: '15', cost: '92000', currency: 'SAR' }).tax,
+      computeTax({
+        amount: '90000',
+        amountIncludesTax: true,
+        mode: 'margin',
+        ratePct: '15',
+        cost: '92000',
+        currency: 'SAR',
+      }).tax,
     ).toBe('0.00');
   });
   it('none mode', () => {
-    expect(computeTax({ amount: '50000', amountIncludesTax: true, mode: 'none', ratePct: '14', currency: 'EGP' }).tax).toBe('0.00');
+    expect(
+      computeTax({ amount: '50000', amountIncludesTax: true, mode: 'none', ratePct: '14', currency: 'EGP' })
+        .tax,
+    ).toBe('0.00');
   });
   it('rounds inclusive tax at 5%', () => {
-    const r = computeTax({ amount: '99999.99', amountIncludesTax: true, mode: 'standard', ratePct: '5', currency: 'AED' });
+    const r = computeTax({
+      amount: '99999.99',
+      amountIncludesTax: true,
+      mode: 'standard',
+      ratePct: '5',
+      currency: 'AED',
+    });
     expect(r).toMatchObject({ tax: '4761.90', net: '95238.09' });
     expect(d(r.net).plus(r.tax).toFixed(2)).toBe('99999.99');
   });
@@ -206,20 +295,33 @@ describe('commissions', () => {
   });
   it('no commission on loss when required, min/cap applied', () => {
     const loss = { ...input, grossProfit: '-500' };
-    expect(computeCommission({ type: 'fixed', fixedAmount: '750', requirePositiveProfit: true }, loss).amount).toBe('0.00');
+    expect(
+      computeCommission({ type: 'fixed', fixedAmount: '750', requirePositiveProfit: true }, loss).amount,
+    ).toBe('0.00');
     expect(computeCommission({ type: 'pct_of_profit', ratePct: '10' }, loss).amount).toBe('0.00');
-    expect(computeCommission({ type: 'pct_of_profit', ratePct: '10', capAmount: '1000' }, input).amount).toBe('1000.00');
-    expect(computeCommission({ type: 'pct_of_profit', ratePct: '1', minAmount: '500' }, input).amount).toBe('500.00');
+    expect(computeCommission({ type: 'pct_of_profit', ratePct: '10', capAmount: '1000' }, input).amount).toBe(
+      '1000.00',
+    );
+    expect(computeCommission({ type: 'pct_of_profit', ratePct: '1', minAmount: '500' }, input).amount).toBe(
+      '500.00',
+    );
   });
   it('validates rules', () => {
     expect(validateCommissionRule({ type: 'pct_of_profit', ratePct: '150' })).not.toEqual([]);
-    expect(validateCommissionRule({ type: 'tiered', tiers: [{ from: '5', ratePct: '1' }] })).toContain('first tier must start at 0');
+    expect(validateCommissionRule({ type: 'tiered', tiers: [{ from: '5', ratePct: '1' }] })).toContain(
+      'first tier must start at 0',
+    );
   });
 });
 
 describe('pricing', () => {
   it('flags discounts beyond role limit and floor breaches', () => {
-    const base = { askingPrice: '200000', floorPrice: '185000', maxDiscountPct: '3', currency: 'SAR' as const };
+    const base = {
+      askingPrice: '200000',
+      floorPrice: '185000',
+      maxDiscountPct: '3',
+      currency: 'SAR' as const,
+    };
     expect(evaluateSalePrice({ ...base, agreedPrice: '195000' })).toMatchObject({
       discountAmount: '5000.00',
       discountPct: '2.5000',
@@ -237,7 +339,11 @@ describe('pricing', () => {
     expect(evaluateSalePrice({ ...base, agreedPrice: '210000' }).discountAmount).toBe('0.00');
   });
   it('computes margin and target price', () => {
-    expect(profitMetrics('112000', '92000', 'SAR')).toEqual({ grossProfit: '20000.00', marginPct: '17.86', markupPct: '21.74' });
+    expect(profitMetrics('112000', '92000', 'SAR')).toEqual({
+      grossProfit: '20000.00',
+      marginPct: '17.86',
+      markupPct: '21.74',
+    });
     expect(priceForTargetMargin('90000', '10', 'SAR')).toBe('100000.00');
   });
 });

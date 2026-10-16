@@ -1,7 +1,13 @@
 import { randomUUID } from 'node:crypto';
 import { Injectable } from '@nestjs/common';
 import { eq } from 'drizzle-orm';
-import { defaultTenantSettings, MARKETS, ProvisionTenantInput, SYSTEM_ROLE_KEYS, SYSTEM_ROLES } from '@autohub/shared';
+import {
+  defaultTenantSettings,
+  MARKETS,
+  ProvisionTenantInput,
+  SYSTEM_ROLE_KEYS,
+  SYSTEM_ROLES,
+} from '@autohub/shared';
 import { conflict, notFound } from '../../common/errors';
 import { DbService } from '../../db/db.service';
 import {
@@ -44,7 +50,9 @@ export class ProvisioningService {
 
     return this.dbs.runInTenant({ tenantId, userId: actorUserId }, async () => {
       const db = this.dbs.db;
-      const [taken] = await this.dbs.query<{ taken: boolean }>('SELECT app_slug_taken($1) AS taken', [input.slug]);
+      const [taken] = await this.dbs.query<{ taken: boolean }>('SELECT app_slug_taken($1) AS taken', [
+        input.slug,
+      ]);
       if (taken?.taken) throw conflict('slug_taken', 'This company identifier is already in use');
 
       const market = MARKETS[input.market];
@@ -80,15 +88,26 @@ export class ProvisioningService {
 
       // Owner: reuse an existing platform user with this email, otherwise create one.
       let ownerCreated = false;
-      let [owner] = await db.select({ id: users.id }).from(users).where(eq(users.email, input.owner.email)).limit(1);
+      let [owner] = await db
+        .select({ id: users.id })
+        .from(users)
+        .where(eq(users.email, input.owner.email))
+        .limit(1);
       if (!owner) {
         [owner] = await db
           .insert(users)
-          .values({ email: input.owner.email, fullName: input.owner.fullName, passwordHash, passwordChangedAt: new Date() })
+          .values({
+            email: input.owner.email,
+            fullName: input.owner.fullName,
+            passwordHash,
+            passwordChangedAt: new Date(),
+          })
           .returning({ id: users.id });
         ownerCreated = true;
       }
-      await db.insert(memberships).values({ tenantId, userId: owner!.id, roleId: roleIds.owner!, allBranches: true });
+      await db
+        .insert(memberships)
+        .values({ tenantId, userId: owner!.id, roleId: roleIds.owner!, allBranches: true });
 
       await db.insert(ledgerAccounts).values(CHART.map((a) => ({ tenantId, ...a, isSystem: true })));
 

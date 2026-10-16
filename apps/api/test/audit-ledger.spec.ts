@@ -37,13 +37,17 @@ describe('audit trail', () => {
     const pool = ownerPool();
     try {
       // The app role cannot modify audit rows at all; even the owner is blocked by the trigger…
-      await expect(pool.query(`UPDATE audit_logs SET summary = 'x' WHERE tenant_id = $1`, [t.tenantId])).rejects.toThrow(/immutable_record/);
+      await expect(
+        pool.query(`UPDATE audit_logs SET summary = 'x' WHERE tenant_id = $1`, [t.tenantId]),
+      ).rejects.toThrow(/immutable_record/);
       // …unless it deliberately disables the trigger. That tampering must be detected.
       const c = await pool.connect();
       try {
         await c.query('BEGIN');
         await c.query('ALTER TABLE audit_logs DISABLE TRIGGER audit_logs_immutable');
-        await c.query(`UPDATE audit_logs SET summary = 'tampered' WHERE tenant_id = $1 AND seq = 1`, [t.tenantId]);
+        await c.query(`UPDATE audit_logs SET summary = 'tampered' WHERE tenant_id = $1 AND seq = 1`, [
+          t.tenantId,
+        ]);
         await c.query('ALTER TABLE audit_logs ENABLE TRIGGER audit_logs_immutable');
         await c.query('COMMIT');
       } finally {
@@ -140,7 +144,12 @@ describe('ledger posting engine', () => {
           { account: ACCOUNTS.PAYABLES, credit: '500.00' },
         ],
       });
-      await posting.reverse({ sourceType: 'test', sourceId, event: 'cost' }, 'cost.reversed', '2026-01-13', 'reversal');
+      await posting.reverse(
+        { sourceType: 'test', sourceId, event: 'cost' },
+        'cost.reversed',
+        '2026-01-13',
+        'reversal',
+      );
     });
     expect(await inTenant(() => posting.balance(ACCOUNTS.INVENTORY, { vehicleId: sourceId }))).toBe('0.00');
   });

@@ -1,8 +1,6 @@
 import { z } from 'zod';
 
-const bool = z
-  .enum(['true', 'false', '1', '0'])
-  .transform((v) => v === 'true' || v === '1');
+const bool = z.enum(['true', 'false', '1', '0']).transform((v) => v === 'true' || v === '1');
 
 const EnvSchema = z
   .object({
@@ -17,8 +15,18 @@ const EnvSchema = z
     APP_ORIGINS: z.string().default('http://localhost:5173'),
     PUBLIC_WEB_URL: z.string().url().default('http://localhost:5173'),
     COOKIE_SECURE: bool.optional(),
-    SESSION_IDLE_MINUTES: z.coerce.number().int().min(5).max(7 * 24 * 60).default(720),
-    SESSION_ABSOLUTE_HOURS: z.coerce.number().int().min(1).max(24 * 90).default(168),
+    SESSION_IDLE_MINUTES: z.coerce
+      .number()
+      .int()
+      .min(5)
+      .max(7 * 24 * 60)
+      .default(720),
+    SESSION_ABSOLUTE_HOURS: z.coerce
+      .number()
+      .int()
+      .min(1)
+      .max(24 * 90)
+      .default(168),
     LOGIN_MAX_FAILURES: z.coerce.number().int().min(3).max(50).default(5),
     LOGIN_LOCKOUT_MINUTES: z.coerce.number().int().min(1).max(1440).default(15),
     /** 32-byte key, base64 — encrypts integration secrets at rest. */
@@ -46,10 +54,18 @@ const EnvSchema = z
   })
   .superRefine((env, ctx) => {
     if (env.STORAGE_DRIVER === 's3' && !env.S3_BUCKET) {
-      ctx.addIssue({ code: 'custom', path: ['S3_BUCKET'], message: 'S3_BUCKET is required when STORAGE_DRIVER=s3' });
+      ctx.addIssue({
+        code: 'custom',
+        path: ['S3_BUCKET'],
+        message: 'S3_BUCKET is required when STORAGE_DRIVER=s3',
+      });
     }
     if (env.NODE_ENV === 'production' && env.COOKIE_SECURE === false) {
-      ctx.addIssue({ code: 'custom', path: ['COOKIE_SECURE'], message: 'COOKIE_SECURE cannot be false in production' });
+      ctx.addIssue({
+        code: 'custom',
+        path: ['COOKIE_SECURE'],
+        message: 'COOKIE_SECURE cannot be false in production',
+      });
     }
   });
 

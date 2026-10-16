@@ -113,10 +113,10 @@ export class DbService implements OnModuleDestroy {
     const store: TxStore = { db: drizzle(client, { schema }), client, ctx, afterCommit: [] };
     try {
       await client.query('BEGIN');
-      await client.query(`SELECT set_config('app.tenant_id', $1, true), set_config('app.user_id', $2, true)`, [
-        ctx.tenantId ?? '',
-        ctx.userId ?? '',
-      ]);
+      await client.query(
+        `SELECT set_config('app.tenant_id', $1, true), set_config('app.user_id', $2, true)`,
+        [ctx.tenantId ?? '', ctx.userId ?? ''],
+      );
       const result = await this.als.run(store, fn);
       await client.query('COMMIT');
       committed = true;

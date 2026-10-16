@@ -57,7 +57,8 @@ describe('VIN', () => {
 describe('permissions & roles', () => {
   it('owner has everything; auditor cannot mutate', () => {
     expect(SYSTEM_ROLES.owner.permissions.length).toBe(ALL_PERMISSIONS.length);
-    const mutating = /\.(create|update|manage|approve|cancel|confirm|deliver|receive|void|pay|transfer|close|reopen|adjust|perform|remove|issue|collect|settle|reverse|return|assign|extend|count|reconcile|set_floor|post_manual|change_status|post_after_sale|deliver_with_balance|cancel_confirmed|manage_media|manage_documents|manage_policies|manage_accounts|manage_templates|approve_discount|approve_below_floor)$/;
+    const mutating =
+      /\.(create|update|manage|approve|cancel|confirm|deliver|receive|void|pay|transfer|close|reopen|adjust|perform|remove|issue|collect|settle|reverse|return|assign|extend|count|reconcile|set_floor|post_manual|change_status|post_after_sale|deliver_with_balance|cancel_confirmed|manage_media|manage_documents|manage_policies|manage_accounts|manage_templates|approve_discount|approve_below_floor)$/;
     for (const p of SYSTEM_ROLES.auditor.permissions) expect(p).not.toMatch(mutating);
   });
   it('sales reps cannot see cost or approve discounts', () => {
@@ -65,7 +66,8 @@ describe('permissions & roles', () => {
     expect(SYSTEM_ROLES.sales_rep.permissions).not.toContain('sales.approve_discount');
   });
   it('every role references valid permissions', () => {
-    for (const role of Object.values(SYSTEM_ROLES)) for (const p of role.permissions) expect(ALL_PERMISSIONS).toContain(p);
+    for (const role of Object.values(SYSTEM_ROLES))
+      for (const p of role.permissions) expect(ALL_PERMISSIONS).toContain(p);
   });
 });
 
@@ -78,7 +80,8 @@ describe('markets & settings', () => {
     expect(normalizePhone('12', 'AE')).toBeNull();
   });
   it('default settings validate for every market', () => {
-    for (const m of ['EG', 'SA', 'AE'] as const) expect(zTenantSettings.safeParse(defaultTenantSettings(m)).success).toBe(true);
+    for (const m of ['EG', 'SA', 'AE'] as const)
+      expect(zTenantSettings.safeParse(defaultTenantSettings(m)).success).toBe(true);
     expect(defaultTenantSettings('SA').tax.ratePct).toBe('15');
   });
   it('money schema rejects floats-as-strings beyond 2 decimals and negatives where required', () => {
