@@ -16,3 +16,4 @@ export * from './schemas/expenses';
 export * from './schemas/work-orders';
 export * from './schemas/accounting';
 export * from './schemas/suppliers';
+export * from './schemas/crm';

@@ -17,6 +17,7 @@ export const NUMBER_PREFIXES = {
   transfer: 'TRF',
   stock_count: 'CNT',
   credit_note: 'CN',
+  lead: 'LD',
 } as const;
 export type NumberKind = keyof typeof NUMBER_PREFIXES;
 
