@@ -15,6 +15,11 @@
 4. Update TEST_REPORT and KNOWN_ISSUES, then commit and push.
 5. Start Phase 4. A draft schema is in the session scratchpad (`phase4/crm.schema.ts`, `crm.shared.ts`), not committed.
 
+**Autonomous continuation:**
+- The Product Owner asked for the master prompt to be executed to the end without waiting for them, including after usage limits.
+- An hourly scheduled task, "AutoHub Pro — continue master prompt", resumes this session at minute 35 of every hour.
+- Delete that scheduled task once the final report is delivered.
+
 | Phase | Status |
 |---|---|
 | 0 Discovery & Architecture | Complete |
