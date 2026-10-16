@@ -18,6 +18,7 @@ interface TransferRow extends Record<string, unknown> {
   transfer_id: string;
   business_date: string;
   amount_base: string;
+  to_amount_base: string;
   reference: string | null;
   description: string;
   journal_entry_id: string | null;
@@ -150,7 +151,7 @@ export class CashTransfersService {
              fa.id AS from_id, fa.name AS from_name, fa.type AS from_type, fa.currency AS from_currency, fa.branch_id AS from_branch_id,
              o.amount AS from_amount, o.exchange_rate AS from_rate,
              ta.id AS to_id, ta.name AS to_name, ta.type AS to_type, ta.currency AS to_currency, ta.branch_id AS to_branch_id,
-             i.amount AS to_amount, i.exchange_rate AS to_rate,
+             i.amount AS to_amount, i.exchange_rate AS to_rate, i.amount_base AS to_amount_base,
              r.business_date AS rev_date, r.description AS rev_description, r.journal_entry_id AS rev_journal_entry_id, r.created_at AS rev_created_at`;
   }
 
@@ -202,7 +203,11 @@ export class CashTransfersService {
     return {
       transferId: r.transfer_id,
       businessDate: r.business_date,
-      amountBase: r.amount_base,
+      // Value received at the destination; the source leg is relieved at its carrying cost
+      // (fromBase) and any difference is realized FX (4300).
+      amountBase: r.to_amount_base,
+      fromBase: r.amount_base,
+      fxDifference: d(r.to_amount_base).minus(r.amount_base).toFixed(2),
       baseCurrency: ctx.tenant.baseCurrency,
       from: {
         cashAccountId: r.from_id,

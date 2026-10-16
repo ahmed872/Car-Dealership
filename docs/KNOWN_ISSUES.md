@@ -16,4 +16,10 @@ Severity: P0 (blocker) · P1 (high) · P2 (medium) · P3 (low).
 | EXT-08 | Production deployment | Not performed | Hosting account, domain, TLS |
 
 ## Open issues
-(Populated as phases progress.)
+
+| ID | Severity | Issue | Plan |
+|---|---|---|---|
+| KI-001 | P1 | Foreign keys from tenant tables to other tenant tables are single-column. An FK check bypasses RLS, so a service that does not first look up the referenced row through RLS could store another company's id. Services now look references up through RLS; the cash-account branch hole found in review is fixed. | Phase 8: composite `(tenant_id, id)` foreign keys on all tenant tables. |
+| KI-002 | P2 | Unrealized FX (period-end revaluation of open foreign balances) is not implemented; only realized FX is posted (D-019). | Phase 6/8 reporting enhancement. |
+| KI-003 | P2 | Supplier advances (payments not tied to a document) are not supported (D-016). | Future enhancement. |
+| KI-004 | P3 | Allocation remainder cents go to the largest fractions (ties to the first row), not "the last vehicle". FINANCIAL_POLICIES wording corrected. | Done (documentation). |

@@ -43,6 +43,13 @@
       "when": 1792141299326,
       "tag": "0005_purchasing_security",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1792161537156,
+      "tag": "0006_fx_and_review_fixes",
+      "breakpoints": true
     }
   ]
 }

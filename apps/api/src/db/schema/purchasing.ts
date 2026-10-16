@@ -248,7 +248,12 @@ export const supplierPaymentAllocations = pgTable(
       .references(() => supplierPayments.id),
     targetType: text('target_type').notNull(),
     targetId: uuid('target_id').notNull(),
+    /** Base carrying amount relieved from the document's payable (what "paid" sums use). */
     amountBase: money('amount_base').notNull(),
+    /** This allocation's share of the payment at the payment's rate; Σ = payment.amount_base. */
+    paymentBase: money('payment_base').notNull(),
+    /** Amount settled in the document's currency (foreign-currency documents). */
+    amountDoc: money('amount_doc'),
   },
   (t) => [
     index('supplier_payment_alloc_target_idx').on(t.tenantId, t.targetType, t.targetId),

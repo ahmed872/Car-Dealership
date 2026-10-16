@@ -180,10 +180,13 @@ describe('accounting: transfers, cash book, GL reports, reconciliation', () => {
     expect(wrongTo.body.error.code).toBe('amount_to_mismatch');
     const back = await transfer(c, { fromAccountId: usd.id, toAccountId: box.id, amount: '400.00', exchangeRate: '3.76', date: '2026-03-02' });
     expect(back.status).toBe(201);
-    expect(back.body).toMatchObject({ amountBase: '1504.00', from: { amount: '400.00', exchangeRate: '3.76000000' }, to: { amount: '1504.00' } });
-    expect(await balanceOf(c, usd.id)).toEqual({ balance: '600.00', balanceBase: '2246.00' });
+    // 400 USD carried at 3.75 (1,500.00) are sold at 3.76 (1,504.00): the box receives 1,504.00 and
+    // the 4.00 difference is a realized FX gain, so the remaining 600 USD stay at 3.75 (2,250.00).
+    expect(back.body).toMatchObject({ amountBase: '1504.00', fromBase: '1500.00', fxDifference: '4.00', from: { amount: '400.00', exchangeRate: '3.76000000' }, to: { amount: '1504.00' } });
+    expect(await balanceOf(c, usd.id)).toEqual({ balance: '600.00', balanceBase: '2250.00' });
     expect((await balanceOf(c, box.id)).balance).toBe('17754.00');
-    expect(await gl(pool, t.tenantId, '1100', { col: 'cash_account_id', id: usd.id })).toBe('2246.00');
+    expect(await gl(pool, t.tenantId, '1100', { col: 'cash_account_id', id: usd.id })).toBe('2250.00');
+    expect(await gl(pool, t.tenantId, '4300')).toBe('-4.00');
   });
 
   it('reverses a transfer exactly once: balances restored, mirrored entry, reversal rows linked to each leg', async () => {

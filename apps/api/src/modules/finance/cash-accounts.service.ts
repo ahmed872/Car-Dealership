@@ -113,7 +113,12 @@ export class CashAccountsService {
 
   async update(ctx: TenantContext, id: string, input: { name?: string; branchId?: string | null; bankName?: string | null; accountNumber?: string | null; iban?: string | null; isActive?: boolean }) {
     const before = await this.cash.lockAccount(ctx, id);
-    if (input.branchId) assertBranchAccess(ctx, input.branchId);
+    if (input.branchId) {
+      assertBranchAccess(ctx, input.branchId);
+      // RLS-scoped lookup: a foreign-key check alone would accept another company's branch id.
+      const [b] = await this.dbs.db.select({ id: branches.id }).from(branches).where(eq(branches.id, input.branchId));
+      if (!b) throw notFound('Branch');
+    }
     if (input.isActive === false && before.isActive) {
       const bal = await this.cash.balance(id);
       if (!d(bal.amount).isZero()) throw conflict('cash_account_not_empty', 'Transfer the balance out before deactivating this account', { balance: bal.amount });

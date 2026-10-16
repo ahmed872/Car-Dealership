@@ -253,7 +253,7 @@ describe('acquisitions', () => {
     const ap = await checker.post(`/acquisitions/${acq.id}/approve`, { payNow: { cashAccountId: cash.id, method: 'cash', reference: 'RCPT-1' } }, idem());
     expect(ap.status).toBe(200);
     expect(ap.body.payment).toMatchObject({ amount: '60000.00', amountBase: '60000.00', currency: 'SAR', supplierId: supplier.id, cashAccountId: cash.id });
-    expect(ap.body.payment.allocations).toEqual([{ targetType: 'acquisition', targetId: acq.id, amountBase: '60000.00' }]);
+    expect(ap.body.payment.allocations).toEqual([{ targetType: 'acquisition', targetId: acq.id, amountBase: '60000.00', settledBase: '60000.00', amountDoc: '60000.00', currency: 'SAR' }]);
     const detail = await owner.get(`/acquisitions/${acq.id}`);
     expect(detail.body).toMatchObject({ paidBase: '60000.00', outstandingBase: '0.00' });
     expect(detail.body.payments).toHaveLength(1);

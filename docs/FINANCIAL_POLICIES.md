@@ -49,6 +49,7 @@ integration tests in `apps/api/test/*.spec.ts` check that.
 | 4000 | Vehicle sales revenue | Revenue |
 | 4100 | Finance (installment) income | Revenue |
 | 4200 | Other income | Revenue |
+| 4300 | Realized foreign-exchange gains / (losses) | Revenue (losses are debits) |
 | 5000 | Cost of vehicles sold (COGS) | Expense |
 | 6000 | Operating expenses (dimension: branch) | Expense |
 | 6100 | Commission expense | Expense |
@@ -69,7 +70,8 @@ integration tests in `apps/api/test/*.spec.ts` check that.
 | Supplier payment | 2000 (supplier) | 1100 (cash account) | `supplier_payment` / `supplier_payment.posted` |
 | Supplier payment voided | mirror | | `supplier_payment` / `supplier_payment.posted.reversed` |
 | Transfer between own accounts | 1100 (to) | 1100 (from) | `cash_transfer` / `cash_transfer.posted` |
-| Vehicle removed from stock with remaining cost | 6300 (vehicle) | 1300 (vehicle) | `vehicle` / `vehicle.written_off` |
+| Vehicle removed from stock with remaining cost | 6300 (vehicle) | 1300 (vehicle) | `vehicle` / `vehicle.written_off` (balance to date) + `vehicle.written_off:<date>` per future-dated cost |
+| Realized FX on a payment or transfer | 4300 (loss) | 4300 (gain) | Extra line in the payment/transfer entry |
 
 Sales, deposits, receipts, refunds, installments, commissions and daily closing rules are added in
 Phases 4–5 and documented in §6.
@@ -99,6 +101,31 @@ Phases 4–5 and documented in §6.
   reversed, and an acquisition with payments cannot be cancelled (`*_has_payments`). The payment
   must be voided first, so the supplier's balance never silently changes.
 
+### 4.1 Foreign currency (realized FX)
+- **Foreign cash and bank accounts are carried at weighted-average base cost.** Money coming in
+  adds base value at the transaction rate. Money going out relieves base value in proportion. When
+  an account is emptied, all of its remaining base value is relieved. An emptied foreign account
+  therefore never keeps a base balance.
+- **Foreign-currency payables are carried at their booking rate.** A payment allocation states:
+  - `amountBase`: its share of the payment, valued at the payment's own rate. The shares must add
+    up exactly to the payment.
+  - optionally `amountDoc`: the amount settled in the document's own currency.
+
+  The payable is relieved at its carrying cost. When the final amount is settled, the exact
+  remainder is relieved.
+- **Every difference is posted to 4300 in the same journal entry:**
+  - carrying cost of the cash vs. its value at the transaction rate;
+  - allocated value vs. carrying cost of the payable.
+
+  Example: 10,000 USD bought at 3.75 settles a liability booked at 3.75 with no FX, whatever the
+  payment-day rate is. Paying a 1,000 USD invoice booked at 3.75 with 3,800 SAR realizes a 50.00
+  loss.
+- **On the cash book row for an outflow:**
+  - `exchange_rate` keeps the rate the user stated;
+  - `amount_base` is the carrying cost relieved.
+- **Shared invoices in a foreign currency** are converted once, and the base total is split with
+  the same weights. The parts always add up to the converted invoice.
+
 ## 5. Vehicle cost engine
 
 * **What a vehicle cost is.** A vehicle's cost is the sum of its **posted** `vehicle_costs` rows,
@@ -113,8 +140,8 @@ Phases 4–5 and documented in §6.
   - pre-sale costs can no longer be reversed (`cost_locked`).
 * **Shared costs.** A shared invoice (for example, transport of several cars) is split by
   `allocateProportionally`: equally, by posted purchase price, or by manual amounts that must add
-  up exactly. The last vehicle absorbs the rounding remainder, so the parts always sum to the
-  invoice to the cent.
+  up exactly. Remainder cents go to the largest fractions, so the parts always sum to the invoice
+  to the cent.
 * **Work orders.** An approved work-order item becomes exactly one posted cost. The unique index on
   `(source_type, source_id)` prevents double posting.
 * **Cancelling a purchase.** Cancelling an approved, unpaid acquisition does two things:
@@ -131,8 +158,12 @@ Phases 4–5 and documented in §6.
   - the GL entry on 1100, carrying the cash-account dimension.
 
   Balances are derived from the cash book; they are never stored.
-* **Cash boxes cannot go negative** (`insufficient_cash`). Bank accounts may go negative
-  (overdraft) and are flagged in reports.
+* **Cash boxes cannot go negative on any date.** An outflow dated D is accepted only if the
+  running balance stays at or above zero on D and on every later date. A back-dated payment
+  therefore cannot overdraw a box before it was funded. Bank accounts may go negative (overdraft).
+* **Reversals and voids are never dated before the movement they reverse.** They are dated
+  max(today, original date).
+* **Reversing into or out of a deactivated account is refused.** Reactivate the account first.
 * **Transfers between accounts.** A transfer is one GL entry with two cash rows. A cross-currency
   transfer carries the same base amount on both legs; the destination's implied rate absorbs
   rounding.

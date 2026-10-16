@@ -197,6 +197,8 @@ export const zSupplierPaymentCreate = z.object({
         targetType: z.enum(['acquisition', 'vehicle_cost', 'expense']),
         targetId: zUuid,
         amountBase: zMoneyPos,
+        /** Amount settled in the document's own currency (foreign-currency documents). */
+        amountDoc: zMoneyPos.optional(),
       }),
     )
     .min(1)

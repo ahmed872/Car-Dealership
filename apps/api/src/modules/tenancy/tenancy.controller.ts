@@ -76,7 +76,13 @@ export class TenancyController {
       (k) => JSON.stringify(validated[k]) !== JSON.stringify(current.settings[k]),
     );
     if (changedLocked.length) {
-      const [posted] = await db.select({ n: sql<number>`count(*)::int` }).from(journalEntries);
+      // Any financial document counts, not only journal entries: a pending acquisition or expense
+      // already stores base amounts rounded with the current rule (F-009).
+      const [posted] = await this.dbs.query<{ n: number }>(
+        `SELECT ((SELECT count(*) FROM journal_entries) + (SELECT count(*) FROM acquisitions) + (SELECT count(*) FROM vehicle_costs)
+               + (SELECT count(*) FROM expenses) + (SELECT count(*) FROM supplier_payments) + (SELECT count(*) FROM cash_transactions))::int AS n`,
+      );
+      void journalEntries;
       if ((posted?.n ?? 0) > 0) {
         throw new AppError(
           'setting_locked',

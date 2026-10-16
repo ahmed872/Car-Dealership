@@ -295,22 +295,36 @@ export class VehiclesService {
     return !!t;
   }
 
-  /** Removing a vehicle that carries capitalised cost writes that cost off (Dr 6300 / Cr 1300). */
+  /**
+   * Removing a vehicle that carries capitalised cost writes that cost off (Dr 6300 / Cr 1300).
+   * The balance up to today is written off today; any future-dated cost is written off on its own
+   * date, so the vehicle's inventory is zero from removal onward and never negative on any date.
+   */
   private async postWriteOff(ctx: TenantContext, v: VehicleRow, reason: string) {
-    const bal = await this.posting.balance(ACCOUNTS.INVENTORY, { vehicleId: v.id });
-    if (d(bal).lte(0)) return;
-    await this.posting.post({
-      sourceType: 'vehicle',
-      sourceId: v.id,
-      event: 'vehicle.written_off',
-      date: todayInZone(ctx.tenant.settings.timezone),
-      description: `Write-off ${v.stockNumber}: ${reason}`,
-      branchId: v.branchId,
-      lines: [
-        { account: ACCOUNTS.INVENTORY_ADJUSTMENTS, debit: bal, vehicleId: v.id },
-        { account: ACCOUNTS.INVENTORY, credit: bal, vehicleId: v.id },
-      ],
-    });
+    const today = todayInZone(ctx.tenant.settings.timezone);
+    const rows = await this.dbs.query<{ d: string; amt: string }>(
+      `SELECT CASE WHEN je.entry_date <= $2::date THEN $2::date ELSE je.entry_date END::text AS d,
+              sum(jl.debit - jl.credit)::numeric(18,2)::text AS amt
+         FROM journal_lines jl JOIN journal_entries je ON je.id = jl.entry_id
+        WHERE jl.vehicle_id = $1 AND jl.account_code = '1300'
+        GROUP BY 1 ORDER BY 1`,
+      [v.id, today],
+    );
+    for (const r of rows) {
+      if (d(r.amt).lte(0)) continue;
+      await this.posting.post({
+        sourceType: 'vehicle',
+        sourceId: v.id,
+        event: r.d === today ? 'vehicle.written_off' : `vehicle.written_off:${r.d}`,
+        date: r.d,
+        description: `Write-off ${v.stockNumber}: ${reason}`,
+        branchId: v.branchId,
+        lines: [
+          { account: ACCOUNTS.INVENTORY_ADJUSTMENTS, debit: r.amt, vehicleId: v.id },
+          { account: ACCOUNTS.INVENTORY, credit: r.amt, vehicleId: v.id },
+        ],
+      });
+    }
   }
 
   // ── Pricing ───────────────────────────────────────────────────────────────────────────

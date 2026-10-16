@@ -8,7 +8,7 @@ import { cashAccounts, supplierPaymentAllocations, supplierPayments, suppliers }
 import { AuditService } from '../audit/audit.service';
 import { ACCOUNTS } from '../ledger/chart';
 import { NumberingService } from '../numbering/numbering.service';
-import { CashService } from './cash.service';
+import { CashService, fxLine } from './cash.service';
 import { resolveFx } from './fx';
 import { PayablesService } from './payables.service';
 
@@ -45,26 +45,56 @@ export class SupplierPaymentsService {
         allocated: allocated.toFixed(2),
       });
     }
+    const base = ctx.tenant.baseCurrency;
     const seen = new Set<string>();
+    const prepared: Array<{ targetType: (typeof input.allocations)[number]['targetType']; targetId: string; paymentBase: string; relief: string; amountDoc: string; currency: string }> = [];
     for (const a of input.allocations) {
       const key = `${a.targetType}:${a.targetId}`;
       if (seen.has(key)) throw unprocessable('duplicate_allocation', 'Each document can appear only once in a payment');
       seen.add(key);
       const info = await this.payables.describe(a.targetType, a.targetId, true);
+      // Branch first: a refused caller must not learn the document's status, supplier or balance.
+      if (info.branchId && !ctx.allBranches && !ctx.branchIds.includes(info.branchId)) {
+        throw unprocessable('branch_forbidden', 'This document belongs to a branch you cannot access', { target: key });
+      }
       if (!info.payable) throw conflict('not_payable', `${info.label} is not approved for payment`, { target: key });
       if ((info.supplierId ?? null) !== (input.supplierId ?? null)) {
         throw unprocessable('supplier_mismatch', `${info.label} belongs to a different supplier`, { target: key });
       }
-      if (d(a.amountBase).gt(info.outstandingBase)) {
-        throw conflict('overpayment', `Payment exceeds the outstanding balance of ${info.label}`, {
-          target: key,
-          outstanding: info.outstandingBase,
-        });
+      const paymentBase = money(a.amountBase, base);
+      let amountDoc: string;
+      let relief: string;
+      if (info.currency === base) {
+        if (a.amountDoc && !d(a.amountDoc).eq(paymentBase)) {
+          throw unprocessable('amount_doc_mismatch', 'For a base-currency document the settled amount equals the allocated amount', { target: key });
+        }
+        amountDoc = paymentBase;
+        relief = paymentBase;
+        if (d(relief).gt(info.outstandingBase)) {
+          throw conflict('overpayment', `Payment exceeds the outstanding balance of ${info.label}`, { target: key, outstanding: info.outstandingBase });
+        }
+      } else {
+        // Foreign-currency document: settle an amount in ITS currency (default: the allocated base
+        // amount at the document's booking rate, i.e. no FX difference). The payable is relieved at
+        // its carrying cost; any difference to the base paid is realized FX (4300).
+        amountDoc = a.amountDoc ? money(a.amountDoc, info.currency as CurrencyCode) : d(paymentBase).times(info.totalDoc).dividedBy(info.totalBase).toDecimalPlaces(2).toFixed(2);
+        if (d(amountDoc).gt(info.outstandingDoc)) {
+          throw conflict('overpayment', `Payment exceeds the outstanding balance of ${info.label}`, {
+            target: key,
+            outstanding: info.outstandingDoc,
+            currency: info.currency,
+          });
+        }
+        relief = d(amountDoc).eq(info.outstandingDoc)
+          ? info.outstandingBase
+          : d(info.totalBase).times(amountDoc).dividedBy(info.totalDoc).toDecimalPlaces(2).toFixed(2);
+        if (d(relief).gt(info.outstandingBase)) relief = info.outstandingBase;
+        if (d(relief).lte(0)) throw unprocessable('invalid_amount', 'The settled amount is too small', { target: key });
       }
-      if (info.branchId && !ctx.allBranches && !ctx.branchIds.includes(info.branchId)) {
-        throw unprocessable('branch_forbidden', `${info.label} belongs to a branch you cannot access`);
-      }
+      prepared.push({ targetType: a.targetType, targetId: a.targetId, paymentBase, relief, amountDoc, currency: info.currency });
     }
+    const reliefTotal = sum(prepared.map((p) => p.relief));
+    const docFx = fxLine(d(amountBase).minus(reliefTotal), 'fx:payable');
 
     const number = await this.numbering.next('supplier_payment');
     const [p] = await db
@@ -86,12 +116,14 @@ export class SupplierPaymentsService {
       })
       .returning();
     await db.insert(supplierPaymentAllocations).values(
-      input.allocations.map((a) => ({
+      prepared.map((a) => ({
         tenantId: ctx.tenant.id,
         paymentId: p!.id,
         targetType: a.targetType,
         targetId: a.targetId,
-        amountBase: d(a.amountBase).toFixed(2),
+        amountBase: a.relief,
+        paymentBase: a.paymentBase,
+        amountDoc: a.amountDoc,
       })),
     );
     await this.cash.move(ctx, {
@@ -106,16 +138,20 @@ export class SupplierPaymentsService {
       businessDate: input.paidAt,
       description: `Supplier payment ${number}`,
       reference: input.reference ?? null,
-      counterLines: [{ account: ACCOUNTS.PAYABLES, debit: amountBase, supplierId: input.supplierId ?? null }],
+      counterLines: [
+        { account: ACCOUNTS.PAYABLES, debit: reliefTotal.toFixed(2), supplierId: input.supplierId ?? null },
+        ...(docFx ? [docFx] : []),
+      ],
     });
     await this.audit.record({
       action: 'supplier_payment.posted',
       entityType: 'supplier_payment',
       entityId: p!.id,
       summary: `${number}: ${amount} ${acct.currency}`,
-      after: { ...p, allocations: input.allocations },
+      after: { ...p, allocations: prepared },
     });
-    return { ...p!, allocations: input.allocations };
+    const allocations = prepared.map((a) => ({ targetType: a.targetType, targetId: a.targetId, amountBase: a.paymentBase, settledBase: a.relief, amountDoc: a.amountDoc, currency: a.currency }));
+    return { ...p!, allocations };
   }
 
   /** Voids a payment: the cash returns to the account and the documents become payable again. */

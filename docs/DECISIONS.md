@@ -93,6 +93,18 @@ The schema for operating expenses, cash accounts and transfers was needed for su
 these features ship in Phase 3 instead of Phase 5. Daily cash closing remains in Phase 5
 (the `CashService.closedDateChecker` hook is already enforced on every movement).
 
+### D-019 Realized FX with weighted-average carrying cost
+Foreign cash accounts are carried at weighted-average base cost. Foreign payables are carried at
+their booking rate. Payments and transfers post the difference to 4300 in the same entry. The
+alternative, periodic revaluation of open foreign balances (unrealized FX), is not implemented in
+v1 (KNOWN_ISSUES).
+
+### D-020 Maker identity from the audit trail
+Maker-checker counts as makers the creator, the submitter, and every user who edited a purchase.
+Editors are read from the immutable audit log (`acquisition.created` / `.updated` / `.submitted`).
+Editing a purchase that is awaiting approval withdraws it to draft, so the approver never sees a
+stale amount.
+
 ## Business assumptions
 
 ### B-001 Revenue recognition default = on delivery **[PO-CONFIRM]**

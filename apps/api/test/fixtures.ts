@@ -65,11 +65,14 @@ export async function createSupplier(c: Client, overrides: Record<string, unknow
 
 export async function createCashAccount(
   c: Client,
-  overrides: { type?: 'cashbox' | 'bank'; currency?: string; openingBalance?: string; exchangeRate?: string; branchId?: string | null; name?: string } = {},
+  overrides: { type?: 'cashbox' | 'bank'; currency?: string; openingBalance?: string; exchangeRate?: string; branchId?: string | null; name?: string; openingDate?: string } = {},
 ) {
+  // Fund accounts at the start of the year: cash boxes may not go negative on ANY date, and the
+  // specs post back-dated business documents (January 2026).
+  const opening = overrides.openingBalance && !('openingDate' in overrides) ? { openingDate: '2026-01-01' } : {};
   const res = await c.post(
     '/cash-accounts',
-    { type: 'cashbox', name: `Cash ${Math.random().toString(36).slice(2, 8)}`, currency: 'SAR', ...overrides },
+    { type: 'cashbox', name: `Cash ${Math.random().toString(36).slice(2, 8)}`, currency: 'SAR', ...opening, ...overrides },
     idem(),
   );
   if (res.status !== 201) throw new Error(`create cash account failed ${res.status} ${JSON.stringify(res.body)}`);

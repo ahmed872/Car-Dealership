@@ -14,7 +14,7 @@ import {
 import { assertBranchAccess, assertPermission, TenantContext } from '../../common/context';
 import { conflict, notFound, registerUniqueConstraint, unprocessable } from '../../common/errors';
 import { DbService } from '../../db/db.service';
-import { acquisitions, branches, suppliers, vehicleMakes, vehicleModels, vehicles } from '../../db/schema';
+import { acquisitions, auditLogs, branches, suppliers, vehicleMakes, vehicleModels, vehicles } from '../../db/schema';
 import { AuditService, diff } from '../audit/audit.service';
 import { ApprovalsService } from '../finance/approvals.service';
 import { CashService } from '../finance/cash.service';
@@ -115,6 +115,21 @@ export class AcquisitionsService {
     });
   }
 
+  /** Everyone who created, edited or submitted the purchase (from the immutable audit trail). */
+  private async makers(id: string): Promise<string[]> {
+    const rows = await this.dbs.db
+      .selectDistinct({ actor: auditLogs.actorUserId })
+      .from(auditLogs)
+      .where(
+        and(
+          eq(auditLogs.entityType, 'acquisition'),
+          eq(auditLogs.entityId, id),
+          inArray(auditLogs.action, ['acquisition.created', 'acquisition.updated', 'acquisition.submitted']),
+        ),
+      );
+    return rows.map((r) => r.actor).filter((x): x is string => !!x);
+  }
+
   async lock(id: string): Promise<AcquisitionRow> {
     const [a] = await this.dbs.db.select().from(acquisitions).where(eq(acquisitions.id, id)).for('update');
     if (!a) throw notFound('Acquisition');
@@ -140,11 +155,17 @@ export class AcquisitionsService {
       pricing = { purchasePrice: price, currency, exchangeRate: fx.rate, purchasePriceBase: fx.toBase(price) };
     }
     const { version: _v, purchasePrice: _p, currency: _c, exchangeRate: _r, ...rest } = input;
+    // Editing a purchase that awaits approval withdraws it: the approver must never decide on a
+    // stale amount, and whoever edits it becomes a maker who must resubmit (B-016).
+    const backToDraft = before.status === 'pending_approval';
     const [after] = await this.dbs.db
       .update(acquisitions)
-      .set({ ...rest, ...pricing, version: before.version + 1, updatedAt: new Date() })
+      .set({ ...rest, ...pricing, ...(backToDraft ? { status: 'draft' } : {}), version: before.version + 1, updatedAt: new Date() })
       .where(and(eq(acquisitions.id, id), eq(acquisitions.version, before.version)))
       .returning();
+    if (backToDraft) {
+      await this.approvals.resolve(ctx, { type: 'acquisition', entityType: 'acquisition', entityId: id, status: 'cancelled', note: 'Edited while awaiting approval; resubmission required' });
+    }
     if (input.supplierId && input.supplierId !== before.supplierId) {
       await this.dbs.db.update(vehicles).set({ supplierId: input.supplierId }).where(eq(vehicles.id, before.vehicleId));
     }
@@ -172,7 +193,7 @@ export class AcquisitionsService {
     const a = await this.lock(id);
     assertBranchAccess(ctx, a.branchId);
     if (!['draft', 'pending_approval'].includes(a.status)) throw conflict('acquisition_not_pending', 'This purchase is not awaiting approval');
-    await this.approvals.assertNotSelfApproval(ctx, { type: 'acquisition', entityType: 'acquisition', entityId: a.id, makers: [a.createdBy] });
+    await this.approvals.assertNotSelfApproval(ctx, { type: 'acquisition', entityType: 'acquisition', entityId: a.id, makers: [a.createdBy, ...(await this.makers(a.id))] });
     const v = await this.vehicles.get(a.vehicleId);
     if (v.status === 'removed') throw conflict('vehicle_removed', 'The vehicle was removed from stock');
     const purchase = await this.costs.categoryByCode('purchase');
@@ -194,7 +215,8 @@ export class AcquisitionsService {
         supplierId: a.supplierId,
         notes: null,
       },
-      { sourceType: 'acquisition', sourceId: a.id, forceStatus: 'posted', skipPayNow: true },
+      // Book exactly the stored base amount the payable document carries (never re-derive it).
+      { sourceType: 'acquisition', sourceId: a.id, forceStatus: 'posted', skipPayNow: true, amountBaseOverride: a.purchasePriceBase },
     );
     await this.approvals.resolve(ctx, { type: 'acquisition', entityType: 'acquisition', entityId: id, status: 'approved', note: input.note });
     await this.audit.record({

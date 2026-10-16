@@ -87,6 +87,10 @@ export interface CashTransfer {
   transferId: string;
   businessDate: string;
   amountBase: string;
+  /** Carrying cost relieved from the source account (base currency). */
+  fromBase: string;
+  /** Realized FX on the transfer: amountBase − fromBase (posted to 4300). */
+  fxDifference: string;
   baseCurrency: string;
   from: CashTransferLeg;
   to: CashTransferLeg;

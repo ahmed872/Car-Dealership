@@ -40,6 +40,11 @@ export interface CreateCostOptions {
   /** Credit side override (e.g. trade-in credits customer advances instead of payables). */
   creditOverride?: { account: '2100'; customerId: string; saleId?: string | null };
   skipPayNow?: boolean;
+  /**
+   * Base amount to book instead of converting `amount` again: the acquisition's stored base
+   * (so the payable document and the GL can never differ) or a shared invoice's base split.
+   */
+  amountBaseOverride?: string;
 }
 
 /**
@@ -96,7 +101,8 @@ export class CostsService {
     }
     const fx = resolveFx(ctx, input.currency, input.exchangeRate);
     const amount = money(input.amount, input.currency);
-    const amountBase = fx.toBase(amount);
+    const amountBase = opts.amountBaseOverride ? money(opts.amountBaseOverride, ctx.tenant.baseCurrency) : fx.toBase(amount);
+    if (d(amountBase).lte(0)) throw unprocessable('invalid_amount', 'The cost amount in base currency must be positive');
     const status = opts.forceStatus ?? (hasPermission(ctx, 'costs.approve') ? 'posted' : 'pending_approval');
     if (input.payNow && status !== 'posted' && !opts.skipPayNow) {
       throw unprocessable('cannot_pay_unapproved', 'A cost awaiting approval cannot be paid yet');
@@ -314,6 +320,11 @@ export class CostsService {
       if (weights.every((w) => d(w).isZero())) throw unprocessable('no_purchase_prices', 'None of the vehicles has a posted purchase price');
       parts = allocateProportionally(input.totalAmount, weights, input.currency);
     }
+    // Convert the invoice ONCE and split its base amount with the same weights, so the parts add
+    // up to the converted invoice to the cent (per-part conversion can drift by a cent or more).
+    const fx = resolveFx(ctx, input.currency, input.exchangeRate);
+    const totalBase = fx.toBase(money(input.totalAmount, input.currency));
+    const baseParts = input.currency === ctx.tenant.baseCurrency ? parts : allocateProportionally(totalBase, parts, ctx.tenant.baseCurrency);
     const batchId = randomUUID();
     const created: CostRow[] = [];
     for (const [i, vid] of input.vehicleIds.entries()) {
@@ -332,7 +343,7 @@ export class CostsService {
             supplierId: input.supplierId ?? null,
             notes: `allocation ${input.method} (${i + 1}/${input.vehicleIds.length})`,
           },
-          { sourceType: 'allocation', batchId, allocationMethod: input.method },
+          { sourceType: 'allocation', batchId, allocationMethod: input.method, amountBaseOverride: baseParts[i]! },
         ),
       );
     }
