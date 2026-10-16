@@ -1,4 +1,9 @@
 import type { Type } from '@nestjs/common';
+import { AppointmentsModule } from './modules/appointments/appointments.module';
+import { CustomersModule } from './modules/customers/customers.module';
+import { EmployeesModule } from './modules/employees/employees.module';
+import { LeadsModule } from './modules/leads/leads.module';
+import { WishesModule } from './modules/wishes/wishes.module';
 import { AccountingModule } from './modules/accounting/accounting.module';
 import { ExpensesModule } from './modules/expenses/expenses.module';
 import { FinanceModule } from './modules/finance/finance.module';
@@ -9,4 +14,4 @@ import { VehiclesModule } from './modules/vehicles/vehicles.module';
 import { WorkOrdersModule } from './modules/work-orders/work-orders.module';
 
 /** Domain feature modules, registered as phases are delivered. */
-export const DOMAIN_MODULES: Type[] = [JobsModule, FinanceModule, VehiclesModule, PurchasingModule, ExpensesModule, WorkOrdersModule, AccountingModule, ReservationsModule];
+export const DOMAIN_MODULES: Type[] = [JobsModule, FinanceModule, VehiclesModule, PurchasingModule, ExpensesModule, WorkOrdersModule, AccountingModule, ReservationsModule, CustomersModule, LeadsModule, AppointmentsModule, WishesModule, EmployeesModule];

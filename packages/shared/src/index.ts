@@ -17,3 +17,8 @@ export * from './schemas/work-orders';
 export * from './schemas/accounting';
 export * from './schemas/suppliers';
 export * from './schemas/crm';
+export * from './schemas/customers';
+export * from './schemas/leads';
+export * from './schemas/appointments';
+export * from './schemas/wishes';
+export * from './schemas/employees';

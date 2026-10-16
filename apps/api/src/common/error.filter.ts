@@ -90,6 +90,15 @@ export function toErrorResponse(err: unknown): { status: number; body: ErrorBody
           log: !mapped,
         };
       }
+      case '23P01': {
+        // Exclusion constraint (e.g. overlapping test drives): mapped by constraint name like unique violations.
+        const mapped = pg.constraint ? UNIQUE_CONSTRAINT_MESSAGES[pg.constraint] : undefined;
+        return {
+          status: HttpStatus.CONFLICT,
+          body: { error: { code: mapped?.code ?? 'conflict', message: mapped?.message ?? 'This conflicts with an existing record' } },
+          log: !mapped,
+        };
+      }
       case '23503':
         return {
           status: HttpStatus.UNPROCESSABLE_ENTITY,

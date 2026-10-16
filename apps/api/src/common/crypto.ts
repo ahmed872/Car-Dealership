@@ -1,8 +1,17 @@
-import { createCipheriv, createDecipheriv, createHash, randomBytes, timingSafeEqual } from 'node:crypto';
+import { createCipheriv, createDecipheriv, createHash, createHmac, randomBytes, timingSafeEqual } from 'node:crypto';
 import { getEnv } from '../config/env';
 
 export function sha256Hex(input: string | Buffer): string {
   return createHash('sha256').update(input).digest('hex');
+}
+
+/**
+ * Keyed hash for exact-match lookups of sensitive values (e.g. national IDs) without storing them
+ * in clear. Uses a key derived from APP_ENCRYPTION_KEY, separate from the encryption key itself.
+ */
+export function hmacHex(input: string): string {
+  const key = createHash('sha256').update(`autohub:hmac:v1:${getEnv().APP_ENCRYPTION_KEY}`).digest();
+  return createHmac('sha256', key).update(input).digest('hex');
 }
 
 export function randomToken(bytes = 32): string {

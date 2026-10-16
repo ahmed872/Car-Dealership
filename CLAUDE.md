@@ -43,7 +43,17 @@ Car-dealership management SaaS (Egypt / KSA / UAE). pnpm monorepo:
 - Money flows to reuse (never re-implement): `CashService.move/reverse/transfer` (cash book + GL together),
   `SupplierPaymentsService.pay/void` (allocations to payable docs: acquisition | vehicle_cost | expense),
   `PayablesService.describe` (payable/outstanding of a doc), `ApprovalsService.open/resolve` (approval inbox),
-  `CostsService.create/approve/reverse` (vehicle costs), `resolveFx(ctx, currency, rate)` (base conversion).
+  `CostsService.create/approve/reverse` (vehicle costs), `resolveFx(ctx, currency, rate)` (base conversion),
+  `ReceiptsService.receive/void` (customer money in; register a target handler for new document types;
+  deposits/advances credit 2100 — never revenue), `RefundsService.request/approve/pay` (maker-checker),
+  `ReservationsService` (one active reservation per vehicle), `NotificationsService.notify` (dedupeKey makes
+  it exactly-once), `JobsService.register({name, everyMs, run(ctx)})` (per-tenant, advisory-locked; tests call
+  `app.get(JobsService).runJob(name, {tenantId})`), `ApprovalsService.assertNotSelfApproval` (maker-checker).
+- Sensitive identifiers (national ID, passport): store `encryptSecret(v)` + `hmacHex(normalized)` for exact
+  lookups + last 4 for display; reveal only with the matching permission (e.g. `customers.view_sensitive`).
+- PATCH schemas: use `patchOf(createSchema)` from `@autohub/shared`, NEVER zod `.partial()` (it re-applies
+  defaults/transforms and silently overwrites stored values).
+- Exclusion/unique constraint names → user-facing errors via `registerUniqueConstraint(name, code, msg)`.
 - Schema changes: edit `apps/api/src/db/schema/*.ts`, then `npx drizzle-kit generate --name x` in apps/api;
   RLS/grants/triggers go in a `--custom` migration using `app_enable_tenant_rls('table')`.
 
