@@ -491,7 +491,7 @@ export class VehiclesService {
         statusChangedAt: vehicles.statusChangedAt,
         primaryPhotoId: sql<string | null>`(SELECT vm.file_id FROM vehicle_media vm WHERE vm.vehicle_id = ${vehicles.id} AND vm.kind = 'photo' ORDER BY vm.is_primary DESC, vm.sort_order ASC LIMIT 1)`,
         costTotal: canSeeCost
-          ? sql<string | null>`(SELECT coalesce(sum(jl.debit - jl.credit), 0)::numeric(18,2)::text FROM journal_lines jl WHERE jl.vehicle_id = ${vehicles.id} AND jl.account_code = '1300')`
+          ? sql<string | null>`(SELECT coalesce(sum(vc.amount_base), 0)::numeric(18,2)::text FROM vehicle_costs vc WHERE vc.vehicle_id = ${vehicles.id} AND vc.status = 'posted')`
           : sql<null>`NULL`,
       })
       .from(vehicles)

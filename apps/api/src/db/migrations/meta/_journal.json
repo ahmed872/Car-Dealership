@@ -29,6 +29,20 @@
       "when": 1792114760041,
       "tag": "0003_vehicles_security",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1792141297802,
+      "tag": "0004_purchasing",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1792141299326,
+      "tag": "0005_purchasing_security",
+      "breakpoints": true
     }
   ]
 }

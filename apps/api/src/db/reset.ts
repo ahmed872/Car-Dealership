@@ -8,7 +8,7 @@ import { runMigrations } from './migrate';
 export async function resetDatabase(url: string): Promise<void> {
   if (process.env.NODE_ENV === 'production') throw new Error('Refusing to reset a production database');
   const dbName = new URL(url).pathname.slice(1);
-  if (!/(_test|_dev|^autohub)$/.test(dbName) && !dbName.endsWith('test')) {
+  if (!/^autohub(_dev|_test(_[a-z0-9]+)?)?$/.test(dbName)) {
     throw new Error(`Refusing to reset database "${dbName}"`);
   }
   const pool = new Pool({ connectionString: url, max: 1 });
