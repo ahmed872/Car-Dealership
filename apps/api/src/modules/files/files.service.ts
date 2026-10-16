@@ -132,6 +132,8 @@ export class FilesService {
 }
 
 export function sanitizeName(name: string): string {
+  // Control characters are stripped on purpose (header injection / filesystem safety).
+  // eslint-disable-next-line no-control-regex
   const base = (name || 'file').normalize('NFC').replace(/[\\/:*?"<>|\u0000-\u001f]/g, '_');
   return base.slice(-120);
 }

@@ -1,7 +1,5 @@
-import { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { createBrowserRouter, Navigate, Outlet, useLocation } from 'react-router-dom';
-import type { Permission } from '@autohub/shared';
 import { EmptyState, PageLoader } from '@/components/ui/Feedback';
 import { useAuth } from '@/lib/auth';
 import { AccountPage } from '@/pages/AccountPage';
@@ -16,6 +14,7 @@ import { RolesPage } from '@/pages/settings/RolesPage';
 import { UsersPage } from '@/pages/settings/UsersPage';
 import { AppShell } from './AppShell';
 import { featureRoutes } from './feature-routes';
+import { Guard } from './Guard';
 
 function RequireTenant() {
   const { me, loading } = useAuth();
@@ -32,14 +31,6 @@ function RequirePlatformAdmin() {
   if (!me) return <Navigate to="/login" replace />;
   if (!me.user.isPlatformAdmin) return <Navigate to="/app" replace />;
   return <Outlet />;
-}
-
-/** Client-side gate for better UX; the API enforces the same permissions. */
-export function Guard({ anyOf, children }: { anyOf: Permission[]; children: ReactNode }) {
-  const { canAny } = useAuth();
-  const { t } = useTranslation();
-  if (!canAny(...anyOf)) return <EmptyState title={t('errors.forbidden')} />;
-  return <>{children}</>;
 }
 
 function NotFound() {

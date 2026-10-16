@@ -127,10 +127,11 @@
     border-radius: 6px;
   }
   /* Financial figures align in columns. */
+  /* Tabular figures; bidi isolation keeps numbers intact inside Arabic text without
+     forcing LTR on mixed strings (e.g. "185,000.00 ر.س"). */
   .num {
     font-variant-numeric: tabular-nums;
     font-feature-settings: 'tnum';
-    direction: ltr;
     unicode-bidi: isolate;
   }
   ::selection {

@@ -1,3 +1,5 @@
+import vehicles from './vehicles';
+
 const ar = {
   app: { name: 'أوتوهب برو', tagline: 'نظام إدارة معارض السيارات' },
   common: {
@@ -306,6 +308,7 @@ const ar = {
     preferences: 'التفضيلات',
   },
   markets: { EG: 'مصر', SA: 'السعودية', AE: 'الإمارات' },
+  vehicles: vehicles.ar,
 };
 
 export default ar;

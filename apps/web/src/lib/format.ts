@@ -17,7 +17,8 @@ export function fmtMoney(
   const [i, f] = fixed.split('.');
   const grouped = i!.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
   const sign = dec.isNegative() ? '-' : opts.sign && dec.gt(0) ? '+' : '';
-  const num = `${sign}${grouped}${f ? `.${f}` : ''}`;
+  // LRI … PDI isolates the figure so signs/separators never reorder around Arabic symbols.
+  const num = `\u2066${sign}${grouped}${f ? `.${f}` : ''}\u2069`;
   const sym = lang() === 'ar' ? (def?.symbolAr ?? currency) : (def?.symbolEn ?? currency);
   return lang() === 'ar' ? `${num} ${sym}` : `${sym} ${num}`;
 }

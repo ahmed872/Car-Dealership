@@ -29,3 +29,21 @@ Failures found and fixed during Phase 1:
 - Generated migration created an FK before its unique key → switched to a table-level UNIQUE constraint.
 - Language toggle had an aria-label hiding its visible text (WCAG label-in-name) → replaced with `title`.
 - Root `pnpm build` filter matched nothing → fixed to `pnpm -r run build`.
+
+### Phase 2 — Vehicles & Inventory (2026-10-16)
+| Command | Result |
+|---|---|
+| `pnpm --filter @autohub/api test` | 5 files, **44 passed** (adds vehicles.spec: 12 integration tests; sniff.spec: 3 unit tests) |
+| `pnpm --filter @autohub/shared test` | **37 passed** |
+| `pnpm lint`, `pnpm typecheck`, `vite build` | clean |
+| Playwright screenshots | vehicle grid/table (AR), Vehicle 360, photo upload via UI, inspection with SVG diagram, form, mobile list — no console errors |
+
+Covered behaviours: VIN rules (US check digit enforced, GCC warning, non-standard chassis), duplicate VIN in stock (409),
+system-only states rejected for manual changes, listing requires price + completed inspection, inspection required items,
+API + DB-level immutability of completed inspections, pricing permissions and history, rep field-level visibility,
+optimistic locking, MIME sniffing (415 on fake JPEG), sensitive document number/file hidden (403 download),
+cross-tenant file 404, transfer in-transit blocking and destination-branch receipt, branch-scoped visibility,
+stock count scan/submit/reconcile with write-off permission, search by VIN fragment / Arabic model name / feature / fuel / year.
+
+Fixed during Phase 2: test fixtures (XMP segment length; expected transition reason for `incoming → reserved`);
+money strings in Arabic now use Unicode isolates instead of forced LTR (verified by measuring glyph positions).

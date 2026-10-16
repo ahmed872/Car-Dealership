@@ -1,5 +1,5 @@
 import type { LucideIcon } from 'lucide-react';
-import { Building2, History, KeyRound, LayoutDashboard, Settings2, Users } from 'lucide-react';
+import { ArrowLeftRight, Building2, CarFront, ClipboardCheck, History, KeyRound, LayoutDashboard, Settings2, Users } from 'lucide-react';
 import type { Permission } from '@autohub/shared';
 
 export interface NavItem {
@@ -21,6 +21,14 @@ export const NAV: NavGroup[] = [
   {
     labelKey: 'nav.operations',
     items: [{ to: '/app', labelKey: 'nav.dashboard', icon: LayoutDashboard, end: true }],
+  },
+  {
+    labelKey: 'nav.inventory',
+    items: [
+      { to: '/app/vehicles', labelKey: 'nav.vehicles', icon: CarFront, anyOf: ['vehicles.read'] },
+      { to: '/app/inventory/transfers', labelKey: 'nav.transfers', icon: ArrowLeftRight, anyOf: ['vehicles.read'] },
+      { to: '/app/inventory/stock-counts', labelKey: 'nav.stockCounts', icon: ClipboardCheck, anyOf: ['inventory.count'] },
+    ],
   },
   {
     labelKey: 'nav.admin',

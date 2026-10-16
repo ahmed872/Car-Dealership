@@ -1,4 +1,5 @@
 import type { Messages } from './ar';
+import vehicles from './vehicles';
 
 const en: Messages = {
   app: { name: 'AutoHub Pro', tagline: 'Car dealership management' },
@@ -308,6 +309,7 @@ const en: Messages = {
     preferences: 'Preferences',
   },
   markets: { EG: 'Egypt', SA: 'Saudi Arabia', AE: 'United Arab Emirates' },
+  vehicles: vehicles.en,
 };
 
 export default en;
