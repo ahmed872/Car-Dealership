@@ -19,6 +19,7 @@ import {
 } from '@autohub/shared';
 import { assertBranchAccess, assertPermission, hasPermission, TenantContext } from '../../common/context';
 import { conflict, notFound, registerUniqueConstraint, unprocessable } from '../../common/errors';
+import { assertWorkingMember } from '../../common/members';
 import { DbService } from '../../db/db.service';
 import {
   branches,
@@ -26,11 +27,8 @@ import {
   customers,
   leads,
   leadStageHistory,
-  membershipBranches,
-  memberships,
   pipelineStages,
   reservations,
-  roles,
   users,
   vehicleMakes,
   vehicleModels,
@@ -173,34 +171,7 @@ export class LeadsService {
 
   /** An assignee must be an active member of this company, work with leads, and reach the branch. */
   private async assertAssignable(ctx: TenantContext, userId: string, branchId: string): Promise<{ id: string; fullName: string }> {
-    const [m] = await this.dbs.db
-      .select({
-        membershipId: memberships.id,
-        allBranches: memberships.allBranches,
-        membershipStatus: memberships.status,
-        userStatus: users.status,
-        fullName: users.fullName,
-        permissions: roles.permissions,
-      })
-      .from(memberships)
-      .innerJoin(users, eq(users.id, memberships.userId))
-      .innerJoin(roles, eq(roles.id, memberships.roleId))
-      // The tenant filter matters: RLS also lets a user read their own memberships in other companies.
-      .where(and(eq(memberships.userId, userId), eq(memberships.tenantId, ctx.tenant.id)));
-    if (!m || m.membershipStatus !== 'active' || m.userStatus !== 'active') {
-      throw unprocessable('invalid_assignee', 'The assignee must be an active member of this company', { reason: 'not_active_member' });
-    }
-    if (!m.permissions.includes('leads.read')) {
-      throw unprocessable('invalid_assignee', "The assignee's role cannot work with leads", { reason: 'no_leads_access' });
-    }
-    if (!m.allBranches) {
-      const [b] = await this.dbs.db
-        .select({ branchId: membershipBranches.branchId })
-        .from(membershipBranches)
-        .where(and(eq(membershipBranches.membershipId, m.membershipId), eq(membershipBranches.branchId, branchId)));
-      if (!b) throw unprocessable('invalid_assignee', 'The assignee has no access to this branch', { reason: 'no_branch_access' });
-    }
-    return { id: userId, fullName: m.fullName };
+    return assertWorkingMember(this.dbs, ctx, userId, branchId, 'leads.read');
   }
 
   private budget(ctx: TenantContext, v: string | null | undefined): string | null | undefined {

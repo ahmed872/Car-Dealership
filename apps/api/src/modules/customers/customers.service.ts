@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { and, asc, desc, eq, inArray, isNull, or, SQL, sql } from 'drizzle-orm';
+import { and, asc, desc, eq, inArray, isNull, lt, or, SQL, sql } from 'drizzle-orm';
 import {
   CustomerAssignInput,
   CustomerCreateInput,
@@ -868,5 +868,48 @@ export class CustomersService {
       metadata: { customerId: c.id, ...(leadUpdate ? { lead: leadUpdate } : {}) },
     });
     return row!;
+  }
+
+  /**
+   * Records an interaction produced by another workflow (a completed appointment or test drive)
+   * on the customer's timeline. The caller has already authorised the underlying action, so no
+   * visibility check is repeated here; inactive customers are skipped (history stays intact).
+   */
+  async appendInteraction(
+    ctx: TenantContext,
+    input: { customerId: string; leadId: string | null; vehicleId: string | null; type: InteractionCreateInput['type']; summary: string; outcome?: string | null },
+  ): Promise<void> {
+    const [c] = await this.dbs.db.select({ id: customers.id, isActive: customers.isActive }).from(customers).where(eq(customers.id, input.customerId));
+    if (!c?.isActive) return;
+    const occurredAt = new Date();
+    const [row] = await this.dbs.db
+      .insert(customerInteractions)
+      .values({
+        tenantId: ctx.tenant.id,
+        customerId: c.id,
+        leadId: input.leadId,
+        vehicleId: input.vehicleId,
+        type: input.type,
+        direction: null,
+        summary: input.summary.slice(0, 1000),
+        outcome: input.outcome ?? null,
+        occurredAt,
+        userId: ctx.userId,
+        nextFollowUpAt: null,
+      })
+      .returning({ id: customerInteractions.id });
+    if (input.leadId) {
+      await this.dbs.db
+        .update(leads)
+        .set({ lastActivityAt: occurredAt, updatedAt: occurredAt })
+        .where(and(eq(leads.id, input.leadId), or(isNull(leads.lastActivityAt), lt(leads.lastActivityAt, occurredAt))));
+    }
+    await this.audit.record({
+      action: 'customer.interaction_logged',
+      entityType: 'customer_interaction',
+      entityId: row!.id,
+      summary: input.summary,
+      metadata: { customerId: c.id, leadId: input.leadId, automatic: true },
+    });
   }
 }

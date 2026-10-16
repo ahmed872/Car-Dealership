@@ -158,15 +158,17 @@ export const zAppointmentCreate = z.object({
   driverLicenseNumber: zOptText(40),
   driverLicenseExpiry: zIsoDate.optional().nullable(),
 });
-export const zAppointmentUpdate = zAppointmentCreate.partial().extend({ version: z.number().int().min(1) });
 export const zAppointmentListQuery = z.object({
   from: z.string().datetime({ offset: true }),
   to: z.string().datetime({ offset: true }),
   branchId: zUuid.optional(),
   assignedUserId: zUuid.optional(),
   vehicleId: zUuid.optional(),
+  customerId: zUuid.optional(),
+  leadId: zUuid.optional(),
   type: z.enum(APPOINTMENT_TYPES).optional(),
   status: z.enum(APPOINTMENT_STATUSES).optional(),
+  mine: z.enum(['true', 'false']).optional(),
 });
 export const zTestDriveStart = z.object({ odometerOut: z.number().int().min(0), driverLicenseNumber: zText(40).min(3), driverLicenseExpiry: zIsoDate });
 export const zTestDriveFinish = z.object({ odometerIn: z.number().int().min(0), outcome: zOptText(1000) });
