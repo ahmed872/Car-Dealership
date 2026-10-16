@@ -275,3 +275,13 @@ export async function createBranch(c: Client, name = 'Jeddah') {
   if (res.status !== 201) throw new Error(`create branch failed ${res.status} ${JSON.stringify(res.body)}`);
   return res.body as { id: string; name: string };
 }
+
+// ── CRM fixtures ────────────────────────────────────────────────────────────────────────────
+
+/** Creates a customer through the API (random Saudi mobile number per call). */
+export async function createCustomer(c: Client, overrides: Record<string, unknown> = {}) {
+  const phone = `+9665${String(Math.floor(Math.random() * 1e8)).padStart(8, '0')}`;
+  const res = await c.post('/customers', { fullName: `Customer ${uniq('c')}`, phone, ...overrides });
+  if (res.status !== 201) throw new Error(`create customer failed ${res.status} ${JSON.stringify(res.body)}`);
+  return res.body as { id: string; fullName: string; phone: string; version: number };
+}

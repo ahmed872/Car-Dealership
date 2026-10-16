@@ -223,7 +223,7 @@ export class CustomersService {
       type: 'customer.assigned',
       titleAr: `تم إسناد العميل ${c.fullName} إليك`,
       titleEn: `Customer ${c.fullName} was assigned to you`,
-      link: `/customers/${c.id}`,
+      link: `/app/customers/${c.id}`,
       entityType: 'customer',
       entityId: c.id,
       dedupeKey: `customer.assigned:${c.id}:${c.version}`,
@@ -274,7 +274,8 @@ export class CustomersService {
       return {
         id: r.id,
         type: r.type as CustomerDuplicate['type'],
-        fullName: r.fullName,
+        // A customer the caller may not open is identified only by initials (no full name leak).
+        fullName: r.canView ? r.fullName : r.fullName.split(/\s+/).map((w) => `${w.charAt(0)}.`).join(' '),
         companyName: r.companyName,
         isActive: r.isActive,
         branchId: r.branchId,

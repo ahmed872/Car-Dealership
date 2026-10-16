@@ -2,7 +2,7 @@ import type { INestApplication } from '@nestjs/common';
 import { Pool } from 'pg';
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
 import { JobsService } from '../src/modules/jobs/jobs.service';
-import { assertLedgerIntegrity, createCashAccount, createVehicle, glBalance, makeAvailable, secondApprover } from './fixtures';
+import { assertLedgerIntegrity, createCashAccount, createCustomer, createVehicle, glBalance, makeAvailable, secondApprover } from './fixtures';
 import { Client, closeApp, createPlatformAdmin, createTenant, getApp, idem, ownerPool, TestTenant } from './helpers';
 
 describe('reservations, deposits and refunds', () => {
@@ -13,10 +13,8 @@ describe('reservations, deposits and refunds', () => {
   let checker: Client;
   let cash: { id: string };
 
-  /** Customers API arrives with the CRM module; until then the test inserts through the owner pool. */
   async function customer(name = 'Khalid Al-Harbi') {
-    const r = await pool.query(`INSERT INTO customers (tenant_id, full_name, phone) VALUES ($1, $2, $3) RETURNING id`, [t.tenantId, name, '966500000001']);
-    return r.rows[0].id as string;
+    return (await createCustomer(owner, { fullName: name })).id;
   }
 
   async function availableVehicle() {
