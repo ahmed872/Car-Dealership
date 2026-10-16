@@ -22,6 +22,7 @@ interface TxStore {
   client: PoolClient;
   ctx: TxContext;
   afterCommit: Array<() => void | Promise<void>>;
+  onRollback: Array<() => void | Promise<void>>;
 }
 
 @Injectable()
@@ -88,6 +89,13 @@ export class DbService implements OnModuleDestroy {
     store.afterCommit.push(fn);
   }
 
+  /** Registers compensation work if the transaction rolls back (e.g. removing an uploaded object). */
+  onRollback(fn: () => void | Promise<void>): void {
+    const store = this.als.getStore();
+    if (!store) throw new Error('onRollback requires an active transaction');
+    store.onRollback.push(fn);
+  }
+
   /** Raw query on the current transaction connection (for SQL functions like app_next_number). */
   async query<T extends Record<string, unknown>>(sql: string, params: unknown[] = []): Promise<T[]> {
     const store = this.als.getStore();
@@ -110,7 +118,7 @@ export class DbService implements OnModuleDestroy {
     }
     const client = await this.pool.connect();
     let committed = false;
-    const store: TxStore = { db: drizzle(client, { schema }), client, ctx, afterCommit: [] };
+    const store: TxStore = { db: drizzle(client, { schema }), client, ctx, afterCommit: [], onRollback: [] };
     try {
       await client.query('BEGIN');
       await client.query(
@@ -126,12 +134,13 @@ export class DbService implements OnModuleDestroy {
       throw err;
     } finally {
       client.release();
-      if (committed) {
-        for (const hook of store.afterCommit) {
+      const hooks = committed ? store.afterCommit : store.onRollback;
+      if (hooks.length) {
+        for (const hook of hooks) {
           try {
             await hook();
           } catch (e) {
-            this.logger.error(`afterCommit hook failed: ${(e as Error).message}`);
+            this.logger.error(`transaction hook failed: ${(e as Error).message}`);
           }
         }
       }

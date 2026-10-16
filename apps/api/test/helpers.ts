@@ -85,6 +85,11 @@ export class Client {
       .set('X-CSRF-Token', this.csrf)
       .send(body as object);
   }
+  upload(path: string, file: { buffer: Buffer; name: string }, fields: Record<string, string> = {}) {
+    let req = this.agent.post(`/api/v1${path}`).set('Origin', ORIGIN).set('X-CSRF-Token', this.csrf);
+    for (const [k, v] of Object.entries(fields)) req = req.field(k, v);
+    return req.attach('file', file.buffer, file.name);
+  }
   delete(path: string) {
     return this.agent.delete(`/api/v1${path}`).set('Origin', ORIGIN).set('X-CSRF-Token', this.csrf);
   }

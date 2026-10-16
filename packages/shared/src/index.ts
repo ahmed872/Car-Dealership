@@ -10,3 +10,4 @@ export * from './finance/commission';
 export * from './finance/pricing';
 export * from './schemas/common';
 export * from './schemas/admin';
+export * from './schemas/vehicles';
