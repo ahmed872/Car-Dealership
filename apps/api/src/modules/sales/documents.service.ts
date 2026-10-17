@@ -7,7 +7,7 @@ import { DbService } from '../../db/db.service';
 import { receiptAllocations, receipts, saleDocuments, sales, tenants, tradeIns } from '../../db/schema';
 import { AuditService } from '../audit/audit.service';
 import { NumberingService } from '../numbering/numbering.service';
-import { PdfService } from './pdf.service';
+import { PdfService } from '../pdf/pdf.service';
 
 registerUniqueConstraint('sale_documents_live_uq', 'document_already_issued', 'A document of this type is already issued for this sale; void it first');
 

@@ -136,3 +136,25 @@ PDF review: invoices and delivery notes rendered by the spec were opened and ins
   - The delivery note shows the odometer reading taken at handover.
 - After these fixes: `sales.spec.ts` **17/17**.
 
+### Phase 6 backend (2026-10-17)
+| Command | Result |
+|---|---|
+| `npx vitest run test/reports.spec.ts` (apps/api, autohub_test_k), first run | 0 run: the shared sale fixture failed in setup because the installment sale was priced below the vehicle's floor, so it needed approval. The test data was fixed |
+| Second run | **10/10** |
+| Full API suite, `npx vitest run` (autohub_test_k) | 26 files, **291 passed** |
+| `packages/shared`: `npx vitest run` | **46 passed** |
+| `eslint src test` (api), `eslint src` (shared), `tsc --noEmit` | clean |
+
+Export review: sales (AR and EN) and receivables (AR) PDFs were rendered and inspected.
+- First render: the 19-column sales table ran off the page, the filter line was garbled in RTL,
+  and amounts had no thousands separators.
+- Fixed: smaller type for wide reports, localised filter labels with isolated LTR dates, grouped
+  amounts, and a currency note.
+- Re-rendered and inspected: complete and readable.
+- The spec checks:
+  - the CSV BOM, the Arabic header and formula neutralisation;
+  - the XLSX right-to-left sheet and its totals;
+  - that the PDF embeds its fonts;
+  - that exports omit cost columns without `vehicles.view_cost`;
+  - the audit rows.
+

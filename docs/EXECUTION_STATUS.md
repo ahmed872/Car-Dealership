@@ -1,26 +1,29 @@
 # Execution Status
 
-**Current phase:** Phase 5 backend complete and merged; web pages for Phases 3–5 in progress, then Phase 6.
-**Last completed task (2026-10-17):**
-- Phase 5 backend: sales (draft → price approval → confirm → deliver; cancel; return), sale money
-  held in 2100 until recognition (D-028), contracts/invoices/delivery notes/credit notes with
-  snapshots and PDF rendering, installment plans with allocation and early settlement, trade-ins,
-  reservation-deposit transfer, external finance, earned/approved/paid commissions with clawback,
-  and daily cash closing.
-- Two defects found by the new spec and the review were fixed: a settled plan still showed its
-  waived interest as outstanding, and voiding a post-recognition payment after a cancel/return
-  re-opened the receivable. Sale refunds now carry the sale dimension.
-- Full API suite: 25 files, 281 tests passing. Shared: 46 passing.
+**Current phase:** Phase 6 backend complete and merged; web pages for Phases 3–6 in progress, then Phase 7.
+**Last completed tasks (2026-10-17):**
+- Phase 6 backend:
+  - dashboard (permission-gated blocks, branch scope, own-only for reps);
+  - reports for inventory valuation and aging, sales profitability (from the ledger, grouped
+    by salesperson, branch, source, payment type or month), lead conversion, cash flow, and
+    receivables and installment aging, each reconciled to the ledger on company-wide runs;
+  - CSV, XLSX and PDF exports with the same column policy, audited.
+- Costs posted after a sale now carry the sale dimension, so profitability includes them.
+- Phase 3 web pages for purchasing, costs, work orders and approvals are committed (ece9eb3).
+- Full API suite: 26 files, 291 tests passing. Shared: 46 passing.
 
-**In progress:** web pages for Phases 3 and 4 (purchasing, costs, work orders, approvals, cash,
-expenses, accounting, customers, leads, calendar, reservations, refunds, wishes, notifications,
-employees), built as feature modules (`apps/web/src/features/<name>/module.tsx`).
+**In progress (background agents; partial work is saved on disk):**
+- Phase 3/4 web workflow `wf_c6e05060-0fb` (script
+  `phase3-4-web-wf_5d942e13-d19.js`, resumable). It is building cash/expenses/accounting,
+  customers/leads/notifications, appointments/reservations/receivables and wishes/employees.
+- The Phase 5 web agent (sandbox j) is building sales, installments, commissions and cash
+  closing.
 
 **Exact next tasks:**
-1. Review, fix and commit the Phase 3/4 web pages (tsc, eslint, browser check in AR and EN).
-2. Phase 5 web: sales list/wizard/detail (payments, documents, delivery, cancel/return),
-   installment plans and settlement, commissions, cash closing.
-3. Phase 6: dashboard, reports, exports.
+1. Review, fix and commit each finished web feature (tsc, eslint, look at the screenshots).
+2. Phase 6 web: dashboard page and a reports page (generic `ReportResult` table, filters,
+   export buttons).
+3. Phase 7: digital showroom and integration adapters.
 
 | Phase | Status |
 |---|---|
@@ -29,8 +32,8 @@ employees), built as feature modules (`apps/web/src/features/<name>/module.tsx`)
 | 2 Vehicles & Inventory | Complete |
 | 3 Acquisitions & Cost Engine | Backend complete; 3 adversarial reviews fixed; web pages in progress |
 | 4 CRM & Operations | Backend complete & tested (merged); web pages in progress |
-| 5 Sales & Financial | Backend complete & tested (merged); web pages not started |
-| 6 Dashboard & Reports | Not started |
+| 5 Sales & Financial | Backend complete & tested (merged); web pages in progress |
+| 6 Dashboard & Reports | Backend complete & tested (merged); web pages not started |
 | 7 Showroom & Integrations | Not started |
 | 8 Hardening | Not started |
 
@@ -152,6 +155,16 @@ employees), built as feature modules (`apps/web/src/features/<name>/module.tsx`)
   and early settlement with waiver, reminders job.
 - Commissions (D-030), documents and PDFs (D-031), daily cash closing (D-032).
 - Spec: `test/sales.spec.ts` (17 scenarios), ledger integrity checked after every test.
+
+## Phase 6 — delivered (backend)
+- `GET /dashboard`: inventory, sales (with a 6-month trend), leads, today's appointments, cash,
+  receivables and approvals blocks, each behind its permission and the user's branch scope.
+- `GET /reports/{inventory,sales,leads,cash-flow,receivables}` return a shared `ReportResult`
+  (columns with types, rows, totals, summary, ledger reconciliation, drill-down kind).
+- `GET /reports/:key/export?format=csv|xlsx|pdf&locale=ar|en`, with the same filters and
+  column policy.
+- `PdfService` moved to its own module (PdfModule), used by sale documents and report exports.
+- Spec: `test/reports.spec.ts` (10 scenarios).
 
 ## Local environment notes (for resumption)
 - PostgreSQL 16 local cluster: `service postgresql start`.

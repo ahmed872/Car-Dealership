@@ -23,3 +23,4 @@ export * from './schemas/appointments';
 export * from './schemas/wishes';
 export * from './schemas/employees';
 export * from './schemas/sales';
+export * from './schemas/reports';

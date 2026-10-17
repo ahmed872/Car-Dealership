@@ -32,4 +32,7 @@ Severity: P0 (blocker) · P1 (high) · P2 (medium) · P3 (low).
 | KI-011 | P3 | Cash-closing differences can be posted only on base-currency accounts; foreign-currency accounts must be corrected with a transfer first. | By design for now (D-032). |
 | KI-012 | P3 | A commission stays earned if a payment is voided after it was earned; it is only reversed or clawed back when the sale is cancelled or returned. Costs posted after confirmation do not change the commission. | Accepted (rule snapshot at confirmation); review with the business. |
 | KI-013 | P3 | For externally financed sales, the provider's payment is recorded as a receipt on the customer's sale; there is no separate receivable from the finance provider. | Future enhancement: finance-provider sub-ledger. |
+| KI-014 | P3 | Reports are not paginated; one run returns at most 20,000 rows and says when it was cut (`truncated`). | Narrow the filters; add paging or background export jobs if a customer needs more. |
+| KI-015 | P3 | Receivables aging: installment sales age by their oldest unpaid installment; other sales age from the recognition date (the whole balance counts as overdue, since it was due at delivery). | Accepted; per-sale due dates for external-finance balances would refine it. |
+| KI-016 | P3 | The dashboard shows customer advances only to all-branch users, because reservation deposits carry no branch. | By design. |
 

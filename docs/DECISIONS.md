@@ -203,6 +203,27 @@ transfers). Closings run forward only; only the latest closing can be reopened, 
 `cash.reopen` and a reason. Differences on foreign-currency accounts must be corrected with a
 transfer before closing.
 
+### D-033 Reports read the ledger and share one result shape
+Money figures in reports come from the general ledger where one exists: sales profitability
+(4000, 2200, 4100, 5000, 6100 by sale), receivables (1200 by sale), cash flow (the cash book, which
+equals 1100) and inventory value (1300 by vehicle). Company-wide runs show a reconciliation of
+the report totals against the ledger, and the tests require a zero difference. A sale's period
+activity includes reversals, so a sale returned in a later month shows negative figures in that
+month. Costs posted after a sale now carry the sale dimension, so profitability includes them.
+Every report returns one `ReportResult` (columns, rows, totals, summary, reconciliation), and the
+screen and every export render that same object.
+
+### D-034 Cost columns are removed, not blanked, and exports follow the screen
+Columns and summary items marked sensitive (cost, floor price, gross profit, commission, margin)
+are removed from the result for users without `vehicles.view_cost` before it leaves the service.
+CSV, XLSX and PDF exports render the filtered result, so they can never carry more than the
+screen. Exports need `reports.export` plus the report's own permissions, and are audited
+(`report.exported`, with the filters and columns). CSV is UTF-8 with a BOM and neutralises
+cells that start with `= + - @` (a negative amount is written as a number, not text). XLSX writes
+amounts as numbers for spreadsheet arithmetic (exact to the cent far beyond dealership
+magnitudes); the database decimal stays the source of truth. PDFs embed the Arabic fonts and
+switch to landscape and smaller type for wide reports.
+
 ## Business assumptions
 
 ### B-001 Revenue recognition default = on delivery **[PO-CONFIRM]**

@@ -63,7 +63,7 @@ integration tests in `apps/api/test/*.spec.ts` check that.
 | Cash account opening balance | 1100 (account) | 3000 | `cash_account` / `cash_account.opening_balance` |
 | Acquisition approved | 1300 (vehicle) | 2000 (supplier) | `vehicle_cost` / `cost.posted` (purchase cost row; source = acquisition) |
 | Vehicle cost posted, before sale | 1300 (vehicle) | 2000 (supplier, or none for direct purchase) | `vehicle_cost` / `cost.posted` |
-| Vehicle cost posted after sale was recognised | 5000 (vehicle) | 2000 | `vehicle_cost` / `cost.posted` (`post_sale = true`) |
+| Vehicle cost posted after sale was recognised | 5000 (vehicle, sale) | 2000 | `vehicle_cost` / `cost.posted` (`post_sale = true`; the sale is the vehicle's recognised live sale) |
 | Vehicle cost reversed | mirror of the original | | `vehicle_cost` / `cost.reversed` |
 | Operating expense posted | 6000 (branch) | 2000 (supplier or none) | `expense` / `expense.posted` |
 | Operating expense reversed | mirror | | `expense` / `expense.reversed` |
@@ -258,4 +258,19 @@ daily closing (Phase 5) are documented in §9.
   from a base-currency account; reversed or clawed back on cancel/return.
 * **Cash closing (D-032)** posts any difference to 6200 dated on the closed day and then locks that
   day and all earlier days for the account.
+
+## 10. Reports (Phase 6)
+
+* Report money comes from the ledger, so report totals reconcile to it (D-033). The tests check:
+  - sales net revenue = GL 4000 for the period, and cost of sale = GL 5000;
+  - receivables = GL 1200 as of the date;
+  - closing cash = GL 1100;
+  - inventory value = GL 1300.
+* Sales profitability per sale in a period is:
+  - net revenue (4000), tax (2200) and finance income released (4100);
+  - cost of sale (5000, including costs posted after the sale);
+  - commission (6100);
+  - gross profit = net revenue − cost of sale;
+  - contribution = gross profit − commission + finance income.
+* Units sold = recognitions − recognition reversals in the period.
 

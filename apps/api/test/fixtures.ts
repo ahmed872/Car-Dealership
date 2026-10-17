@@ -285,3 +285,36 @@ export async function createCustomer(c: Client, overrides: Record<string, unknow
   if (res.status !== 201) throw new Error(`create customer failed ${res.status} ${JSON.stringify(res.body)}`);
   return res.body as { id: string; fullName: string; phone: string; version: number };
 }
+
+// ── Sales fixtures ──────────────────────────────────────────────────────────────────────────
+
+/**
+ * Sells an available vehicle end to end: draft → confirm → payment of what is due before
+ * delivery → invoice → delivery (revenue recognised). Returns the delivered sale.
+ */
+export async function sellVehicle(
+  c: Client,
+  input: { vehicleId: string; customerId: string; cashAccountId: string; agreedPrice: string } & Record<string, unknown>,
+) {
+  const { cashAccountId, ...body } = input;
+  const created = await c.post('/sales', body);
+  if (created.status !== 201) throw new Error(`create sale failed ${created.status} ${JSON.stringify(created.body)}`);
+  const id = created.body.id as string;
+  const conf = await c.post(`/sales/${id}/confirm`, { version: created.body.version }, idem());
+  if (conf.status !== 200) throw new Error(`confirm sale failed ${conf.status} ${JSON.stringify(conf.body)}`);
+  const due = conf.body.money.outstandingBeforeDelivery as string;
+  if (Number(due) > 0) {
+    const pay = await c.post(
+      '/receipts',
+      { customerId: input.customerId, cashAccountId, amount: due, method: 'cash', allocations: [{ targetType: 'sale', targetId: id, amountBase: due }] },
+      idem(),
+    );
+    if (pay.status !== 201) throw new Error(`sale payment failed ${pay.status} ${JSON.stringify(pay.body)}`);
+  }
+  const inv = await c.post(`/sales/${id}/documents`, { type: 'invoice' });
+  if (inv.status !== 201) throw new Error(`invoice failed ${inv.status} ${JSON.stringify(inv.body)}`);
+  const cur = await c.get(`/sales/${id}`);
+  const del = await c.post(`/sales/${id}/deliver`, { version: cur.body.version }, idem());
+  if (del.status !== 200) throw new Error(`deliver failed ${del.status} ${JSON.stringify(del.body)}`);
+  return del.body as { id: string; number: string; netAmount: string; grossAmount: string; installmentPlan: { id: string } | null };
+}

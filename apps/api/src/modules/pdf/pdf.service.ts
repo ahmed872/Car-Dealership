@@ -43,7 +43,7 @@ export class PdfService implements OnModuleDestroy {
     return this.browser;
   }
 
-  async render(html: string): Promise<Buffer> {
+  async render(html: string, opts: { landscape?: boolean } = {}): Promise<Buffer> {
     let browser: Browser;
     try {
       browser = await this.launch();
@@ -59,7 +59,7 @@ export class PdfService implements OnModuleDestroy {
       // Text in a web font stays invisible until the face is decoded, and printing does not wait
       // for it: load every face, then wait for the font set, before printing.
       await page.evaluate('Promise.all([...document.fonts].map((f) => f.load().catch(() => null))).then(() => document.fonts.ready).then(() => true)');
-      return await page.pdf({ format: 'A4', printBackground: true, margin: { top: '14mm', bottom: '16mm', left: '12mm', right: '12mm' } });
+      return await page.pdf({ format: 'A4', landscape: !!opts.landscape, printBackground: true, margin: { top: '14mm', bottom: '16mm', left: '12mm', right: '12mm' } });
     } finally {
       await page.close().catch(() => undefined);
     }

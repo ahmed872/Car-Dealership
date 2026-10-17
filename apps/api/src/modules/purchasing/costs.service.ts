@@ -157,7 +157,17 @@ export class CostsService {
     return row!;
   }
 
+  /** The vehicle's recognised, still-live sale: a cost posted after the sale is a cost of that sale. */
+  private async currentSaleOf(vehicleId: string): Promise<string | null> {
+    const [s] = await this.dbs.query<{ id: string }>(
+      `SELECT id FROM sales WHERE vehicle_id = $1 AND recognized_at IS NOT NULL AND status IN ('confirmed', 'delivered') LIMIT 1`,
+      [vehicleId],
+    );
+    return s?.id ?? null;
+  }
+
   private async postEntry(ctx: TenantContext, row: CostRow, branchId: string, stockNumber: string, creditOverride?: CreateCostOptions['creditOverride']) {
+    const saleId = row.postSale ? await this.currentSaleOf(row.vehicleId) : null;
     await this.posting.post({
       sourceType: 'vehicle_cost',
       sourceId: row.id,
@@ -166,7 +176,7 @@ export class CostsService {
       description: `${stockNumber}: ${row.description}`,
       branchId,
       lines: [
-        { account: row.postSale ? ACCOUNTS.COGS : ACCOUNTS.INVENTORY, debit: row.amountBase, vehicleId: row.vehicleId },
+        { account: row.postSale ? ACCOUNTS.COGS : ACCOUNTS.INVENTORY, debit: row.amountBase, vehicleId: row.vehicleId, saleId },
         creditOverride
           ? { account: ACCOUNTS.CUSTOMER_ADVANCES, credit: row.amountBase, customerId: creditOverride.customerId, saleId: creditOverride.saleId ?? null, vehicleId: row.vehicleId }
           : { account: ACCOUNTS.PAYABLES, credit: row.amountBase, supplierId: row.supplierId, vehicleId: row.vehicleId },
