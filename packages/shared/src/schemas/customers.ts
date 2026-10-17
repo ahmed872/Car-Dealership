@@ -14,7 +14,7 @@ export function toLatinDigits(value: string): string {
 }
 
 /** Separators people type or paste inside phone numbers: spaces (incl. NBSP), dashes, dots, slashes, parentheses, bidi marks. */
-const PHONE_SEPARATORS = /[\s ‐-―−\-–—().\/‎‏‪-‮⁦-⁩]/g;
+const PHONE_SEPARATORS = /[\s\u00A0\u2010-\u2015\u2212()./\u200E\u200F\u202A-\u202E\u2066-\u2069-]/g;
 
 /**
  * Canonical customer phone: digits only, WITH the country code (no "+"), e.g. "966501234567".

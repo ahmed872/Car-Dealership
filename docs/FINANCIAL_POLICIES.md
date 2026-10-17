@@ -72,9 +72,13 @@ integration tests in `apps/api/test/*.spec.ts` check that.
 | Transfer between own accounts | 1100 (to) | 1100 (from) | `cash_transfer` / `cash_transfer.posted` |
 | Vehicle removed from stock with remaining cost | 6300 (vehicle) | 1300 (vehicle) | `vehicle` / `vehicle.written_off` (balance to date) + `vehicle.written_off:<date>` per future-dated cost |
 | Realized FX on a payment or transfer | 4300 (loss) | 4300 (gain) | Extra line in the payment/transfer entry |
+| Customer receipt (deposit or credit) | 1100 (cash account) | 2100 (customer) | `receipt` / `receipt.posted` |
+| Customer receipt voided | mirror | | `receipt` / `receipt.posted.reversed` |
+| Reservation deposit forfeited on cancel | 2100 (customer) | 4200 (customer, vehicle) | `reservation` / `reservation.forfeited` |
+| Customer refund paid | 2100 (customer) | 1100 (cash account) | `refund` / `refund.paid` |
 
-Sales, deposits, receipts, refunds, installments, commissions and daily closing rules are added in
-Phases 4–5 and documented in §6.
+Deposits, receipts and refunds (Phase 4) are documented in §8. Sales, installments, commissions and
+daily closing rules are added in Phase 5.
 
 ## 4. Payables and supplier payments
 
@@ -178,3 +182,35 @@ Phases 4–5 and documented in §6.
 4. **Trial balance.** Total debits = total credits for any period.
 
 `GET /ledger/reconciliation` reports differences and lists each mismatching item.
+
+## 8. Customer money: receipts, deposits, refunds (Phase 4)
+
+* **Customer money is a liability until a sale is recognised.** Every receipt credits 2100
+  Customer advances, carrying the customer dimension. It is never posted to revenue (B-002).
+* **Receipts.**
+  - A receipt goes through `CashService`, so the cash book row and the GL entry are written
+    together.
+  - It is split in base currency between targets: a reservation deposit, or general customer
+    credit. The parts must add up exactly to the receipt (`allocation_mismatch`).
+  - Voiding a receipt posts the mirror entry and returns the cash. Voiding is refused if the money
+    has already been refunded or forfeited, because that would leave 2100 negative for the
+    customer.
+* **Deposits and reservations.**
+  - A reservation locks the vehicle row, so only one active reservation per vehicle is possible
+    (unique index `reservations_vehicle_active_uq`).
+  - When a reservation is cancelled:
+    - the refundable share (by policy, or overridden with `refunds.approve`) becomes a refund
+      request;
+    - the rest is forfeited to 4200 with the reason recorded (`reservation.forfeited`, at most once
+      per reservation).
+  - When a reservation expires, the vehicle is released and the deposit stays as customer credit
+    (B-021).
+* **Refunds.** A refund goes requested → approved (by another user, B-022) → paid. Payment posts
+  Dr 2100 / Cr 1100 through `CashService`. Refunds are always paid in the base currency. They are
+  checked three times against what is still refundable (request, approval, payment), with the
+  source locked each time.
+* **Customer advance balance.**
+  - The balance is read from the GL (2100 by customer); it is never stored.
+  - Deposit receipts, forfeits and refunds keep it consistent by construction.
+  - `assertLedgerIntegrity` in the tests checks that the GL balances after every test.
+

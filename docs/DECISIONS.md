@@ -105,6 +105,32 @@ Editors are read from the immutable audit log (`acquisition.created` / `.updated
 Editing a purchase that is awaiting approval withdraws it to draft, so the approver never sees a
 stale amount.
 
+### D-021 Pipeline stages: platform defaults with copy-on-write
+The default sales pipeline (new → reserved, won, lost) is shared platform data. When a company
+renames, re-weights or deactivates a default stage, a company-owned copy with the same code is
+created and that company's leads are moved to it, so other companies keep the defaults. Stage
+history keeps pointing at the stage that was current at the time.
+
+### D-022 Shared calendar, private details
+Everyone with access to a branch sees its whole appointment calendar, so salespeople and vehicles
+are not double-booked. Details (customer, notes, licence) are shown only to the assignee, the
+creator, people who can see the customer, and users who may read all customers. Everyone else sees
+a busy block. Filtering by customer or lead only matches bookings the caller may open. Vehicle
+double-booking for test drives is refused by a database exclusion constraint. Staff double-booking
+is checked under a per-user advisory lock.
+
+### D-023 Wish matching is exact and explainable
+Wishes match only vehicles on sale (`available`), using one pure function shared by the API and
+the UI (`wishMismatches`). Missing vehicle data (no asking price, no colour) never counts as a
+match. Each (wish, vehicle) pair is recorded once, so its notification is sent once. A dismissed
+pair never comes back.
+
+### D-024 Commission policies are versioned and never retroactive
+A policy version's rule is never edited. A change creates a new version starting today or later,
+strictly after the previous version's start, and the previous version ends the day before.
+Version changes of one policy are serialised by an advisory lock. Earned commissions (Phase 5)
+will store the version id and a snapshot of the rule.
+
 ## Business assumptions
 
 ### B-001 Revenue recognition default = on delivery **[PO-CONFIRM]**
@@ -229,3 +255,25 @@ are common) — reports flag negative bank balances.
 A cash/bank opening balance is posted against owner's equity (3000) and requires
 `ledger.post_manual`. Opening inventory for vehicles already in stock is entered as acquisitions
 (source "other") so each vehicle carries its own cost.
+
+### B-021 An expired reservation keeps the deposit as customer credit
+When a reservation expires, the vehicle is released but the deposit is **not** forfeited
+automatically. It stays in 2100 as the customer's credit (an advance). It can be refunded through
+the refund workflow, or used on a later sale. Forfeiting income is always an explicit, reasoned
+cancel action (B-002), never a side effect of a timer.
+
+### B-022 Refunds need a second person
+A refund request is approved by a user with `refunds.approve` who is not the requester (same rule
+as B-016). Approval re-checks how much is still refundable, and payment re-checks it again under a
+lock, because receipt voids or other refunds may have reduced it. Cancelling a reservation with a
+refund more generous than its policy (`full`), or forfeiting a refundable deposit (`none`), needs
+`refunds.approve`.
+
+### B-023 Customer privacy defaults
+National IDs are stored encrypted (AES-GCM) with a keyed hash for duplicate detection. Only the
+last four digits are shown. Revealing the full ID needs `customers.view_sensitive` and is audited.
+Sales reps see only the customers and leads assigned to them or created by them. Duplicate checks
+never reveal a hidden customer's name (initials only). A national-ID duplicate can never be
+forced. A phone duplicate can be forced (family members share phones) by users with
+`customers.manage`.
+
