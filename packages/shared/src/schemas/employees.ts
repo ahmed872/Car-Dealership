@@ -20,8 +20,8 @@ export const zCommissionRule = z
     minAmount: zMoneyNonNeg.optional(),
     capAmount: zMoneyNonNeg.optional(),
     requirePositiveProfit: z.boolean().optional(),
-    /** When the commission becomes payable (used when sales are delivered/paid, Phase 5). */
-    earnOn: z.enum(COMMISSION_EARN_ON).default('delivery'),
+    /** When the commission is earned: on delivery, or (default, B-006) once the sale is fully paid. */
+    earnOn: z.enum(COMMISSION_EARN_ON).default('full_payment'),
   })
   .superRefine((rule, ctx) => {
     for (const message of validateCommissionRule(rule)) ctx.addIssue({ code: z.ZodIssueCode.custom, message });

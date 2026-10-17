@@ -164,10 +164,15 @@ export class CommissionPoliciesService {
       throw forbidden("You can only view your own commission policy", { permission: 'commissions.read' });
     }
     const on = date ?? this.today(ctx);
+    return { userId, date: on, policy: await this.policyFor(userId, on) };
+  }
+
+  /** Internal (no permission check): the policy version in effect for an employee on a date. */
+  async policyFor(userId: string, date: string): Promise<CommissionPolicyRow | null> {
     const [profile] = await this.dbs.db.select({ policyId: employeeProfiles.commissionPolicyId }).from(employeeProfiles).where(eq(employeeProfiles.userId, userId));
-    if (!profile?.policyId) return { userId, date: on, policy: null };
+    if (!profile?.policyId) return null;
     const assigned = await this.byId(profile.policyId);
-    return { userId, date: on, policy: await this.versionOn(assigned.code, on) };
+    return this.versionOn(assigned.code, date);
   }
 
   preview(ctx: TenantContext, rule: CommissionRule, input: Pick<CommissionPreviewInput, 'saleNet' | 'grossProfit'>) {

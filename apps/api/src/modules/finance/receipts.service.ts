@@ -32,8 +32,13 @@ export interface ReceiptTargetHandler {
   describe(targetId: string, lock: boolean): Promise<ReceiptTargetInfo>;
   /** Credit line(s) in base currency for `amountBase` received against the target. */
   creditLines(targetId: string, amountBase: string, customerId: string): Promise<PostingLine[]> | PostingLine[];
-  /** Called before a receipt allocated to the target is voided; throw to refuse. */
-  beforeVoid?(ctx: TenantContext, targetId: string, amountBase: string): Promise<void>;
+  /**
+   * Called before a receipt allocated to the target is voided, inside the same transaction: throw
+   * to refuse, or post the adjustments the void needs (e.g. re-opening receivables).
+   */
+  beforeVoid?(ctx: TenantContext, targetId: string, amountBase: string, receiptId: string): Promise<void>;
+  /** Called after the receipt and its GL entry are written (e.g. to record installment allocations). */
+  afterReceived?(ctx: TenantContext, targetId: string, amountBase: string, receipt: { id: string; receivedAt: string }): Promise<void>;
 }
 
 export interface ReceiveInput {
@@ -186,6 +191,9 @@ export class ReceiptsService {
       branchId,
       counterLines: credit,
     });
+    for (const a of allocations) {
+      await this.handler(a.targetType).afterReceived?.(ctx, a.targetId, a.amountBase, { id: r!.id, receivedAt });
+    }
     await this.audit.record({
       action: 'receipt.posted',
       entityType: 'receipt',
@@ -206,7 +214,7 @@ export class ReceiptsService {
     const allocations = await this.dbs.db.select().from(receiptAllocations).where(eq(receiptAllocations.receiptId, id));
     for (const a of allocations) {
       const h = ReceiptsService.handlers.get(a.targetType as ReceiptTargetType);
-      await h?.beforeVoid?.(ctx, a.targetId, a.amountBase);
+      await h?.beforeVoid?.(ctx, a.targetId, a.amountBase, id);
     }
     if (allocations.some((a) => a.targetType === 'customer_credit')) {
       // Voiding money the customer has already used or been refunded would push 2100 negative.

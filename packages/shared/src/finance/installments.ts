@@ -262,3 +262,55 @@ export function earlySettlementQuote(
     waivedInterest: money(waived, currency),
   };
 }
+
+export interface SettlementAllocation {
+  quote: SettlementQuote;
+  /** What the settlement payment pays on each installment (fees, charged interest, principal). */
+  lines: AllocationLine[];
+  /** Interest forgiven per installment (posted against deferred finance income). */
+  waived: Array<{ installmentId: string; seq: number; interest: string }>;
+}
+
+/**
+ * Splits an early settlement over the remaining installments with exactly the rule of
+ * `earlySettlementQuote`: all outstanding fees and principal, interest that is due or charged by
+ * `policy`, and the rest of the interest waived. The lines always add up to the quote total.
+ */
+export function settlementAllocation(
+  installments: InstallmentState[],
+  asOf: string,
+  policy: FutureInterestPolicy,
+  currency: CurrencyCode,
+): SettlementAllocation {
+  const quote = earlySettlementQuote(installments, asOf, policy, currency);
+  const sorted = [...installments].sort((a, b) => a.seq - b.seq);
+  const lines: AllocationLine[] = [];
+  const waived: SettlementAllocation['waived'] = [];
+  let currentPeriodCharged = false;
+  for (const inst of sorted) {
+    const principal = Dec.max(d(inst.principalDue).minus(inst.principalPaid), 0);
+    const fees = Dec.max(d(inst.feesDue).minus(inst.feesPaid), 0);
+    const intOut = Dec.max(d(inst.interestDue).minus(inst.interestPaid), 0);
+    let interest = new Dec(0);
+    if (inst.dueDate <= asOf || policy === 'charge_all') {
+      interest = intOut;
+    } else if (policy === 'charge_current_period' && !currentPeriodCharged) {
+      interest = intOut;
+      currentPeriodCharged = true;
+    } else if (intOut.gt(0)) {
+      waived.push({ installmentId: inst.id, seq: inst.seq, interest: money(intOut, currency) });
+    }
+    const total = principal.plus(fees).plus(interest);
+    if (total.gt(0)) {
+      lines.push({
+        installmentId: inst.id,
+        seq: inst.seq,
+        principal: money(principal, currency),
+        interest: money(interest, currency),
+        fees: money(fees, currency),
+        total: money(total, currency),
+      });
+    }
+  }
+  return { quote, lines, waived };
+}

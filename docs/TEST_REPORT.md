@@ -112,3 +112,27 @@ usage limit and will be re-run.
 
 Not yet verified in a browser: the Phase 3 and Phase 4 web pages, which are not built yet.
 
+### Phase 5 backend (2026-10-17)
+| Command | Result |
+|---|---|
+| `npx vitest run test/sales.spec.ts` (apps/api, autohub_test_c), first run | 11 passed, 5 failed: 3 test-setup mistakes (audit table name, approvals response shape, missing Idempotency-Key on closings); 1 real defect (a settled plan reported its waived interest as outstanding); 1 policy conflict (revenue recognition cannot change once a company has transactions, so the test now uses a fresh company) |
+| After fixes, plus `reopen` returning 200 and sale refunds carrying the sale dimension | **16/16** |
+| Review of the void paths found that voiding a post-recognition payment after a cancel would re-open the receivable. Fixed (`credit_voided:<receipt>`) and covered by a new check; the fix went in before the check, so the check was never seen failing | **16/16** |
+| Added the installment-sale return scenario | **17/17** |
+| Full API suite, `npx vitest run` (apps/api, autohub_test_c) | 25 files, **281 passed** |
+| `packages/shared`: `npx vitest run` | **46 passed** (adds early-settlement allocation tests) |
+| `eslint src test` (api), `eslint src` (shared), `tsc --noEmit` (api, web) | clean |
+
+PDF review: invoices and delivery notes rendered by the spec were opened and inspected as images.
+- The first render was correct (Arabic RTL, amounts, VAT line, disclaimer). A second render came
+  out blank apart from the company name: Chromium printed before the embedded fonts were
+  decoded. The renderer now loads every font face and waits for the font set before printing.
+  Three renders in a row were complete, and the spec now asserts that four embedded font
+  subsets are present (the blank PDF had one).
+- Fixed during review:
+  - The title said "فاتورة ضريبية" (tax invoice), which over-claims for a non-certified document;
+    it now says "فاتورة بيع" / "Sales invoice".
+  - The payment method is translated.
+  - The delivery note shows the odometer reading taken at handover.
+- After these fixes: `sales.spec.ts` **17/17**.
+

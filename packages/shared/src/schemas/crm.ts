@@ -218,7 +218,7 @@ export const zEmployeeProfileInput = z.object({
   notes: zOptText(1000),
 });
 
-export const RECEIPT_TARGET_TYPES = ['reservation', 'customer_credit'] as const;
+export const RECEIPT_TARGET_TYPES = ['reservation', 'sale', 'installment', 'customer_credit'] as const;
 export const zReceiptCreate = z.object({
   customerId: zUuid,
   cashAccountId: zUuid,
@@ -242,7 +242,7 @@ export const zReceiptListQuery = zPaginationQuery.extend({
   status: z.enum(['posted', 'voided']).optional(),
 });
 
-export const REFUND_SOURCE_TYPES = ['reservation', 'customer_credit'] as const;
+export const REFUND_SOURCE_TYPES = ['reservation', 'sale', 'customer_credit'] as const;
 export const zRefundRequest = z.object({
   sourceType: z.enum(REFUND_SOURCE_TYPES),
   /** Reservation id, or the customer id for customer credit. */

@@ -255,6 +255,11 @@ export class ReservationsService {
     const r = await this.find(id, true);
     assertBranchAccess(ctx, r.branchId);
     if (r.status !== 'active') throw conflict('reservation_not_active', 'Only active reservations can be cancelled');
+    const [inSale] = await this.dbs.query<{ number: string }>(
+      `SELECT number FROM sales WHERE reservation_id = $1 AND status IN ('draft', 'pending_approval', 'approved') LIMIT 1`,
+      [r.id],
+    );
+    if (inSale) throw conflict('reservation_in_sale', `Sale ${inSale.number} is being prepared from this reservation; cancel that sale first`);
     const v = await this.vehicles.lock(r.vehicleId);
     const available = d(await this.availableDepositBase(r));
     let refundAmt = d(0);
@@ -327,7 +332,14 @@ export class ReservationsService {
     const due = await this.dbs.db
       .select()
       .from(reservations)
-      .where(and(eq(reservations.status, 'active'), lte(reservations.expiresAt, new Date())))
+      .where(
+        and(
+          eq(reservations.status, 'active'),
+          lte(reservations.expiresAt, new Date()),
+          // A reservation being turned into a sale (draft) is converted or released by that sale.
+          sql`NOT EXISTS (SELECT 1 FROM sales s WHERE s.reservation_id = reservations.id AND s.status IN ('draft', 'pending_approval', 'approved'))`,
+        ),
+      )
       .orderBy(asc(reservations.expiresAt))
       .limit(500)
       .for('update', { skipLocked: true });

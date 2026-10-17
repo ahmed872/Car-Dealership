@@ -22,3 +22,4 @@ export * from './schemas/leads';
 export * from './schemas/appointments';
 export * from './schemas/wishes';
 export * from './schemas/employees';
+export * from './schemas/sales';

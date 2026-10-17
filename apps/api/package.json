@@ -18,6 +18,7 @@
   "dependencies": {
     "@autohub/shared": "workspace:*",
     "@aws-sdk/client-s3": "3.908.0",
+    "@fontsource/ibm-plex-sans-arabic": "5.2.6",
     "@nestjs/common": "11.1.6",
     "@nestjs/core": "11.1.6",
     "@nestjs/platform-express": "11.1.6",

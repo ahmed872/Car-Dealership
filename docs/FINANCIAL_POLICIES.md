@@ -41,7 +41,7 @@ integration tests in `apps/api/test/*.spec.ts` check that.
 | 1300 | Vehicle inventory (dimension: vehicle) | Asset |
 | 1400 | Commission advances | Asset |
 | 2000 | Accounts payable (dimension: supplier) | Liability |
-| 2100 | Customer advances / deposits (dimension: customer) | Liability |
+| 2100 | Customer advances / deposits (dimension: customer, sale) | Liability |
 | 2200 | Tax payable | Liability |
 | 2300 | Commissions payable | Liability |
 | 2400 | Deferred finance income | Liability |
@@ -78,7 +78,7 @@ integration tests in `apps/api/test/*.spec.ts` check that.
 | Customer refund paid | 2100 (customer) | 1100 (cash account) | `refund` / `refund.paid` |
 
 Deposits, receipts and refunds (Phase 4) are documented in §8. Sales, installments, commissions and
-daily closing rules are added in Phase 5.
+daily closing (Phase 5) are documented in §9.
 
 ## 4. Payables and supplier payments
 
@@ -213,4 +213,49 @@ daily closing rules are added in Phase 5.
   - The balance is read from the GL (2100 by customer); it is never stored.
   - Deposit receipts, forfeits and refunds keep it consistent by construction.
   - `assertLedgerIntegrity` in the tests checks that the GL balances after every test.
+
+## 9. Sales, installments, commissions and cash closing (Phase 5)
+
+| Event | Debit | Credit | Source / event key |
+|---|---|---|---|
+| Payment for a sale before recognition | 1100 | 2100 (customer, sale) | `receipt` / `receipt.posted` |
+| Payment for a sale after recognition | 1100 | 1200 (customer, sale) | `receipt` / `receipt.posted` |
+| Trade-in received at confirmation | 1300 (trade-in vehicle) | 2100 (customer, sale) | `vehicle_cost` / `cost.posted` (source `trade_in`) |
+| Revenue recognised | 1200 gross + interest + fees | 4000 net, 2200 tax, 2400 interest + fees | `sale` / `sale.recognized` |
+| Cost of sale | 5000 (vehicle, sale) | 1300 (vehicle) | `sale` / `sale.cogs` |
+| Held money applied | 2100 (customer, sale) | 1200 (customer, sale) | `sale` / `sale.credit_applied` |
+| Installment collected | 1100; 2400 (interest + fees covered) | 1200; 4100 | `receipt` / `receipt.posted` |
+| Interest waived on early settlement | 2400 | 1200 | `installment_plan` / `plan.settlement_waiver` |
+| Plan unwound (cancel/return) | 1200 collected; 4100 income released | 2100 collected; 2400 income released | `installment_plan` / `plan.unwound` |
+| Held money returned to credit (cancel/return) | 1200 | 2100 | `sale` / `sale.credit_unapplied` |
+| Recognition / COGS reversed | mirror | | `sale` / `sale.recognized.reversed`, `sale.cogs.reversed` |
+| Pre-recognition payment voided after recognition | 1200 | 2100 | `sale` / `credit_unapplied:<receipt>` (plus the receipt's mirror) |
+| Post-recognition payment voided after cancel/return | 2100 | 1200 | `sale` / `credit_voided:<receipt>` (plus the receipt's mirror) |
+| Refund of sale credit | 2100 (customer, sale) | 1100 | `refund` / `refund.paid` |
+| Commission earned | 6100 | 2300 (employee) | `commission` / `commission.earned` |
+| Commission paid | 2300 | 1100 | `commission` / `commission.paid` |
+| Unpaid commission reversed | mirror | | `commission` / `commission.earned.reversed` |
+| Paid commission clawed back | 1400 (employee) | 6100 | `commission` / `commission.clawback` |
+| Cash over at closing | 1100 | 6200 | `cash_closing` / `cash_closing.difference` |
+| Cash short at closing | 6200 | 1100 | `cash_closing` / `cash_closing.difference` |
+
+* **Sale money (D-028).** The sale accepts payments up to what is due before delivery. Delivery
+  needs a live invoice and, unless overridden with `sales.deliver_with_balance` and a reason, the
+  full price paid (cash), the down payment paid (installments), or the provider's approval plus
+  the customer's share (external finance). Per sale, after delivery: 2100 = 0, and 1200 = what is
+  still owed (zero for a fully paid cash sale).
+* **Recognition** posts revenue net of tax, tax payable and deferred finance income in one entry,
+  then COGS at the vehicle's full 1300 balance, then applies the held money. The vehicle cost is
+  locked at recognition: later costs go to 5000 (`post_sale`).
+* **Installments (D-029).** Collection only on active plans; allocation oldest-first in the
+  configured component order; 2400 → 4100 on the interest and fees each payment covers.
+  Settlement waivers are explicit entries. A plan's outstanding balance is zero once settled
+  (the remainder is waived interest) or cancelled.
+* **Cancellation and return** leave, per sale: 1200 = 0, 2400 = 0, 4100 = 0, 4000 = 0, 2200 = 0,
+  5000 = 0 (for the COGS of that sale), the vehicle's 1300 back at its cost, and 2100 = everything
+  the customer paid, refundable through the refund workflow.
+* **Commissions (D-030)** use the cost at confirmation; earned, approved by another user, paid
+  from a base-currency account; reversed or clawed back on cancel/return.
+* **Cash closing (D-032)** posts any difference to 6200 dated on the closed day and then locks that
+  day and all earlier days for the account.
 

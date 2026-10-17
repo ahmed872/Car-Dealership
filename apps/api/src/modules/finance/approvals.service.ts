@@ -22,6 +22,7 @@ export type ApprovalType =
 export const MAKER_ACTIONS: Readonly<Record<string, readonly string[]>> = {
   acquisition: ['acquisition.created', 'acquisition.updated', 'acquisition.submitted'],
   work_order: ['work_order.created', 'work_order.updated', 'work_order.item_added', 'work_order.item_updated', 'work_order.item_removed', 'work_order.submitted'],
+  sale: ['sale.created', 'sale.updated'],
 };
 const ALL_MAKER_ACTIONS = [...new Set(Object.values(MAKER_ACTIONS).flat())];
 
@@ -125,6 +126,7 @@ export class ApprovalsService {
         WHEN 'expense' THEN EXISTS (SELECT 1 FROM expenses e WHERE e.id = approval_requests.entity_id AND e.created_by = ${me})
         WHEN 'work_order' THEN EXISTS (SELECT 1 FROM work_orders w WHERE w.id = approval_requests.entity_id AND w.created_by = ${me})
         WHEN 'refund' THEN EXISTS (SELECT 1 FROM refunds r WHERE r.id = approval_requests.entity_id AND r.requested_by = ${me})
+        WHEN 'sale' THEN EXISTS (SELECT 1 FROM sales s WHERE s.id = approval_requests.entity_id AND (s.created_by = ${me} OR s.salesperson_id = ${me}))
         ELSE false
       END
       OR EXISTS (SELECT 1 FROM audit_logs l

@@ -348,6 +348,25 @@ export class LeadsService {
     return after!;
   }
 
+  /**
+   * Called by the sales workflow when a sale for this lead is confirmed: the lead is won and
+   * linked to the sale (no visibility check — the sale's own checks already apply).
+   */
+  async markWonBySale(ctx: TenantContext, leadId: string, saleId: string): Promise<void> {
+    await this.pipeline.lockStages('shared');
+    const [l] = await this.dbs.db.select().from(leads).where(eq(leads.id, leadId)).for('update');
+    if (!l || l.status === 'won') return;
+    const won = await this.pipeline.firstActive('won');
+    if (!won) return;
+    const now = new Date();
+    await this.dbs.db
+      .update(leads)
+      .set({ stageId: won.id, status: 'won', wonSaleId: saleId, closedAt: now, lastActivityAt: now, version: l.version + 1, updatedAt: now })
+      .where(eq(leads.id, leadId));
+    await this.history(ctx, { leadId, fromStageId: l.stageId, toStageId: won.id, fromStatus: l.status, toStatus: 'won', note: 'Sale confirmed' });
+    await this.audit.record({ action: 'lead.won', entityType: 'lead', entityId: leadId, summary: `${l.number} won by sale`, before: { status: l.status }, after: { status: 'won', saleId } });
+  }
+
   async markLost(ctx: TenantContext, id: string, input: LeadLost) {
     await this.pipeline.lockStages('shared');
     const l = await this.find(ctx, id, true);

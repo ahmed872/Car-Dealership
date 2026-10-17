@@ -147,6 +147,62 @@ Open payables, AP aging, supplier balances and supplier payments show purchase p
 `suppliers.read` + `payments.read` (or `supplier_payments.create` for the payment form). The sales
 side's `payments.read` alone is not enough.
 
+### D-027 One vehicle per sale, priced in the base currency
+A sale sells exactly one vehicle (a unique index allows one live sale per vehicle). Prices, tax,
+installments and commissions are in the company's base currency; receipts may come from
+foreign-currency accounts and are converted at the receipt's rate. Price, discount and tax are
+recomputed and frozen at confirmation (a trigger refuses later changes to the terms), so a
+margin-scheme tax uses the cost at confirmation.
+
+### D-028 Sale money is held until recognition, then applied
+Everything the customer gives for a sale (receipts allocated to the sale, the agreed value of a
+trade-in, a converted reservation deposit) is credited to 2100 with the customer and sale
+dimensions. Recognition (on delivery by default, B-001) posts in one transaction:
+Dr 1200 gross + deferred finance charges / Cr 4000 net / Cr 2200 tax / Cr 2400 interest and fees;
+Dr 5000 / Cr 1300 the vehicle's whole capitalised cost (the cost is then locked); and
+Dr 2100 / Cr 1200 the money held so far. Receipts after recognition credit 1200 directly. The
+sale accepts at most what is due before delivery (the whole price, or the down payment of an
+installment sale), so after recognition the money applied equals the money held. Cancelling a
+confirmed sale or returning a delivered one reverses all of it, and the money becomes refundable
+customer credit on the sale (refunds use maker-checker, B-022). Voids re-route through the same
+dimensions so the receivable and the credit never drift apart.
+
+### D-029 Installment plans: frozen schedule, oldest-first allocation, explicit waivers
+The schedule (flat, reducing-balance or zero-interest, from the shared calculator) is built and
+frozen at confirmation and becomes collectable only at recognition (B-003). A payment is allocated
+oldest installment first, in the company's component order (fees, interest, principal by
+default); the interest and fees it covers move from 2400 to 4100. Early settlement takes a quote
+total the cashier saw (refused with 409 if it changed) and a future-interest policy
+(company default per method, overridable with `installments.settle`). Waived interest is posted
+explicitly (Dr 2400 / Cr 1200). No late fees (B-004). Overdue and due-soon reminders notify the
+salesperson exactly once per installment state.
+
+### D-030 Commissions: expected at confirmation, earned by rule, paid through the cash book
+A commission is computed from the salesperson's policy version on the sale date and stored with
+a snapshot of the rule, using the vehicle cost at confirmation. It is earned (Dr 6100 / Cr 2300)
+once the sale is recognised and, per the rule, delivered or fully paid (B-006). Approval needs a
+different user than the earner. Payment goes through `CashService` from a base-currency account.
+If the sale is cancelled or returned, an unpaid commission is reversed and a paid one becomes a
+clawback receivable from the employee (Dr 1400 / Cr 6100).
+
+### D-031 Sale documents are immutable snapshots with gapless numbers
+Contract, invoice, delivery note and credit note each take a gapless number per type and year and
+store a complete snapshot (company, customer, vehicle, prices, tax, trade-ins, payments,
+schedule). The PDF is always rendered from the snapshot, never from live data, by headless
+Chromium with embedded IBM Plex Sans Arabic fonts and no network access. At most one live
+document per type and sale. Documents can be voided only while the sale is confirmed; after
+delivery corrections are returns, which issue a credit note referencing the invoice. Documents
+carry a notice that they are not certified e-invoices (EXT-01).
+
+### D-032 Daily cash closing locks the day and every day before it
+Closing a cash account for a day compares the counted balance with the cash book on that day. A
+difference is posted to 6200 (over: Dr 1100 / Cr 6200; short: Dr 6200 / Cr 1100) through the
+cash book, dated on the closed day, and needs `cash.adjust`. After closing, no movement can be
+dated on or before that day for the account (enforced in `CashService` for moves, reversals and
+transfers). Closings run forward only; only the latest closing can be reopened, with
+`cash.reopen` and a reason. Differences on foreign-currency accounts must be corrected with a
+transfer before closing.
+
 ## Business assumptions
 
 ### B-001 Revenue recognition default = on delivery **[PO-CONFIRM]**

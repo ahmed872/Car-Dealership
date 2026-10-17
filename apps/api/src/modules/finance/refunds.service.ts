@@ -205,7 +205,10 @@ export class RefundsService {
       description: `Refund ${r.number}`,
       reference: input.reference ?? null,
       branchId: r.branchId,
-      counterLines: [{ account: ACCOUNTS.CUSTOMER_ADVANCES, debit: r.amountBase, customerId: r.customerId, memo: `refund:${r.sourceType}` }],
+      // A sale's credit is tracked on the sale dimension (D-028); refunding it clears that too.
+      counterLines: [
+        { account: ACCOUNTS.CUSTOMER_ADVANCES, debit: r.amountBase, customerId: r.customerId, ...(r.sourceType === 'sale' ? { saleId: r.sourceId } : {}), memo: `refund:${r.sourceType}` },
+      ],
     });
     const [after] = await this.dbs.db
       .update(refunds)

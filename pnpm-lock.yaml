@@ -38,6 +38,9 @@ importers:
       '@aws-sdk/client-s3':
         specifier: 3.908.0
         version: 3.908.0
+      '@fontsource/ibm-plex-sans-arabic':
+        specifier: 5.2.6
+        version: 5.2.6
       '@nestjs/common':
         specifier: 11.1.6
         version: 11.1.6(reflect-metadata@0.2.2)(rxjs@7.8.2)
