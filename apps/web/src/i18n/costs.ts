@@ -26,10 +26,12 @@ const ar = {
     noPrice: 'لم يُحدَّد سعر عرض لهذه السيارة بعد. حدّد السعر لعرض الربح المتوقع.',
     note: 'تقدير مبني على التكاليف المرحّلة حتى الآن وإعدادات الضريبة الحالية',
   },
-  costLocked: 'تم الاعتراف بإيراد بيع هذه السيارة. أي تكلفة جديدة تُحمَّل على تكلفة المبيعات وتتطلب صلاحية الترحيل بعد البيع.',
+  costLocked:
+    'تم الاعتراف بإيراد بيع هذه السيارة. أي تكلفة جديدة تُحمَّل على تكلفة المبيعات وتتطلب صلاحية الترحيل بعد البيع.',
   vehicleRemoved: 'هذه السيارة مستبعدة من المخزون؛ لا يمكن إضافة تكاليف جديدة لها.',
   items: {
     title: 'بنود التكلفة',
+    count: 'عدد البنود: {{count}}',
     empty: 'لا توجد بنود تكلفة لهذه السيارة',
     emptyHint: 'تظهر هنا تكلفة الشراء والإصلاحات والنقل وأي مصروفات مُرسملة على السيارة.',
     date: 'التاريخ',
@@ -41,6 +43,9 @@ const ar = {
     status: 'الحالة',
     paid: 'المدفوع',
     outstanding: 'المتبقي',
+    payment: 'السداد',
+    paidValue: 'مدفوع {{amount}}',
+    outstandingValue: 'متبقٍ {{amount}}',
     paidViaAcquisition: 'يُسدَّد عبر عملية الشراء',
     rate: 'سعر الصرف {{rate}}',
     createdBy: 'أنشأه {{name}}',
@@ -94,6 +99,7 @@ const ar = {
     willPost: 'ستُرحَّل التكلفة مباشرة إلى حساب المخزون لأن لديك صلاحية الاعتماد.',
     willPend: 'ستُرسل التكلفة للاعتماد ولن تُحتسب في تكلفة السيارة قبل اعتمادها.',
     postSaleWarning: 'سيُحمَّل هذا البند على تكلفة المبيعات لأن البيع تم الاعتراف به.',
+    postSaleNoPermission: 'لا تملك صلاحية ترحيل التكاليف بعد البيع، لذا سيرفض النظام حفظ هذا البند.',
     submit: 'حفظ التكلفة',
   },
   payNow: {
@@ -120,6 +126,8 @@ const ar = {
   approve: {
     title: 'اعتماد التكلفة',
     message: 'سيُرحَّل قيد يومية: من حـ/ المخزون إلى حـ/ الموردين بمبلغ {{amount}}.',
+    messagePostSale:
+      'تم الاعتراف ببيع السيارة، لذا سيُرحَّل قيد: من حـ/ تكلفة المبيعات إلى حـ/ الموردين بمبلغ {{amount}}.',
     note: 'ملاحظة (اختياري)',
     confirm: 'اعتماد وترحيل',
   },
@@ -129,7 +137,8 @@ const ar = {
   },
   reverse: {
     title: 'عكس قيد التكلفة',
-    message: 'سيُنشأ قيد عكسي بنفس المبلغ ({{amount}}) ويبقى القيد الأصلي في السجل. لا يمكن التراجع عن العكس.',
+    message:
+      'سيُنشأ قيد عكسي بنفس المبلغ ({{amount}}) ويبقى القيد الأصلي في السجل. لا يمكن التراجع عن العكس.',
   },
   success: {
     created: 'تم تسجيل التكلفة وترحيلها',
@@ -175,7 +184,8 @@ const ar = {
     subtitle: 'وزّع فاتورة واحدة (مثل نقل أو تخليص عدة سيارات) على السيارات بدقة حتى آخر وحدة نقدية',
     vehicles: 'السيارات',
     vehiclesHint: 'اختر من سيارتين إلى 100 سيارة',
-    selectedCount: '{{count}} سيارة مختارة',
+    addVehicle: 'إضافة سيارة',
+    selectedCount: 'المختارة: {{count}}',
     clearAll: 'إزالة الكل',
     remove: 'إزالة',
     noneSelected: 'لم تُختر سيارات بعد',
@@ -192,6 +202,9 @@ const ar = {
       manual: 'تُدخل حصة كل سيارة يدويًا، ويجب أن يساوي مجموعها إجمالي الفاتورة تمامًا.',
     },
     invoice: 'بيانات الفاتورة',
+    descriptionPlaceholder: 'مثال: شحن 3 سيارات من ميناء جدة',
+    willPost: 'ستُرحَّل الحصص مباشرة على تكلفة كل سيارة لأن لديك صلاحية الاعتماد.',
+    willPend: 'ستُرسل الحصص للاعتماد ولن تُحتسب في تكلفة السيارات قبل اعتمادها.',
     total: 'إجمالي الفاتورة',
     preview: 'معاينة التوزيع',
     previewHint: 'معاينة محسوبة بنفس قواعد الخادم؛ القيم النهائية يحددها الخادم عند الحفظ.',
@@ -203,6 +216,7 @@ const ar = {
     manualSum: 'مجموع الحصص',
     difference: 'الفرق عن الإجمالي',
     balanced: 'المجموع مطابق للإجمالي',
+    mismatch: 'مجموع الحصص لا يساوي إجمالي الفاتورة',
     zeroSkipped: 'الحصص الصفرية لا تُسجَّل كبنود تكلفة',
     noPurchasePrices: 'لا توجد أسعار شراء مرحّلة لأي من السيارات المختارة؛ اختر طريقة أخرى.',
     weightsNeedPermission: 'تتطلب معاينة التوزيع حسب سعر الشراء صلاحية عرض التكاليف.',
@@ -213,7 +227,7 @@ const ar = {
     submit: 'توزيع وترحيل',
     result: {
       title: 'تم التوزيع',
-      summary: 'سُجِّل {{count}} بند تكلفة',
+      summary: 'بنود التكلفة المسجّلة: {{count}}',
       posted: 'مرحّلة',
       pending: 'بانتظار الاعتماد',
       again: 'توزيع جديد',
@@ -252,10 +266,12 @@ const en: CostsMessages = {
     noPrice: 'This vehicle has no asking price yet. Set a price to see the expected profit.',
     note: 'Estimate based on costs posted so far and the current tax settings',
   },
-  costLocked: 'The sale of this vehicle has been recognised. New costs are charged to cost of sales and need the post-after-sale permission.',
+  costLocked:
+    'The sale of this vehicle has been recognised. New costs are charged to cost of sales and need the post-after-sale permission.',
   vehicleRemoved: 'This vehicle was removed from stock; new costs cannot be added.',
   items: {
     title: 'Cost items',
+    count: 'Items: {{count}}',
     empty: 'No cost items for this vehicle',
     emptyHint: 'Purchase price, repairs, transport and any other capitalised costs appear here.',
     date: 'Date',
@@ -267,6 +283,9 @@ const en: CostsMessages = {
     status: 'Status',
     paid: 'Paid',
     outstanding: 'Outstanding',
+    payment: 'Payment',
+    paidValue: 'Paid {{amount}}',
+    outstandingValue: 'Due {{amount}}',
     paidViaAcquisition: 'Settled through the acquisition',
     rate: 'Rate {{rate}}',
     createdBy: 'Created by {{name}}',
@@ -320,6 +339,8 @@ const en: CostsMessages = {
     willPost: 'The cost will be posted to inventory immediately because you can approve costs.',
     willPend: 'The cost will be sent for approval and is not part of the vehicle cost until approved.',
     postSaleWarning: 'This item will be charged to cost of sales because the sale has been recognised.',
+    postSaleNoPermission:
+      'You cannot post costs after the sale, so the system will refuse to save this item.',
     submit: 'Save cost',
   },
   payNow: {
@@ -331,7 +352,8 @@ const en: CostsMessages = {
     reference: 'Reference',
     referencePlaceholder: 'Receipt or transfer number',
     noAccounts: 'No active cash or bank accounts in the base currency',
-    needsApproval: 'Immediate payment is only available for costs that post directly (requires the approve permission).',
+    needsApproval:
+      'Immediate payment is only available for costs that post directly (requires the approve permission).',
     noPermission: 'You cannot pay suppliers; the cost will stay payable.',
   },
   methods: {
@@ -346,6 +368,8 @@ const en: CostsMessages = {
   approve: {
     title: 'Approve cost',
     message: 'A journal entry will be posted: Dr Inventory / Cr Payables for {{amount}}.',
+    messagePostSale:
+      'The sale was recognised, so the entry is Dr Cost of sales / Cr Payables for {{amount}}.',
     note: 'Note (optional)',
     confirm: 'Approve and post',
   },
@@ -355,7 +379,8 @@ const en: CostsMessages = {
   },
   reverse: {
     title: 'Reverse cost entry',
-    message: 'A mirrored entry for the same amount ({{amount}}) will be posted and the original stays on record. This cannot be undone.',
+    message:
+      'A mirrored entry for the same amount ({{amount}}) will be posted and the original stays on record. This cannot be undone.',
   },
   success: {
     created: 'Cost recorded and posted',
@@ -398,10 +423,12 @@ const en: CostsMessages = {
   allocation: {
     navLabel: 'Shared cost allocation',
     title: 'Allocate a shared cost',
-    subtitle: 'Split one invoice (e.g. transport or clearance of several cars) across vehicles, exact to the last minor unit',
+    subtitle:
+      'Split one invoice (e.g. transport or clearance of several cars) across vehicles, exact to the last minor unit',
     vehicles: 'Vehicles',
     vehiclesHint: 'Choose between 2 and 100 vehicles',
-    selectedCount: '{{count}} vehicles selected',
+    addVehicle: 'Add a vehicle',
+    selectedCount: 'Selected: {{count}}',
     clearAll: 'Remove all',
     remove: 'Remove',
     noneSelected: 'No vehicles selected yet',
@@ -418,9 +445,13 @@ const en: CostsMessages = {
       manual: 'Enter each share yourself; the shares must add up to the invoice total exactly.',
     },
     invoice: 'Invoice details',
+    descriptionPlaceholder: 'e.g. Shipping 3 cars from Jeddah port',
+    willPost: 'The shares will be posted to each vehicle immediately because you can approve costs.',
+    willPend: 'The shares will be sent for approval and are not part of the vehicle costs until approved.',
     total: 'Invoice total',
     preview: 'Allocation preview',
-    previewHint: 'Calculated with the same rules as the server; the server decides the final figures on save.',
+    previewHint:
+      'Calculated with the same rules as the server; the server decides the final figures on save.',
     vehicle: 'Vehicle',
     weight: 'Purchase price (weight)',
     share: 'Share',
@@ -429,6 +460,7 @@ const en: CostsMessages = {
     manualSum: 'Sum of shares',
     difference: 'Difference from total',
     balanced: 'Shares match the total',
+    mismatch: 'The shares do not add up to the invoice total',
     zeroSkipped: 'Zero shares are not recorded as cost items',
     noPurchasePrices: 'None of the selected vehicles has a posted purchase price; choose another method.',
     weightsNeedPermission: 'Previewing a split by purchase price requires the view-costs permission.',
@@ -439,7 +471,7 @@ const en: CostsMessages = {
     submit: 'Allocate and post',
     result: {
       title: 'Allocation done',
-      summary: '{{count}} cost items recorded',
+      summary: 'Cost items recorded: {{count}}',
       posted: 'Posted',
       pending: 'Awaiting approval',
       again: 'New allocation',

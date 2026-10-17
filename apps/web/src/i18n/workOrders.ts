@@ -16,6 +16,7 @@ const ar = {
   unassigned: 'غير مُسند',
   supplier: 'المورد / الورشة',
   noSupplier: 'بدون مورد',
+  supplierHint: 'المورد أو الورشة المنفذة؛ تُحمَّل عليه البنود التي لا يُحدَّد لها مورد',
   estimate: 'التكلفة التقديرية',
   itemsTotal: 'إجمالي البنود',
   postedTotal: 'المرحّل',
@@ -25,7 +26,7 @@ const ar = {
   approvedBy: 'اعتمده',
   approvedAt: 'تاريخ الاعتماد',
   cancelReason: 'سبب الإلغاء',
-  itemCount: '{{count}} بند',
+  itemCount: 'عدد البنود: {{count}}',
   types: {
     inspection: 'فحص',
     repair: 'إصلاح',
@@ -83,6 +84,7 @@ const ar = {
     quantity: 'الكمية',
     unitCost: 'سعر الوحدة',
     hours: 'الساعات',
+    hoursValue: '{{hours}} ساعة عمل',
     total: 'الإجمالي',
     totalPreview: 'الإجمالي = الكمية × سعر الوحدة: {{total}}',
     cost: 'قيد التكلفة',
@@ -99,6 +101,7 @@ const ar = {
   },
   totals: {
     items: 'إجمالي البنود',
+    title: 'الملخص المالي',
     posted: 'المرحّل كتكلفة',
     paid: 'المدفوع',
     outstanding: 'المتبقي للموردين',
@@ -123,7 +126,8 @@ const ar = {
   },
   approve: {
     title: 'اعتماد أمر العمل',
-    message: 'كل بند قيمته أكبر من صفر يتحول إلى تكلفة مرحّلة على السيارة بإجمالي {{amount}} (من حـ/ المخزون إلى حـ/ الموردين).',
+    message:
+      'كل بند قيمته أكبر من صفر يتحول إلى تكلفة مرحّلة على السيارة بإجمالي {{amount}} (من حـ/ المخزون إلى حـ/ الموردين).',
     note: 'ملاحظة (اختياري)',
     payNow: 'سداد البنود المباشرة (دون مورد) فورًا',
     payNowHint: 'بنود الموردين تبقى مستحقة الدفع وتُسدَّد من شاشة سداد الموردين',
@@ -145,6 +149,7 @@ const ar = {
   },
   assigneeNoPermission: 'تحتاج صلاحية عرض المستخدمين لاختيار المسؤول',
   vehicleClosed: 'لا يمكن فتح أوامر عمل لسيارة مُسلَّمة أو مستبعدة',
+  noItemsHint: 'أضف بندًا واحدًا على الأقل قبل إنهاء أمر العمل وإرساله للاعتماد',
   success: {
     created: 'تم إنشاء أمر العمل',
     updated: 'تم تحديث أمر العمل',
@@ -178,6 +183,7 @@ const en: WorkOrdersMessages = {
   unassigned: 'Unassigned',
   supplier: 'Supplier / workshop',
   noSupplier: 'No supplier',
+  supplierHint: 'The supplier or workshop doing the job; items without their own supplier are charged to it',
   estimate: 'Estimated cost',
   itemsTotal: 'Items total',
   postedTotal: 'Posted',
@@ -187,7 +193,7 @@ const en: WorkOrdersMessages = {
   approvedBy: 'Approved by',
   approvedAt: 'Approved at',
   cancelReason: 'Cancellation reason',
-  itemCount: '{{count}} items',
+  itemCount: 'Items: {{count}}',
   types: {
     inspection: 'Inspection',
     repair: 'Repair',
@@ -245,6 +251,7 @@ const en: WorkOrdersMessages = {
     quantity: 'Quantity',
     unitCost: 'Unit cost',
     hours: 'Hours',
+    hoursValue: '{{hours}} labour hours',
     total: 'Total',
     totalPreview: 'Total = quantity × unit cost: {{total}}',
     cost: 'Cost entry',
@@ -256,11 +263,13 @@ const en: WorkOrdersMessages = {
     emptyHint: 'Add the parts, labour and services performed',
     lockedHint: 'Items cannot be changed once the order is submitted for approval',
     deleteTitle: 'Delete item',
-    deleteMessage: 'The item “{{name}}” will be removed from the work order. Items are editable until approval.',
+    deleteMessage:
+      'The item “{{name}}” will be removed from the work order. Items are editable until approval.',
     currencyNote: 'Amounts are in the base currency {{currency}}',
   },
   totals: {
     items: 'Items total',
+    title: 'Financial summary',
     posted: 'Posted as cost',
     paid: 'Paid',
     outstanding: 'Outstanding to suppliers',
@@ -277,7 +286,8 @@ const en: WorkOrdersMessages = {
   },
   confirm: {
     completeTitle: 'Submit work order for approval',
-    completeMessage: 'The order totalling {{amount}} will be submitted for approval; its items cannot change unless it is sent back.',
+    completeMessage:
+      'The order totalling {{amount}} will be submitted for approval; its items cannot change unless it is sent back.',
     rejectTitle: 'Reject and send back',
     rejectMessage: 'The order returns to “In progress” so its items can be corrected. Give a reason.',
     cancelTitle: 'Cancel work order',
@@ -285,7 +295,8 @@ const en: WorkOrdersMessages = {
   },
   approve: {
     title: 'Approve work order',
-    message: 'Every item above zero becomes a posted vehicle cost, {{amount}} in total (Dr Inventory / Cr Payables).',
+    message:
+      'Every item above zero becomes a posted vehicle cost, {{amount}} in total (Dr Inventory / Cr Payables).',
     note: 'Note (optional)',
     payNow: 'Pay direct items (no supplier) now',
     payNowHint: 'Supplier items stay payable and are settled from supplier payments',
@@ -307,6 +318,7 @@ const en: WorkOrdersMessages = {
   },
   assigneeNoPermission: 'You need permission to view users to choose an assignee',
   vehicleClosed: 'Work orders cannot be opened for delivered or removed vehicles',
+  noItemsHint: 'Add at least one item before completing the work order and submitting it for approval',
   success: {
     created: 'Work order created',
     updated: 'Work order updated',

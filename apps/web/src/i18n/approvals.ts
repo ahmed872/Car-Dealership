@@ -32,9 +32,11 @@ const ar = {
   empty: 'لا توجد طلبات بانتظار قرارك',
   emptyHint: 'تظهر هنا المستندات التي تحتاج اعتمادك حسب صلاحياتك وفروعك.',
   noLink: 'لا توجد صفحة لهذا النوع بعد',
+  decideOnPage: 'يُتخذ القرار من صفحة المستند',
   approveDialog: {
     title: 'اعتماد: {{type}}',
     message: 'سيتم ترحيل القيود المحاسبية الخاصة بهذا المستند فور الاعتماد.',
+    refundMessage: 'اعتماد الاسترداد يسمح بصرفه للعميل؛ يتم الصرف لاحقًا من صفحة الاسترداد.',
     note: 'ملاحظة (اختياري)',
     payNowHint: 'للسداد الفوري عند الاعتماد افتح المستند واعتمده من صفحته.',
     confirm: 'اعتماد',
@@ -86,9 +88,12 @@ const en: ApprovalsMessages = {
   empty: 'Nothing is awaiting your decision',
   emptyHint: 'Documents that need your approval appear here, by your permissions and branches.',
   noLink: 'No page for this type yet',
+  decideOnPage: 'Decided from the document page',
   approveDialog: {
     title: 'Approve: {{type}}',
     message: 'The accounting entries for this document are posted as soon as it is approved.',
+    refundMessage:
+      'Approving the refund allows it to be paid to the customer; payment is made later from the refund page.',
     note: 'Note (optional)',
     payNowHint: 'To pay immediately on approval, open the document and approve it from its page.',
     confirm: 'Approve',
