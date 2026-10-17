@@ -41,8 +41,14 @@ jobs:
       - run: pnpm --filter @autohub/shared build
       - run: pnpm typecheck
       - run: pnpm --filter @autohub/shared test
+      # Sale documents and report exports render PDFs with Chromium (the same revision the API's
+      # playwright-core pins); the tests assert real PDFs, so CI needs the browser.
+      - name: Install Chromium for PDF rendering
+        run: |
+          pnpm --filter @autohub/api exec playwright-core install --with-deps chromium
+          chrome="$(find "$HOME/.cache/ms-playwright" -path '*/chromium-*/chrome-linux*/chrome' -type f | head -n1)"
+          test -x "$chrome"
+          echo "CHROMIUM_PATH=$chrome" >> "$GITHUB_ENV"
       - name: API integration tests (real PostgreSQL)
         run: pnpm --filter @autohub/api test
-        env:
-          CHROMIUM_PATH: ''
       - run: pnpm build
