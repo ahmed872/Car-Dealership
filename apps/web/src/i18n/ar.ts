@@ -1,4 +1,19 @@
 import vehicles from './vehicles';
+import purchasing from './purchasing';
+import costs from './costs';
+import workOrders from './workOrders';
+import approvals from './approvals';
+import cash from './cash';
+import expenses from './expenses';
+import accounting from './accounting';
+import customers from './customers';
+import leads from './leads';
+import appointments from './appointments';
+import reservations from './reservations';
+import receivables from './receivables';
+import wishes from './wishes';
+import notifications from './notifications';
+import employees from './employees';
 
 const ar = {
   app: { name: 'أوتوهب برو', tagline: 'نظام إدارة معارض السيارات' },
@@ -309,6 +324,21 @@ const ar = {
   },
   markets: { EG: 'مصر', SA: 'السعودية', AE: 'الإمارات' },
   vehicles: vehicles.ar,
+  purchasing: purchasing.ar,
+  costs: costs.ar,
+  workOrders: workOrders.ar,
+  approvals: approvals.ar,
+  cash: cash.ar,
+  expenses: expenses.ar,
+  accounting: accounting.ar,
+  customers: customers.ar,
+  leads: leads.ar,
+  appointments: appointments.ar,
+  reservations: reservations.ar,
+  receivables: receivables.ar,
+  wishes: wishes.ar,
+  notifications: notifications.ar,
+  employees: employees.ar,
 };
 
 export default ar;

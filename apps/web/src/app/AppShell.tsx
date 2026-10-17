@@ -16,7 +16,10 @@ import { useTranslation } from 'react-i18next';
 import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { currentLang, setLanguage } from '@/i18n';
 import { useAuth } from '@/lib/auth';
+import { FEATURE_MODULES } from '@/features/modules';
 import { NAV } from './nav';
+
+const HEADER_WIDGETS = FEATURE_MODULES.flatMap((m) => m.headerWidgets ?? []);
 
 function useTheme(): [boolean, () => void] {
   const [dark, setDark] = useState(() => document.documentElement.classList.contains('dark'));
@@ -215,6 +218,9 @@ function Topbar({ onMenu }: { onMenu: () => void }) {
         <Menu className="h-5 w-5" />
       </button>
       <div id="topbar-slot" className="min-w-0 flex-1" />
+      {HEADER_WIDGETS.map((W, i) => (
+        <W key={i} />
+      ))}
       <button
         type="button"
         onClick={() => setLanguage(lang === 'ar' ? 'en' : 'ar')}

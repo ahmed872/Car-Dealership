@@ -4,6 +4,7 @@ import { StockCountDetailPage, StockCountsPage, TransfersPage } from '@/features
 import { VehicleDetailPage } from '@/features/vehicles/VehicleDetailPage';
 import { VehicleFormPage } from '@/features/vehicles/VehicleFormPage';
 import { VehiclesListPage } from '@/features/vehicles/VehiclesListPage';
+import { FEATURE_MODULES } from '@/features/modules';
 import { Guard } from './Guard';
 
 /** Domain module routes, registered as each phase is delivered. */
@@ -17,6 +18,7 @@ export const featureRoutes: { app: RouteObject[]; public: RouteObject[] } = {
     { path: 'inventory/transfers', element: <Guard anyOf={['vehicles.read']}><TransfersPage /></Guard> },
     { path: 'inventory/stock-counts', element: <Guard anyOf={['inventory.count']}><StockCountsPage /></Guard> },
     { path: 'inventory/stock-counts/:id', element: <Guard anyOf={['inventory.count']}><StockCountDetailPage /></Guard> },
+    ...FEATURE_MODULES.flatMap((m) => m.routes ?? []),
   ],
   public: [],
 };

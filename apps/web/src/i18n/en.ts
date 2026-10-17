@@ -1,5 +1,20 @@
 import type { Messages } from './ar';
 import vehicles from './vehicles';
+import purchasing from './purchasing';
+import costs from './costs';
+import workOrders from './workOrders';
+import approvals from './approvals';
+import cash from './cash';
+import expenses from './expenses';
+import accounting from './accounting';
+import customers from './customers';
+import leads from './leads';
+import appointments from './appointments';
+import reservations from './reservations';
+import receivables from './receivables';
+import wishes from './wishes';
+import notifications from './notifications';
+import employees from './employees';
 
 const en: Messages = {
   app: { name: 'AutoHub Pro', tagline: 'Car dealership management' },
@@ -310,6 +325,21 @@ const en: Messages = {
   },
   markets: { EG: 'Egypt', SA: 'Saudi Arabia', AE: 'United Arab Emirates' },
   vehicles: vehicles.en,
+  purchasing: purchasing.en,
+  costs: costs.en,
+  workOrders: workOrders.en,
+  approvals: approvals.en,
+  cash: cash.en,
+  expenses: expenses.en,
+  accounting: accounting.en,
+  customers: customers.en,
+  leads: leads.en,
+  appointments: appointments.en,
+  reservations: reservations.en,
+  receivables: receivables.en,
+  wishes: wishes.en,
+  notifications: notifications.en,
+  employees: employees.en,
 };
 
 export default en;

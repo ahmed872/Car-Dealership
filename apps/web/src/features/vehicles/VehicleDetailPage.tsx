@@ -8,6 +8,7 @@ import { Card, CardBody, CardHeader, DescriptionList } from '@/components/ui/Car
 import { Alert, ErrorState, PageLoader } from '@/components/ui/Feedback';
 import { Field, Input, MoneyInput, Select, Textarea } from '@/components/ui/Field';
 import { PageHeader, Tabs } from '@/components/ui/Layout';
+import { FEATURE_MODULES } from '@/features/modules';
 import { Modal } from '@/components/ui/Modal';
 import { fmtDate, fmtDateTime, fmtMoney, fmtNumber } from '@/lib/format';
 import { Can, useAuth } from '@/lib/auth';
@@ -18,7 +19,7 @@ import { useStatusLabel, VehiclePhoto, VehicleStatusBadge, vehicleTitle } from '
 import { DocumentsTab, MediaTab } from './MediaDocsTabs';
 import { InspectionsTab } from './InspectionsTab';
 
-type TabKey = 'overview' | 'media' | 'documents' | 'inspections' | 'pricing' | 'history';
+type TabKey = 'overview' | 'media' | 'documents' | 'inspections' | 'pricing' | 'history' | `x:${string}`;
 
 function StatusModal({ d, onClose }: { d: VehicleDetail; onClose: () => void }) {
   const { t } = useTranslation();
@@ -371,9 +372,11 @@ export function VehicleDetailPage() {
   const { id } = useParams();
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
-  const { can, currency } = useAuth();
+  const { can, canAny, currency } = useAuth();
   const q = useVehicle(id);
   const [tab, setTab] = useState<TabKey>('overview');
+  // Tabs contributed by other features (costs, work orders, reservations, …), filtered by permission.
+  const extraTabs = FEATURE_MODULES.flatMap((m) => m.vehicleTabs ?? []).filter((x) => !x.anyOf || canAny(...x.anyOf));
   const [modal, setModal] = useState<'status' | 'pricing' | 'transfer' | 'odometer' | null>(null);
   const startInspection = useApiMutation<Record<string, unknown>, { id: string }>({
     path: `/vehicles/${id}/inspections`,
@@ -500,6 +503,7 @@ export function VehicleDetailPage() {
             { key: 'inspections', label: t('vehicles.tabs.inspections'), count: d.inspections.length },
             { key: 'pricing', label: t('vehicles.tabs.pricing') },
             { key: 'history', label: t('vehicles.tabs.history') },
+            ...extraTabs.map((x) => ({ key: `x:${x.key}` as TabKey, label: t(x.labelKey) })),
           ]}
         />
       </div>
@@ -509,6 +513,7 @@ export function VehicleDetailPage() {
       {tab === 'inspections' && <InspectionsTab d={d} />}
       {tab === 'pricing' && <PricingTab d={d} />}
       {tab === 'history' && <HistoryTab d={d} />}
+      {extraTabs.map((x) => (tab === `x:${x.key}` ? <x.component key={x.key} d={d} /> : null))}
 
       {modal === 'status' && <StatusModal d={d} onClose={() => setModal(null)} />}
       {modal === 'pricing' && <PricingModal d={d} onClose={() => setModal(null)} />}
