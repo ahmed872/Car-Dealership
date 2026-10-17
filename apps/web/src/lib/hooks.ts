@@ -69,8 +69,11 @@ export function useListParams(defaults: Record<string, string> = {}) {
   const set = useCallback(
     (updates: Record<string, string | number | null | undefined>, resetPage = true) => {
       setParams(
-        (prev) => {
-          const next = new URLSearchParams(prev);
+        () => {
+          // Start from the live URL, not the router's params: React Router applies search changes
+          // in a transition, so two quick edits would otherwise build on the same stale params and
+          // the second would undo the first.
+          const next = new URLSearchParams(window.location.search);
           for (const [k, v] of Object.entries(updates)) {
             if (v === null || v === undefined || v === '') next.delete(k);
             else next.set(k, String(v));
