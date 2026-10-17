@@ -14,6 +14,10 @@ import { receivablesModule } from './receivables/module';
 import { wishesModule } from './wishes/module';
 import { notificationsModule } from './notifications/module';
 import { employeesModule } from './employees/module';
+import { salesModule } from './sales/module';
+import { installmentsModule } from './installments/module';
+import { commissionsModule } from './commissions/module';
+import { cashClosingModule } from './cashClosing/module';
 
 /** Every feature module, in sidebar order within each group. */
 export const FEATURE_MODULES: FeatureModule[] = [
@@ -32,4 +36,8 @@ export const FEATURE_MODULES: FeatureModule[] = [
   wishesModule,
   notificationsModule,
   employeesModule,
+  salesModule,
+  installmentsModule,
+  commissionsModule,
+  cashClosingModule,
 ];

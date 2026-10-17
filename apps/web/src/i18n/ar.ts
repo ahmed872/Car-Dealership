@@ -14,6 +14,10 @@ import receivables from './receivables';
 import wishes from './wishes';
 import notifications from './notifications';
 import employees from './employees';
+import sales from './sales';
+import installments from './installments';
+import commissions from './commissions';
+import cashClosing from './cashClosing';
 
 const ar = {
   app: { name: 'أوتوهب برو', tagline: 'نظام إدارة معارض السيارات' },
@@ -339,6 +343,10 @@ const ar = {
   wishes: wishes.ar,
   notifications: notifications.ar,
   employees: employees.ar,
+  sales: sales.ar,
+  installments: installments.ar,
+  commissions: commissions.ar,
+  cashClosing: cashClosing.ar,
 };
 
 export default ar;
