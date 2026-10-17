@@ -83,7 +83,12 @@ export const zAcquisitionListQuery = zPaginationQuery.extend({
 export const zOwnershipTransfer = z.object({ status: z.enum(OWNERSHIP_TRANSFER_STATUSES) });
 export const zDecisionNote = z.object({ note: zOptText(500) });
 /** Approving a purchase can settle it immediately from a base-currency cash/bank account. */
-export const zAcquisitionApprove = z.object({ note: zOptText(500), payNow: zPayNow.optional().nullable() });
+export const zAcquisitionApprove = z.object({
+  note: zOptText(500),
+  payNow: zPayNow.optional().nullable(),
+  /** The version the approver reviewed; a purchase changed since then is refused (409 version_conflict). */
+  version: z.number().int().min(1).optional(),
+});
 export type AcquisitionApproveInput = z.infer<typeof zAcquisitionApprove>;
 export type AcquisitionUpdateInput = z.infer<typeof zAcquisitionUpdate>;
 export type AcquisitionListQuery = z.infer<typeof zAcquisitionListQuery>;

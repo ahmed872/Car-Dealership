@@ -194,7 +194,7 @@ export class SessionService {
         branchIds: branchRows.map((b) => b.branchId),
         maxDiscountPct: m.maxDiscountPct,
       };
-    });
+    }, { write: false });
   }
 
   /** Tenants the user can switch to (active memberships of active tenants). */

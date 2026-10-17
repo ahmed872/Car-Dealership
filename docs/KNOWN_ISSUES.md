@@ -23,3 +23,6 @@ Severity: P0 (blocker) · P1 (high) · P2 (medium) · P3 (low).
 | KI-002 | P2 | Unrealized FX (period-end revaluation of open foreign balances) is not implemented; only realized FX is posted (D-019). | Phase 6/8 reporting enhancement. |
 | KI-003 | P2 | Supplier advances (payments not tied to a document) are not supported (D-016). | Future enhancement. |
 | KI-004 | P3 | Allocation remainder cents go to the largest fractions (ties to the first row), not "the last vehicle". FINANCIAL_POLICIES wording corrected. | Done (documentation). |
+| KI-005 | P3 | Work orders have no version column. An approver holding a stale screen could approve a work order that was rejected, edited and completed again since they opened it. Its current items are what get posted, and the approver is still not a maker. | Add a version to work orders, and check it on approve, as for acquisitions (Phase 8). |
+| KI-006 | P2 | Writes of one company are serialised (D-025). This is fine at dealership volumes; a very large multi-branch group could see queueing at peak. | Monitor lock wait time (Phase 8 observability); split the lock by branch if ever needed. |
+

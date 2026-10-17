@@ -131,6 +131,22 @@ strictly after the previous version's start, and the previous version ends the d
 Version changes of one policy are serialised by an advisory lock. Earned commissions (Phase 5)
 will store the version id and a snapshot of the rule.
 
+### D-025 One writer per company at a time
+Every write transaction of a company takes a per-company advisory lock (`pg_advisory_xact_lock(7001,
+hashtext(tenant))`) as its first lock. Reads never take it. Before this, writes already funnelled
+through company-wide rows (the audit hash-chain head, the journal and document counters), but they
+locked them mid-flow and in different orders. The concurrency review reproduced deadlocks between
+pay-now flows, supplier payments, transfers and cost allocations. Locking first, in one order,
+makes deadlocks between a company's writes impossible; concurrent requests wait instead of failing.
+The cost is no write parallelism inside one company, which is acceptable at dealership volumes.
+Commit-time journal numbering was tried and rejected: it does not cover the audit chain, and two
+commit-time locks would need their own ordering.
+
+### D-026 Accounts-payable data is purchasing data
+Open payables, AP aging, supplier balances and supplier payments show purchase prices, so they need
+`suppliers.read` + `payments.read` (or `supplier_payments.create` for the payment form). The sales
+side's `payments.read` alone is not enough.
+
 ## Business assumptions
 
 ### B-001 Revenue recognition default = on delivery **[PO-CONFIRM]**

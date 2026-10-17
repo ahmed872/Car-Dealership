@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { asc, eq, sql } from 'drizzle-orm';
 import { CurrencyCode, d, money, todayInZone } from '@autohub/shared';
 import { assertBranchAccess, assertPermission, TenantContext } from '../../common/context';
-import { conflict, notFound, registerUniqueConstraint } from '../../common/errors';
+import { conflict, forbidden, notFound, registerUniqueConstraint } from '../../common/errors';
 import { DbService } from '../../db/db.service';
 import { branches, cashAccounts } from '../../db/schema';
 import { AuditService, diff } from '../audit/audit.service';
@@ -76,7 +76,13 @@ export class CashAccountsService {
     return { ...a.account, balance: a.balance, balanceBase: a.balanceBase };
   }
 
+  /** Company-level accounts (no branch) are shared by every branch: only all-branch users manage them. */
+  private assertCompanyLevelAllowed(ctx: TenantContext): void {
+    if (!ctx.allBranches) throw forbidden('Company-level accounts can only be managed by users with access to all branches');
+  }
+
   async create(ctx: TenantContext, input: CashAccountCreate) {
+    if (!input.branchId) this.assertCompanyLevelAllowed(ctx);
     if (input.branchId) {
       assertBranchAccess(ctx, input.branchId);
       const [b] = await this.dbs.db.select({ id: branches.id }).from(branches).where(eq(branches.id, input.branchId));
@@ -113,6 +119,10 @@ export class CashAccountsService {
 
   async update(ctx: TenantContext, id: string, input: { name?: string; branchId?: string | null; bankName?: string | null; accountNumber?: string | null; iban?: string | null; isActive?: boolean }) {
     const before = await this.cash.lockAccount(ctx, id);
+    // A branch user could otherwise move a shared account into their branch or change its IBAN.
+    if (before.branchId === null || input.branchId === null) this.assertCompanyLevelAllowed(ctx);
+    // Unknown and server-owned keys were stripped by the schema; nothing left means nothing to do.
+    if (!Object.values(input).some((v) => v !== undefined)) return this.get(ctx, id);
     if (input.branchId) {
       assertBranchAccess(ctx, input.branchId);
       // RLS-scoped lookup: a foreign-key check alone would accept another company's branch id.

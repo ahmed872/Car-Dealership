@@ -415,7 +415,7 @@ describe('supplier payments', () => {
       expect((await owner.get(`/supplier-payments/${p.body.id}`)).body.status).toBe('posted');
       expect(await cashRows(p.body.id)).toHaveLength(1);
 
-      const reader = (await addMemberWithPermissions(app, t, ['payments.read'])).client;
+      const reader = (await addMemberWithPermissions(app, t, ['suppliers.read', 'payments.read'])).client;
       expect((await reader.get(`/supplier-payments/${p.body.id}`)).status).toBe(200);
       expect((await pay(reader, payBody([alloc('acquisition', acq.id, '1.00')]))).status).toBe(403);
       expect((await voidPayment(reader, p.body.id)).status).toBe(403);

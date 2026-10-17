@@ -1,28 +1,36 @@
 # Execution Status
 
-**Current phase:** Phase 3 — Acquisitions & Cost Engine (backend integrated and green; verification + web in progress)
-**Last completed task:**
-- Phase 3 review fixes (realized FX, date-safe cash, maker-checker on edits, tenant-safe references).
-- 16 API test files, 174 tests passing. Pushed.
+**Current phase:** Phase 4 backend complete and merged; Phase 3 + 4 web pages outstanding, then Phase 5.
+**Last completed task (2026-10-17):**
+- Phase 4 backend merged into the branch (customers, leads and pipeline, appointments and test
+  drives, wishes and matching, reservations, deposits and refunds, notifications, jobs, employees
+  and commission policies) and pushed.
+- Phase 3 adversarial reviews R2 (concurrency) and R3 (authorization) are done. All 13 findings
+  are fixed, and their reproducing specs (`review-concurrency.spec.ts`, `review-authz.spec.ts`)
+  now pass.
+- Full API suite: 24 files, 264 tests passing. Shared: 42 passing.
 
-**Interrupted by usage limits (resume these):**
-- Phase 3 reviews R2 (concurrency) and R3 (authz) still need to run.
-- Phase 3 web pages need building (W1–W4 produced nothing).
-- Phase 4 module agents left partial files in the `phase4-wip` worktree: customers and leads services.
+**Interrupted by usage limits:**
+- The Phase 3 web agents W1–W4 and the web integrator died at the session limit.
+- W1 left partial files: `apps/web/src/features/purchasing/` and the `i18n/{approvals,costs,workOrders}.ts`
+  files. They are untracked and unverified; review or finish them before committing.
 
-**Exact next task:**
-1. Run the R2 and R3 reviews. Use a lean setup: 2 agents, and fix the findings myself.
-2. Build the Phase 3 web pages, using fewer and larger agents.
-3. Rebase `phase4-wip` onto main and renumber its migrations to 0007/0008, because main now has 0006.
-4. Finish the Phase 4 modules, then build Phase 4 web.
+**Exact next tasks:**
+1. Phase 3 web: purchasing (acquisitions, suppliers, payables, supplier payments), costs and work
+   orders, approvals inbox, cash and expenses, ledger reports. Keep the agents few and large; check
+   in the browser (AR and EN).
+2. Phase 4 web: customers, leads board, calendar and test drives, reservations and deposits,
+   refunds, wishes, notifications, employees and commission policies.
+3. Phase 5: sales, contracts, invoices, sale payments, installments, delivery, returns, earned
+   commissions, daily cash closing.
 
 | Phase | Status |
 |---|---|
 | 0 Discovery & Architecture | Complete |
 | 1 Foundation | Complete |
 | 2 Vehicles & Inventory | Complete |
-| 3 Acquisitions & Cost Engine | Backend complete & tested; web + adversarial review in progress |
-| 4 CRM & Operations | Not started |
+| 3 Acquisitions & Cost Engine | Backend complete; 3 adversarial reviews fixed; web pages outstanding |
+| 4 CRM & Operations | Backend complete & tested (merged); web pages outstanding |
 | 5 Sales & Financial | Not started |
 | 6 Dashboard & Reports | Not started |
 | 7 Showroom & Integrations | Not started |
@@ -85,6 +93,51 @@
   - the `patchOf()` helper replaces zod `.partial()`, which wiped the VIN, reset `isSensitive`
     and reactivated branches on PATCH;
   - document numbers use the tenant's timezone year.
+
+## Phase 4 — delivered (backend)
+- Migrations 0007/0008:
+  - 15 CRM tables, all with RLS;
+  - append-only stage history and receipt allocations;
+  - receipt and refund amount guards;
+  - a btree_gist exclusion constraint that blocks double-booked test drives;
+  - the default 8-stage pipeline;
+  - the system user for scheduled jobs.
+- Finance: ReceiptsService (customer money goes to 2100 through CashService; void is refused once
+  the money was used) and RefundsService (request → approve by another user → pay).
+- Reservations: the vehicle is locked; deposits are receipts. Cancel per policy forfeits to 4200
+  with a reason. Expiry releases the vehicle and keeps the deposit as customer credit (B-021).
+  Jobs send reminders and handle expiry.
+- Customers:
+  - phone normalisation including Arabic digits;
+  - national ID encrypted plus a keyed hash, revealed only with permission and audited;
+  - duplicate rules (B-023) and rep visibility;
+  - 360 view and interaction timeline.
+- Leads: LD numbering, a configurable pipeline (copy-on-write defaults, D-021), board,
+  follow-ups, an exactly-once reminder job, won/lost/reopen, and assignment by managers.
+- Appointments: a shared calendar with private details (D-022), staff and vehicle clash checks,
+  test-drive start/finish with licence and odometer checks, timeline entries, reminders.
+- Wishes: a pure shared matcher (D-023), a matching job, exactly-once notifications, explain,
+  dismiss and for-vehicle.
+- Employees and versioned commission policies, never retroactive (D-024); preview uses the shared
+  calculator.
+- Jobs: advisory-locked per-tenant runner; Notifications: deduplicated inbox.
+
+## Phase 3 review round 2 — fixed (2026-10-17)
+- **Concurrency (D-025).** Write transactions of a company now take one advisory lock first. This
+  removes the deadlocks between pay-now flows, supplier payments, transfers, allocations and
+  opposite-order payments. Acquisition approve takes the reviewed `version` (409 when the
+  purchase changed).
+- **Authorization.**
+  - Accounts-payable reads need `suppliers.read` + `payments.read`, so sales roles no longer see
+    purchase prices or AP aging.
+  - Voids check the branch of each document.
+  - Only all-branch users manage company-level cash accounts. An empty PATCH is a no-op, not a 500.
+  - Supplier identity (national ID, tax number) is hidden without `suppliers.read`.
+- **Maker-checker.**
+  - One maker rule, from the audit trail, covers acquisitions and work orders (item editors are
+    makers).
+  - The inbox `canDecide` uses that same rule.
+  - Vehicle-bound requests follow the vehicle's current branch.
 
 ## Local environment notes (for resumption)
 - PostgreSQL 16 local cluster: `service postgresql start`.

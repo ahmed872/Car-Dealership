@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { and, desc, eq, inArray, isNull, or, sql } from 'drizzle-orm';
+import { and, desc, eq, inArray, sql } from 'drizzle-orm';
 import { TenantContext } from '../../common/context';
 import { AppError } from '../../common/errors';
 import { DbService } from '../../db/db.service';
-import { approvalRequests, users } from '../../db/schema';
+import { approvalRequests, auditLogs, users } from '../../db/schema';
 
 export type ApprovalType =
   | 'acquisition'
@@ -14,6 +14,16 @@ export type ApprovalType =
   | 'sale_below_floor'
   | 'refund'
   | 'cash_adjustment';
+
+/**
+ * Audit actions whose actors are makers of a document (D-020): everyone who shaped what is being
+ * approved. The document's creator and the pending request's requester are makers as well.
+ */
+export const MAKER_ACTIONS: Readonly<Record<string, readonly string[]>> = {
+  acquisition: ['acquisition.created', 'acquisition.updated', 'acquisition.submitted'],
+  work_order: ['work_order.created', 'work_order.updated', 'work_order.item_added', 'work_order.item_updated', 'work_order.item_removed', 'work_order.submitted'],
+};
+const ALL_MAKER_ACTIONS = [...new Set(Object.values(MAKER_ACTIONS).flat())];
 
 /**
  * Approval inbox. Each module owns its own status machine; this service records what is waiting
@@ -79,17 +89,57 @@ export class ApprovalsService {
           eq(approvalRequests.status, 'pending'),
         ),
       );
-    const makers = new Set([...r.makers, pending?.requestedBy].filter((x): x is string => !!x));
+    const actions = MAKER_ACTIONS[r.entityType];
+    const editors = actions
+      ? await this.dbs.db
+          .selectDistinct({ actor: auditLogs.actorUserId })
+          .from(auditLogs)
+          .where(and(eq(auditLogs.entityType, r.entityType), eq(auditLogs.entityId, r.entityId), inArray(auditLogs.action, [...actions])))
+      : [];
+    const makers = new Set([...r.makers, pending?.requestedBy, ...editors.map((e) => e.actor)].filter((x): x is string => !!x));
     if (makers.has(ctx.userId)) {
       throw new AppError('self_approval_forbidden', 403, 'You cannot approve a request you created or submitted; another approver must decide it');
     }
+  }
+
+  /**
+   * The branch that decides who may approve: for vehicle-bound requests the vehicle's CURRENT
+   * branch (a pending cost follows its vehicle when it is transferred), else the stored branch.
+   * Literal outer column names: see the correlated-subquery rule in CLAUDE.md.
+   */
+  private readonly effectiveBranch = sql<string | null>`coalesce(
+    CASE approval_requests.entity_type
+      WHEN 'vehicle_cost' THEN (SELECT v.branch_id FROM vehicle_costs c JOIN vehicles v ON v.id = c.vehicle_id WHERE c.id = approval_requests.entity_id)
+      WHEN 'work_order' THEN (SELECT v.branch_id FROM work_orders w JOIN vehicles v ON v.id = w.vehicle_id WHERE w.id = approval_requests.entity_id)
+    END,
+    approval_requests.branch_id)`;
+
+  /** SQL: is the caller a maker of the request's document (so they may not decide it)? */
+  private isMaker(ctx: TenantContext) {
+    const me = ctx.userId;
+    return sql<boolean>`(
+      approval_requests.requested_by = ${me}
+      OR CASE approval_requests.entity_type
+        WHEN 'acquisition' THEN EXISTS (SELECT 1 FROM acquisitions a WHERE a.id = approval_requests.entity_id AND a.created_by = ${me})
+        WHEN 'vehicle_cost' THEN EXISTS (SELECT 1 FROM vehicle_costs c WHERE c.id = approval_requests.entity_id AND c.created_by = ${me})
+        WHEN 'expense' THEN EXISTS (SELECT 1 FROM expenses e WHERE e.id = approval_requests.entity_id AND e.created_by = ${me})
+        WHEN 'work_order' THEN EXISTS (SELECT 1 FROM work_orders w WHERE w.id = approval_requests.entity_id AND w.created_by = ${me})
+        WHEN 'refund' THEN EXISTS (SELECT 1 FROM refunds r WHERE r.id = approval_requests.entity_id AND r.requested_by = ${me})
+        ELSE false
+      END
+      OR EXISTS (SELECT 1 FROM audit_logs l
+                  WHERE l.entity_type = approval_requests.entity_type AND l.entity_id = approval_requests.entity_id::text
+                    AND l.actor_user_id = ${me} AND l.action IN (${sql.join(ALL_MAKER_ACTIONS.map((a) => sql`${a}`), sql`, `)}))
+    )`;
   }
 
   private scope(ctx: TenantContext) {
     const perms = [...ctx.permissions];
     const branchCond = ctx.allBranches
       ? undefined
-      : or(isNull(approvalRequests.branchId), inArray(approvalRequests.branchId, ctx.branchIds.length ? ctx.branchIds : ['00000000-0000-0000-0000-000000000000']));
+      : ctx.branchIds.length
+        ? sql`(${this.effectiveBranch} IS NULL OR ${this.effectiveBranch} IN (${sql.join(ctx.branchIds.map((b) => sql`${b}::uuid`), sql`, `)}))`
+        : sql`${this.effectiveBranch} IS NULL`;
     return { perms, where: and(eq(approvalRequests.status, 'pending'), inArray(approvalRequests.requiredPermission, perms.length ? perms : ['-']), branchCond) };
   }
 
@@ -120,7 +170,9 @@ export class ApprovalsService {
         requestedAt: approvalRequests.requestedAt,
         requestedBy: users.fullName,
         requestedById: approvalRequests.requestedBy,
-        branchId: approvalRequests.branchId,
+        branchId: this.effectiveBranch,
+        // Same maker rule as the decision routes, so the inbox never offers a refused decision.
+        canDecide: sql<boolean>`NOT ${this.isMaker(ctx)}`,
       })
       .from(approvalRequests)
       .leftJoin(users, eq(users.id, approvalRequests.requestedBy))

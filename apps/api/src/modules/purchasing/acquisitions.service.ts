@@ -11,10 +11,10 @@ import {
   todayInZone,
   VehicleStatus,
 } from '@autohub/shared';
-import { assertBranchAccess, assertPermission, TenantContext } from '../../common/context';
+import { assertBranchAccess, assertPermission, hasPermission, TenantContext } from '../../common/context';
 import { conflict, notFound, registerUniqueConstraint, unprocessable } from '../../common/errors';
 import { DbService } from '../../db/db.service';
-import { acquisitions, auditLogs, branches, suppliers, vehicleMakes, vehicleModels, vehicles } from '../../db/schema';
+import { acquisitions, branches, suppliers, vehicleMakes, vehicleModels, vehicles } from '../../db/schema';
 import { AuditService, diff } from '../audit/audit.service';
 import { ApprovalsService } from '../finance/approvals.service';
 import { CashService } from '../finance/cash.service';
@@ -116,20 +116,6 @@ export class AcquisitionsService {
   }
 
   /** Everyone who created, edited or submitted the purchase (from the immutable audit trail). */
-  private async makers(id: string): Promise<string[]> {
-    const rows = await this.dbs.db
-      .selectDistinct({ actor: auditLogs.actorUserId })
-      .from(auditLogs)
-      .where(
-        and(
-          eq(auditLogs.entityType, 'acquisition'),
-          eq(auditLogs.entityId, id),
-          inArray(auditLogs.action, ['acquisition.created', 'acquisition.updated', 'acquisition.submitted']),
-        ),
-      );
-    return rows.map((r) => r.actor).filter((x): x is string => !!x);
-  }
-
   async lock(id: string): Promise<AcquisitionRow> {
     const [a] = await this.dbs.db.select().from(acquisitions).where(eq(acquisitions.id, id)).for('update');
     if (!a) throw notFound('Acquisition');
@@ -193,7 +179,12 @@ export class AcquisitionsService {
     const a = await this.lock(id);
     assertBranchAccess(ctx, a.branchId);
     if (!['draft', 'pending_approval'].includes(a.status)) throw conflict('acquisition_not_pending', 'This purchase is not awaiting approval');
-    await this.approvals.assertNotSelfApproval(ctx, { type: 'acquisition', entityType: 'acquisition', entityId: a.id, makers: [a.createdBy, ...(await this.makers(a.id))] });
+    // The approver decides on what they reviewed: an edit since then (which also withdraws the
+    // approval request) makes the decision stale.
+    if (input.version !== undefined && input.version !== a.version) {
+      throw conflict('version_conflict', 'This purchase was changed after you opened it. Reload and review it again.', { currentVersion: a.version });
+    }
+    await this.approvals.assertNotSelfApproval(ctx, { type: 'acquisition', entityType: 'acquisition', entityId: a.id, makers: [a.createdBy] });
     const v = await this.vehicles.get(a.vehicleId);
     if (v.status === 'removed') throw conflict('vehicle_removed', 'The vehicle was removed from stock');
     const purchase = await this.costs.categoryByCode('purchase');
@@ -406,6 +397,12 @@ export class AcquisitionsService {
       .where(eq(vehicles.id, a.vehicleId));
     const payable = await this.payables.describe('acquisition', a.id);
     const payments = await this.payments.forTargets('acquisition', [a.id]);
-    return { ...a, supplier, vehicle, paidBase: payable.paidBase, outstandingBase: payable.outstandingBase, payments };
+    // Supplier identity (national ID, tax number) and contact details need suppliers.read; an
+    // individual seller's ID number is a private person's data.
+    const supplierOut =
+      supplier && !hasPermission(ctx, 'suppliers.read')
+        ? { id: supplier.id, name: supplier.name, type: supplier.type, isActive: supplier.isActive, nationalId: null, taxNumber: null, phone: null, email: null, address: null, notes: null }
+        : supplier;
+    return { ...a, supplier: supplierOut, vehicle, paidBase: payable.paidBase, outstandingBase: payable.outstandingBase, payments };
   }
 }

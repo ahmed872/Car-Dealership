@@ -98,3 +98,17 @@ behaviour:
 
 Not yet done: the concurrency review (R2) and the authorization review (R3). Both stopped on a
 usage limit and will be re-run.
+
+### Phase 4 backend + Phase 3 review round 2 (2026-10-17)
+| Command | Result |
+|---|---|
+| Phase 4 worktree: `npx vitest run` (apps/api, autohub_test_b) | 22 files, **211 passed** |
+| main after merge + fixes: `npx vitest run` (apps/api, autohub_test_a) | 24 files: 263 passed, 1 failed. The failure was a test whose custom role relied on the old AP permission; after updating the role, that spec passes 16/16 → **264/264** |
+| `review-concurrency.spec.ts` before fixes | 26 passed / 4 failed (3 deadlocks, 1 stale approval) |
+| `review-concurrency.spec.ts` after fixes | **30/30** |
+| `review-authz.spec.ts` before / after fixes | 14 passed, 9 failed / **23/23** |
+| `packages/shared`: `npx vitest run` | **42 passed** (adds wish matcher tests) |
+| `eslint src test`, `tsc --noEmit` (api, shared, web) | clean |
+
+Not yet verified in a browser: the Phase 3 and Phase 4 web pages, which are not built yet.
+

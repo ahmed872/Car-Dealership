@@ -82,20 +82,22 @@ export class PayablesController {
 
   /**
    * Open payable documents (outstanding > 0) for the supplier-payment form or AP review.
-   * supplierId=none lists direct purchases (no supplier). Needs supplier_payments.create OR payments.read.
+   * supplierId=none lists direct purchases (no supplier). Needs supplier_payments.create, or
+   * suppliers.read + payments.read (payables show purchase prices: never for sales-side roles).
    */
   @Get('open')
   @Authenticated()
   open(@Ctx() ctx: TenantContext, @Query() q: PayablesOpenQueryDto) {
-    if (!hasPermission(ctx, 'supplier_payments.create') && !hasPermission(ctx, 'payments.read')) {
-      throw forbidden('You do not have permission to view payables', { permission: ['supplier_payments.create', 'payments.read'] });
+    const apReader = hasPermission(ctx, 'suppliers.read') && hasPermission(ctx, 'payments.read');
+    if (!hasPermission(ctx, 'supplier_payments.create') && !apReader) {
+      throw forbidden('You do not have permission to view payables', { permission: ['supplier_payments.create', 'suppliers.read+payments.read'] });
     }
     return this.reports.open(ctx, q);
   }
 
   /** Aging per supplier as of a date, with the GL 2000 reconciliation for company-wide users. */
   @Get('summary')
-  @RequirePermissions('payments.read')
+  @RequirePermissions('suppliers.read', 'payments.read')
   summary(@Ctx() ctx: TenantContext, @Query() q: PayablesSummaryQueryDto) {
     return this.reports.summary(ctx, q.asOf);
   }

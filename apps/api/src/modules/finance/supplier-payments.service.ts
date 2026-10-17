@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { and, desc, eq, inArray, isNull, or, sql, SQL } from 'drizzle-orm';
 import { CurrencyCode, d, money, SupplierPaymentInput, sum, todayInZone } from '@autohub/shared';
 import { assertBranchAccess, assertPermission, TenantContext } from '../../common/context';
-import { conflict, notFound, unprocessable } from '../../common/errors';
+import { conflict, forbidden, notFound, unprocessable } from '../../common/errors';
 import { DbService } from '../../db/db.service';
 import { cashAccounts, supplierPaymentAllocations, supplierPayments, suppliers } from '../../db/schema';
 import { AuditService } from '../audit/audit.service';
@@ -10,7 +10,7 @@ import { ACCOUNTS } from '../ledger/chart';
 import { NumberingService } from '../numbering/numbering.service';
 import { CashService, fxLine } from './cash.service';
 import { resolveFx } from './fx';
-import { PayablesService } from './payables.service';
+import { PayablesService, PayableType } from './payables.service';
 
 /**
  * Pays suppliers (or direct cash purchases) against approved payable documents. A payment can
@@ -160,6 +160,20 @@ export class SupplierPaymentsService {
     const [p] = await this.dbs.db.select().from(supplierPayments).where(eq(supplierPayments.id, id)).for('update');
     if (!p) throw notFound('Supplier payment');
     await this.cash.lockAccount(ctx, p.cashAccountId); // branch check + serialise with other movements
+    // A company-level account passes the account check, so the documents decide: a branch-scoped
+    // user may not reopen another branch's payables (the same rule pay() applies).
+    if (!ctx.allBranches) {
+      const allocs = await this.dbs.db
+        .select({ targetType: supplierPaymentAllocations.targetType, targetId: supplierPaymentAllocations.targetId })
+        .from(supplierPaymentAllocations)
+        .where(eq(supplierPaymentAllocations.paymentId, id));
+      for (const a of allocs) {
+        const info = await this.payables.describe(a.targetType as PayableType, a.targetId);
+        if (info.branchId && !ctx.branchIds.includes(info.branchId)) {
+          throw forbidden('This payment settled documents of a branch you cannot access', { target: `${a.targetType}:${a.targetId}` });
+        }
+      }
+    }
     if (p.status !== 'posted') throw conflict('already_voided', 'This payment is already voided');
     await this.cash.reverse(ctx, { sourceType: 'supplier_payment', sourceId: id, event: 'supplier_payment.posted' }, todayInZone(ctx.tenant.settings.timezone), reason);
     const [after] = await this.dbs.db

@@ -12,6 +12,9 @@ types.setTypeParser(types.builtins.DATE, (v) => v);
 
 export type Database = NodePgDatabase<typeof schema>;
 
+/** Advisory-lock class id for the per-company write lock (two-key form; other code uses one-key locks). */
+export const TENANT_WRITE_LOCK_CLASS = 7001;
+
 export interface TxContext {
   tenantId: string | null;
   userId: string | null;
@@ -107,8 +110,14 @@ export class DbService implements OnModuleDestroy {
   /**
    * Runs `fn` inside one transaction with transaction-local tenant/user context.
    * Joins the enclosing transaction when already inside one with the same context.
+   *
+   * Write transactions of a company are serialised (D-025): the FIRST lock a write transaction
+   * takes is a per-company advisory lock. Every write already funnels through company-wide rows
+   * (the audit hash-chain head, the journal and document counters) that were locked mid-flow, in
+   * different orders by different flows, which deadlocked; with this lock taken first, two writes
+   * of one company never hold locks the other is waiting for. Reads (`write: false`) never block.
    */
-  async runInTenant<T>(ctx: TxContext, fn: () => Promise<T>): Promise<T> {
+  async runInTenant<T>(ctx: TxContext, fn: () => Promise<T>, opts: { write?: boolean } = {}): Promise<T> {
     const existing = this.als.getStore();
     if (existing) {
       if (existing.ctx.tenantId !== ctx.tenantId || existing.ctx.userId !== ctx.userId) {
@@ -125,6 +134,9 @@ export class DbService implements OnModuleDestroy {
         `SELECT set_config('app.tenant_id', $1, true), set_config('app.user_id', $2, true)`,
         [ctx.tenantId ?? '', ctx.userId ?? ''],
       );
+      if (ctx.tenantId && opts.write !== false) {
+        await client.query(`SELECT pg_advisory_xact_lock(${TENANT_WRITE_LOCK_CLASS}, hashtext($1))`, [ctx.tenantId]);
+      }
       const result = await this.als.run(store, fn);
       await client.query('COMMIT');
       committed = true;

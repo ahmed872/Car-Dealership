@@ -29,10 +29,10 @@ export class TenantTransactionInterceptor implements NestInterceptor {
     const req = context.switchToHttp().getRequest<AppRequest>();
     const tenantId = req.auth?.tenant?.id ?? null;
     const userId = req.auth?.userId ?? null;
+    // Reads never take the company write lock (see DbService.runInTenant).
+    const write = !['GET', 'HEAD', 'OPTIONS'].includes(req.method);
     return from(
-      this.dbs.runInTenant({ tenantId, userId }, () =>
-        lastValueFrom(next.handle(), { defaultValue: undefined }),
-      ),
+      this.dbs.runInTenant({ tenantId, userId }, () => lastValueFrom(next.handle(), { defaultValue: undefined }), { write }),
     );
   }
 }

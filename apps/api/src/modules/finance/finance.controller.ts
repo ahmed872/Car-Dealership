@@ -27,8 +27,9 @@ class SupplierPaymentListQueryDto extends createZodDto(
 export class SupplierPaymentsController {
   constructor(private readonly payments: SupplierPaymentsService) {}
 
+  /** Supplier payments are accounts-payable data: suppliers.read + payments.read (not sales-side payments.read alone). */
   @Get()
-  @RequirePermissions('payments.read')
+  @RequirePermissions('suppliers.read', 'payments.read')
   list(@Ctx() ctx: TenantContext, @Query() q: SupplierPaymentListQueryDto) {
     return this.payments.list(ctx, q);
   }
@@ -41,7 +42,7 @@ export class SupplierPaymentsController {
   }
 
   @Get(':id')
-  @RequirePermissions('payments.read')
+  @RequirePermissions('suppliers.read', 'payments.read')
   get(@Ctx() ctx: TenantContext, @Param('id', ParseUUIDPipe) id: string) {
     return this.payments.get(ctx, id);
   }
@@ -62,13 +63,12 @@ export class ApprovalsController {
 
   /**
    * What awaits a decision the caller is permitted to make (permission + branch). Items the caller
-   * raised are flagged `canDecide: false` — maker-checker forbids approving your own request.
+   * raised, created or edited are flagged `canDecide: false` (maker-checker, B-016/D-020).
    */
   @Get()
   @Authenticated()
   async pending(@Ctx() ctx: TenantContext) {
-    const items = await this.approvals.pendingFor(ctx);
-    return items.map((i) => ({ ...i, canDecide: i.requestedById !== ctx.userId }));
+    return this.approvals.pendingFor(ctx);
   }
 
   /** Exact inbox badge counts (same permission/branch filter as GET /approvals, no row cap). */
