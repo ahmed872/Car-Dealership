@@ -14,3 +14,5 @@ playwright-report/
 .turbo/
 *.tsbuildinfo
 .DS_Store
+
+.storage-test/
