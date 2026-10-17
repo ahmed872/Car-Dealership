@@ -19,6 +19,7 @@ import sales from './sales';
 import installments from './installments';
 import commissions from './commissions';
 import cashClosing from './cashClosing';
+import reports from './reports';
 
 const en: Messages = {
   app: { name: 'AutoHub Pro', tagline: 'Car dealership management' },
@@ -348,6 +349,7 @@ const en: Messages = {
   installments: installments.en,
   commissions: commissions.en,
   cashClosing: cashClosing.en,
+  reports: reports.en,
 };
 
 export default en;
