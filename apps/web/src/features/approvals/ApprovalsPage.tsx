@@ -10,7 +10,7 @@ import { EmptyState, ErrorState, Skeleton } from '@/components/ui/Feedback';
 import { Field, Textarea } from '@/components/ui/Field';
 import { PageHeader, Tabs } from '@/components/ui/Layout';
 import { ConfirmDialog, Modal } from '@/components/ui/Modal';
-import { FEATURE_MODULES } from '@/features/modules';
+import { featureModules } from '@/features/registry';
 import { newIdempotencyKey } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { fmtDateTime, fmtMoney } from '@/lib/format';
@@ -83,7 +83,7 @@ const typeTone: Record<ApprovalType, Tone> = {
 /** Paths registered by the app (base vehicle routes + every feature module), to link only to pages that exist. */
 function registeredPaths(): string[] {
   const paths = ['vehicles/:id'];
-  for (const m of FEATURE_MODULES)
+  for (const m of featureModules())
     for (const r of m.routes ?? []) if (r.path) paths.push(r.path.replace(/^\//, ''));
   return paths;
 }

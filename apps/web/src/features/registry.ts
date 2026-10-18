@@ -32,3 +32,18 @@ export interface FeatureModule {
   /** Routes outside the signed-in app (absolute paths, no session), e.g. the public showroom. */
   publicRoutes?: RouteObject[];
 }
+
+let registered: FeatureModule[] = [];
+
+/** Called once by features/modules.ts when the module list is built. */
+export function registerFeatureModules(list: FeatureModule[]): void {
+  registered = list;
+}
+
+/**
+ * Every registered feature module. Feature code reads the list through this getter instead of
+ * importing features/modules.ts, which imports the features themselves (an import cycle).
+ */
+export function featureModules(): readonly FeatureModule[] {
+  return registered;
+}

@@ -10,7 +10,7 @@ import type {
 } from '@autohub/shared';
 import { useAuth } from '@/lib/auth';
 import { useApi } from '@/lib/hooks';
-import { FEATURE_MODULES } from '@/features/modules';
+import { featureModules } from '@/features/registry';
 
 export type {
   AccountStatement,
@@ -115,7 +115,7 @@ const SOURCE_SEGMENT: Partial<Record<string, string>> = {
 /** Detail routes registered by the app (paths relative to /app), read lazily to avoid an import cycle at load. */
 function registeredPaths(): string[] {
   const out = ['vehicles/:id'];
-  for (const m of FEATURE_MODULES)
+  for (const m of featureModules())
     for (const r of m.routes ?? []) if (r.path) out.push(r.path.replace(/^\//, ''));
   return out;
 }

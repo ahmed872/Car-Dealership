@@ -8,7 +8,7 @@ import { Card, CardBody, CardHeader, DescriptionList } from '@/components/ui/Car
 import { Alert, ErrorState, PageLoader } from '@/components/ui/Feedback';
 import { Field, Input, MoneyInput, Select, Textarea } from '@/components/ui/Field';
 import { PageHeader, Tabs } from '@/components/ui/Layout';
-import { FEATURE_MODULES } from '@/features/modules';
+import { featureModules } from '@/features/registry';
 import { Modal } from '@/components/ui/Modal';
 import { fmtDate, fmtDateTime, fmtMoney, fmtNumber } from '@/lib/format';
 import { Can, useAuth } from '@/lib/auth';
@@ -376,7 +376,7 @@ export function VehicleDetailPage() {
   const q = useVehicle(id);
   const [tab, setTab] = useState<TabKey>('overview');
   // Tabs contributed by other features (costs, work orders, reservations, …), filtered by permission.
-  const extraTabs = FEATURE_MODULES.flatMap((m) => m.vehicleTabs ?? []).filter((x) => !x.anyOf || canAny(...x.anyOf));
+  const extraTabs = featureModules().flatMap((m) => m.vehicleTabs ?? []).filter((x) => !x.anyOf || canAny(...x.anyOf));
   const [modal, setModal] = useState<'status' | 'pricing' | 'transfer' | 'odometer' | null>(null);
   const startInspection = useApiMutation<Record<string, unknown>, { id: string }>({
     path: `/vehicles/${id}/inspections`,

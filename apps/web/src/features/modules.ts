@@ -1,4 +1,4 @@
-import type { FeatureModule } from './registry';
+import { type FeatureModule, registerFeatureModules } from './registry';
 import { purchasingModule } from './purchasing/module';
 import { costsModule } from './costs/module';
 import { workOrdersModule } from './workOrders/module';
@@ -45,3 +45,5 @@ export const FEATURE_MODULES: FeatureModule[] = [
   reportsModule,
   showroomModule,
 ];
+
+registerFeatureModules(FEATURE_MODULES);
