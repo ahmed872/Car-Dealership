@@ -19,6 +19,7 @@ import installments from './installments';
 import commissions from './commissions';
 import cashClosing from './cashClosing';
 import reports from './reports';
+import showroom from './showroom';
 
 const ar = {
   app: { name: 'أوتوهب برو', tagline: 'نظام إدارة معارض السيارات' },
@@ -349,6 +350,7 @@ const ar = {
   commissions: commissions.ar,
   cashClosing: cashClosing.ar,
   reports: reports.ar,
+  showroom: showroom.ar,
 };
 
 export default ar;

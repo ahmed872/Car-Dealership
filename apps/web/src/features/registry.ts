@@ -29,4 +29,6 @@ export interface FeatureModule {
   vehicleTabs?: VehicleTab[];
   /** Small widgets in the top bar (e.g. the notifications bell). */
   headerWidgets?: ComponentType[];
+  /** Routes outside the signed-in app (absolute paths, no session), e.g. the public showroom. */
+  publicRoutes?: RouteObject[];
 }

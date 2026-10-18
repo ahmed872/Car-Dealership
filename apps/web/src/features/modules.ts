@@ -19,6 +19,7 @@ import { installmentsModule } from './installments/module';
 import { commissionsModule } from './commissions/module';
 import { cashClosingModule } from './cashClosing/module';
 import { reportsModule } from './reports/module';
+import { showroomModule } from './showroom/module';
 
 /** Every feature module, in sidebar order within each group. */
 export const FEATURE_MODULES: FeatureModule[] = [
@@ -42,4 +43,5 @@ export const FEATURE_MODULES: FeatureModule[] = [
   commissionsModule,
   cashClosingModule,
   reportsModule,
+  showroomModule,
 ];

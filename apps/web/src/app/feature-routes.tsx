@@ -20,5 +20,5 @@ export const featureRoutes: { app: RouteObject[]; public: RouteObject[] } = {
     { path: 'inventory/stock-counts/:id', element: <Guard anyOf={['inventory.count']}><StockCountDetailPage /></Guard> },
     ...FEATURE_MODULES.flatMap((m) => m.routes ?? []),
   ],
-  public: [],
+  public: FEATURE_MODULES.flatMap((m) => m.publicRoutes ?? []),
 };
