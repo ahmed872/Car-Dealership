@@ -1,0 +1,169 @@
+# AutoHub Pro — single-host deployment: PostgreSQL 16 → one-shot migrate → API → web (nginx).
+# Read docs/DEPLOYMENT.md first. All secrets come from a git-ignored `.env` file next to this file
+# (Compose variable interpolation; template and reference in docs/DEPLOYMENT.md). Required values use
+# ${VAR:?…}, so `docker compose config` / `up` stop with a clear message when one is missing.
+#
+#   docker compose build            # or set AUTOHUB_API_IMAGE / AUTOHUB_WEB_IMAGE to prebuilt images
+#   docker compose up -d            # postgres (healthy) → migrate (exits 0) → api (healthy) → web
+#
+# Only the web container is published, on 127.0.0.1:8080 by default: put a TLS reverse proxy in front
+# of it (docs/DEPLOYMENT.md, "TLS and reverse proxy"). PostgreSQL and the API are internal.
+# Optional settings (S3 storage, AI key, limits) go in a docker-compose.override.yml — see DEPLOYMENT.md.
+
+name: autohub
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: '20m'
+    max-file: '5'
+
+x-api-build: &api-build
+  context: .
+  dockerfile: apps/api/Dockerfile
+  args:
+    NODE_IMAGE: ${NODE_IMAGE:-node:22.23.3-bookworm-slim@sha256:c3de60bf2f9dd0ac6370e6117950ff62d6e339527e7472301c9c78a017978392}
+    CHROMIUM: ${AUTOHUB_CHROMIUM:-playwright}
+
+services:
+  postgres:
+    image: ${POSTGRES_IMAGE:-postgres:16.15-bookworm@sha256:0ea6700a3b4f0ae6ce746519073558aed4d88a79d8d07622a9a644946c7319c4}
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD (superuser; used only for bootstrap and maintenance)}
+      # Page checksums let PostgreSQL detect on-disk corruption.
+      POSTGRES_INITDB_ARGS: --data-checksums
+      AUTOHUB_DB_NAME: ${AUTOHUB_DB_NAME:-autohub}
+      AUTOHUB_OWNER_DB_PASSWORD: ${AUTOHUB_OWNER_DB_PASSWORD:?set AUTOHUB_OWNER_DB_PASSWORD (URL-safe, e.g. openssl rand -hex 32)}
+      AUTOHUB_APP_DB_PASSWORD: ${AUTOHUB_APP_DB_PASSWORD:?set AUTOHUB_APP_DB_PASSWORD (URL-safe, e.g. openssl rand -hex 32)}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./infra/db/bootstrap-roles.sql:/autohub/bootstrap-roles.sql:ro
+    configs:
+      # Runs ONCE, when the data volume is first initialised: creates autohub_owner (owns the schema,
+      # runs migrations), autohub_app (the API: not superuser, no BYPASSRLS, owns nothing → RLS always
+      # applies) and the database owned by autohub_owner.
+      - source: autohub_db_bootstrap
+        target: /docker-entrypoint-initdb.d/10-autohub-roles.sh
+    healthcheck:
+      # TCP on purpose: during first-time init the server only listens on the Unix socket, so this
+      # stays unhealthy until bootstrap has finished and the real server is up.
+      test: ['CMD-SHELL', 'pg_isready -h 127.0.0.1 -U postgres -d "$${AUTOHUB_DB_NAME}"']
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+    shm_size: 256mb
+    stop_grace_period: 60s
+    networks: [backend]
+    logging: *logging
+
+  # One-shot: applies pending migrations as the OWNER role, then exits. `api` starts only after it
+  # exited 0. Run again on every upgrade (docs/OPERATIONS.md, "Deploy / upgrade").
+  migrate:
+    image: ${AUTOHUB_API_IMAGE:-autohub-api:local}
+    build: *api-build
+    command: ['node', 'dist/db/migrate.js']
+    restart: 'no'
+    environment:
+      DATABASE_MIGRATION_URL: postgres://autohub_owner:${AUTOHUB_OWNER_DB_PASSWORD}@postgres:5432/${AUTOHUB_DB_NAME:-autohub}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks: [backend]
+    logging: *logging
+    security_opt: ['no-new-privileges:true']
+    cap_drop: [ALL]
+
+  api:
+    image: ${AUTOHUB_API_IMAGE:-autohub-api:local}
+    build: *api-build
+    restart: unless-stopped
+    init: true # reaps Chromium child processes
+    environment:
+      NODE_ENV: production
+      PORT: '3000'
+      # The app role only. The API refuses to start with a superuser / BYPASSRLS / owner role.
+      DATABASE_URL: postgres://autohub_app:${AUTOHUB_APP_DB_PASSWORD}@postgres:5432/${AUTOHUB_DB_NAME:-autohub}
+      DATABASE_POOL_MAX: ${DATABASE_POOL_MAX:-20}
+      APP_ORIGINS: ${APP_ORIGINS:?set APP_ORIGINS to the public origin(s), e.g. https://dealer.example.com}
+      PUBLIC_WEB_URL: ${PUBLIC_WEB_URL:?set PUBLIC_WEB_URL, e.g. https://dealer.example.com}
+      COOKIE_SECURE: ${COOKIE_SECURE:-true}
+      # Exactly one trusted hop: the web (nginx) container, which sets X-Forwarded-For itself.
+      TRUST_PROXY: 'true'
+      APP_ENCRYPTION_KEY: ${APP_ENCRYPTION_KEY:?set APP_ENCRYPTION_KEY (32 random bytes, base64) and back it up separately}
+      STORAGE_DRIVER: ${STORAGE_DRIVER:-local}
+      STORAGE_LOCAL_DIR: /data/storage
+      MAX_UPLOAD_MB: ${MAX_UPLOAD_MB:-25}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      JOBS_ENABLED: ${JOBS_ENABLED:-true}
+      RATE_LIMIT_PER_MIN: ${RATE_LIMIT_PER_MIN:-600}
+      AUTH_RATE_LIMIT_PER_MIN: ${AUTH_RATE_LIMIT_PER_MIN:-10}
+      ALLOW_TENANT_SELF_SIGNUP: ${ALLOW_TENANT_SELF_SIGNUP:-false}
+    volumes:
+      - storage:/data/storage
+    depends_on:
+      postgres:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    networks: [backend, frontend]
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt: ['no-new-privileges:true']
+    cap_drop: [ALL]
+    stop_grace_period: 30s
+    logging: *logging
+
+  web:
+    image: ${AUTOHUB_WEB_IMAGE:-autohub-web:local}
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        NODE_IMAGE: ${NODE_IMAGE:-node:22.23.3-bookworm-slim@sha256:c3de60bf2f9dd0ac6370e6117950ff62d6e339527e7472301c9c78a017978392}
+        NGINX_IMAGE: ${NGINX_IMAGE:-nginx:1.28.0-bookworm@sha256:552e7481ca93ffccd046aa658dbbed22caefbc09c66fa7cd247cbb90b8a5c609}
+    restart: unless-stopped
+    environment:
+      AUTOHUB_API_UPSTREAM: http://api:3000
+      AUTOHUB_MAX_BODY_SIZE: ${AUTOHUB_MAX_BODY_SIZE:-30m}
+      # Address/CIDR of the TLS proxy in front of this container (so client IPs are real).
+      AUTOHUB_REAL_IP_FROM: ${AUTOHUB_REAL_IP_FROM:-127.0.0.1/32}
+    ports:
+      - '${AUTOHUB_HTTP_BIND:-127.0.0.1}:${AUTOHUB_HTTP_PORT:-8080}:8080'
+    depends_on:
+      api:
+        condition: service_healthy
+    networks: [frontend]
+    read_only: true
+    tmpfs:
+      - /var/cache/nginx
+      - /var/run
+      - /etc/nginx/conf.d
+    security_opt: ['no-new-privileges:true']
+    cap_drop: [ALL]
+    cap_add: [CHOWN, SETUID, SETGID]
+    logging: *logging
+
+configs:
+  autohub_db_bootstrap:
+    # Sourced by the postgres entrypoint (runs as the superuser over the local socket).
+    content: |
+      psql -v ON_ERROR_STOP=1 --username "$$POSTGRES_USER" --dbname postgres \
+        -v owner_password="$$AUTOHUB_OWNER_DB_PASSWORD" \
+        -v app_password="$$AUTOHUB_APP_DB_PASSWORD" \
+        -v db_name="$$AUTOHUB_DB_NAME" \
+        -f /autohub/bootstrap-roles.sql
+
+volumes:
+  pgdata:
+  storage:
+
+networks:
+  # PostgreSQL has no route to the outside world.
+  backend:
+    internal: true
+  # The API needs outbound access (S3, webhooks, AI, VIN decoding) and serves nginx.
+  frontend:
