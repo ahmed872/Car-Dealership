@@ -92,6 +92,20 @@
       "when": 1792270779621,
       "tag": "0012_showroom_security",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1792288290404,
+      "tag": "0013_tenant_integrity",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1792288417399,
+      "tag": "0014_work_order_version",
+      "breakpoints": true
     }
   ]
 }

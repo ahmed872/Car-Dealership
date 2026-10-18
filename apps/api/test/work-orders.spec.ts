@@ -359,6 +359,29 @@ describe('work orders', () => {
     expect((await owner.post(`/work-orders/${open.id}/cancel`, { reason: 'Duplicate' })).status).toBe(200);
   });
 
+  it('an approval made from a stale screen is refused (KI-005 version check)', async () => {
+    const owner = t.owner;
+    const checker = await secondApprover(owner);
+    const v = await createVehicle(owner, t.branchId);
+    const { wo, items } = await readyForApproval(owner, v.id, [{ kind: 'part', description: 'Battery', quantity: '1', unitCost: '400.00', categoryId: cats.parts }]);
+    const seen = (await checker.get(`/work-orders/${wo.id}`)).body.version as number;
+    expect(seen).toBeGreaterThanOrEqual(1);
+    // While the approver's screen is open the order is sent back, repriced and completed again.
+    expect((await owner.post(`/work-orders/${wo.id}/reject`, { reason: 'Re-quote the battery' })).status).toBe(200);
+    expect((await owner.patch(`/work-orders/${wo.id}/items/${items[0]!.id}`, { unitCost: '900.00' })).status).toBe(200);
+    expect((await owner.post(`/work-orders/${wo.id}/complete`)).status).toBe(200);
+    const stale = await checker.post(`/work-orders/${wo.id}/approve`, { version: seen }, idem());
+    expect(stale.status).toBe(409);
+    expect(stale.body.error.code).toBe('version_conflict');
+    expect(await workOrderCosts(pool, t.tenantId, [items[0]!.id])).toHaveLength(0);
+    const current = (await checker.get(`/work-orders/${wo.id}`)).body.version as number;
+    expect(current).toBeGreaterThan(seen);
+    const ok = await checker.post(`/work-orders/${wo.id}/approve`, { version: current }, idem());
+    expect(ok.status, JSON.stringify(ok.body)).toBe(200);
+    const posted = await workOrderCosts(pool, t.tenantId, [items[0]!.id]);
+    expect(posted).toHaveLength(1);
+  });
+
   it('validates vehicles, categories, quantities, suppliers and assignees', async () => {
     const owner = t.owner;
     const v = await createVehicle(owner, t.branchId);

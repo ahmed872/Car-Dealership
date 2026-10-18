@@ -324,6 +324,8 @@ export const workOrders = pgTable(
     cancelReason: text('cancel_reason'),
     createdBy: uuid('created_by'),
     createdAt: createdAt(),
+    /** Bumped by trigger on every change to the order or its items (approve checks it, KI-005). */
+    version: integer('version').notNull().default(1),
     updatedAt: updatedAt(),
   },
   (t) => [

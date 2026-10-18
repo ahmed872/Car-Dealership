@@ -167,6 +167,7 @@ const en: Messages = {
   },
   errors: {
     generic: 'Something went wrong. Please try again.',
+    version_conflict: 'This record changed after you opened it. Reload the page, review it and try again.',
     network_error: 'Cannot reach the server. Check your connection.',
     invalid_credentials: 'Invalid email or password',
     account_locked: 'Sign-in temporarily blocked after repeated attempts. Try again later.',

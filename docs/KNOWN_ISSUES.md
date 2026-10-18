@@ -19,11 +19,11 @@ Severity: P0 (blocker) · P1 (high) · P2 (medium) · P3 (low).
 
 | ID | Severity | Issue | Plan |
 |---|---|---|---|
-| KI-001 | P1 | Foreign keys from tenant tables to other tenant tables are single-column. An FK check bypasses RLS, so a service that does not first look up the referenced row through RLS could store another company's id. Services now look references up through RLS; the cash-account branch hole found in review is fixed. | Phase 8: composite `(tenant_id, id)` foreign keys on all tenant tables. |
+| KI-001 | — | ~~Single-column foreign keys between tenant tables could accept another company's id.~~ | **Resolved (Phase 8, D-039):** composite tenant keys and catalog triggers, enforced by the database. |
 | KI-002 | P2 | Unrealized FX (period-end revaluation of open foreign balances) is not implemented; only realized FX is posted (D-019). | Phase 6/8 reporting enhancement. |
 | KI-003 | P2 | Supplier advances (payments not tied to a document) are not supported (D-016). | Future enhancement. |
 | KI-004 | P3 | Allocation remainder cents go to the largest fractions (ties to the first row), not "the last vehicle". FINANCIAL_POLICIES wording corrected. | Done (documentation). |
-| KI-005 | P3 | Work orders have no version column. An approver holding a stale screen could approve a work order that was rejected, edited and completed again since they opened it. Its current items are what get posted, and the approver is still not a maker. | Add a version to work orders, and check it on approve, as for acquisitions (Phase 8). |
+| KI-005 | — | ~~Work orders had no version, so a stale approval screen could approve a changed order.~~ | **Resolved (Phase 8, D-040):** trigger-maintained version checked on approve. |
 | KI-006 | P2 | Writes of one company are serialised (D-025). This is fine at dealership volumes; a very large multi-branch group could see queueing at peak. | Monitor lock wait time (Phase 8 observability); split the lock by branch if ever needed. |
 | KI-007 | P2 | Cancelling or returning a sale keeps a received trade-in vehicle in stock; its agreed value stays in the customer's refundable credit (the dealer has, in effect, bought it). Handing the trade-in car back is not automated. | Manual today: refund the credit, or remove the trade-in vehicle and adjust. A "return trade-in" flow is a future enhancement. |
 | KI-008 | P2 | After cancellation or return, all money is refundable credit. There is no restocking or cancellation fee posting for sale credit, and credit left after a partial refund cannot yet be applied to another sale. | Future enhancement: a forfeit-to-4200 action with a reason (like reservations) and applying customer credit to a sale. |

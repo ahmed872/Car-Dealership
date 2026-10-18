@@ -106,6 +106,8 @@ export interface WorkOrderDetail {
   createdBy: string | null;
   createdAt: string;
   updatedAt: string;
+  /** Moves on every change to the order or its items; sent back on approve (stale screens are refused). */
+  version: number;
   branchId: string;
   vehicle: {
     id: string;

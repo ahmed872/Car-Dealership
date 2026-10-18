@@ -57,7 +57,8 @@ Car-dealership management SaaS (Egypt / KSA / UAE). pnpm monorepo:
 - Schema changes: edit `apps/api/src/db/schema/*.ts`, then `npx drizzle-kit generate --name x` in apps/api;
   RLS/grants/triggers go in a `--custom` migration using `app_enable_tenant_rls('table')`. Grant only on the
   new tables (never `GRANT ... ON ALL TABLES`, it re-grants revoked rights), put new REVOKEs in
-  `app_apply_privileges()` (CREATE OR REPLACE it) and end the migration with `SELECT app_apply_privileges();`.
+  `app_apply_privileges()` (CREATE OR REPLACE it) and end the migration with `SELECT app_apply_tenant_fks(); SELECT app_apply_privileges();` (the first adds
+  composite tenant keys / catalog triggers for new foreign keys, D-039).
 - Outbound HTTP to company-supplied URLs goes through `common/outbound-http.ts` (SSRF guard); never call
   `fetch` on such URLs, and never make network calls inside a request transaction (use `dbs.afterCommit`
   or a `@NoTransaction()` route).

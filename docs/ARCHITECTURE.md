@@ -61,8 +61,13 @@ by the UI for previews. The server always recomputes; the client is never truste
 
 ## 4. Multi-tenancy and isolation
 
-* Every tenant-owned table has `tenant_id uuid not null` and RLS enabled **and forced**:
+* Every tenant-owned table has `tenant_id uuid not null` and RLS enabled:
   `USING (tenant_id = app_current_tenant()) WITH CHECK (tenant_id = app_current_tenant())`.
+  RLS is not FORCED: it binds the application role (which is not the owner); the owner role used
+  by migrations, operations and tests' owner pool is deliberately not subject to it.
+* References between a company's records are guarded by the database as well (D-039): composite
+  `(tenant_id, id)` foreign keys between tenant tables, and a trigger for references to shared
+  catalogs, so even an RLS-exempt connection cannot link one company's record to another's.
 * `app_current_tenant()` reads `current_setting('app.tenant_id', true)`; when it is unset the
   function returns NULL and every policy denies. Default-deny.
 * The API connects as `autohub_app`: not a superuser, not the table owner, no `BYPASSRLS`.

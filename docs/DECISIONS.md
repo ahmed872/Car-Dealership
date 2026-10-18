@@ -309,6 +309,23 @@ restriction, and calls it. From now on a migration grants only on its own new ta
 `SELECT app_apply_privileges();`, extending the function when it adds a restriction.
 `test/db-privileges.spec.ts` pins the final state.
 
+### D-039 The database refuses cross-company references (KI-001)
+A foreign-key check bypasses RLS, so a single-column FK accepted another company's id; services
+had to look every reference up through RLS first. Migration 0013 adds `app_apply_tenant_fks()`,
+which for every FK between two tenant tables adds a composite `(tenant_id, col) → (tenant_id, id)`
+key next to the existing one (which keeps its ON DELETE behaviour), and for references to shared
+catalogs (global rows have no tenant: makes, models, features, inspection templates, cost
+categories, pipeline stages) adds a trigger that accepts a global row or one of the same company.
+The function is idempotent and covers every FK in the schema; security migrations end with
+`SELECT app_apply_tenant_fks();` and `SELECT app_apply_privileges();`. 95 composite keys and 11
+triggers exist after 0014. `test/tenant-integrity.spec.ts` proves the refusals through the owner
+role, which bypasses RLS.
+
+### D-040 Work-order approvals check the version the approver saw (KI-005)
+Work orders carry a `version` moved by triggers on every change to the order or any of its items,
+because items change through their own routes. Approve accepts the version the approver reviewed
+and refuses a stale one with 409 `version_conflict`; the web approve dialog sends it.
+
 ## Business assumptions
 
 ### B-001 Revenue recognition default = on delivery **[PO-CONFIRM]**

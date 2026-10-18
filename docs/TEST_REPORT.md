@@ -190,3 +190,18 @@ What the new tests cover:
   individual sales hidden without `sales.read`; aging recommendations.
 Not tested: the AI platform-key daily quota (needs a platform key in the test environment) and
 any real third-party provider (none is called from tests).
+
+### Phase 8 hardening, part 1 (2026-10-18)
+| Command | Result |
+|---|---|
+| Migrations 0000–0014 on an empty database (autohub_test_r) | applied; 95 composite tenant keys and 11 catalog triggers created |
+| `test/tenant-integrity.spec.ts` | **4/4**: through the owner role (which bypasses RLS) the database refuses moving a vehicle to another company's branch, a wish of company B pointing at company A's customer, a customer moved to another company's branch, and a vehicle using another company's private make; global and own catalog rows are accepted; every tenant FK has its guard; re-applying is a no-op |
+| `test/work-orders.spec.ts` (with the new stale-approval case) | **9/9** |
+| `test/route-policies.spec.ts`, first run | 2 failures: the expected public list was wrong (logout/csrf need a session; `POST /platform/signup` is public but refused unless `ALLOW_TENANT_SELF_SIGNUP`, covered in auth.spec). List corrected after checking the handler |
+| Second run | **4/4**: every route has an access policy, every permission named exists, only 10 reviewed routes are public, platform routes are platform-admin only. `docs/PERMISSION_MATRIX.md` generated (267 routes) |
+| Full API suite (autohub_test_r) | 31 files, **318 passed** |
+
+Spot check of routes whose policy is `authenticated` (checks inside the service): payables
+(supplier_payments.create or suppliers.read + payments.read), sale approve/reject (the sale's
+approval permission), sale cancel (sales.cancel / sales.cancel_confirmed), commissions (own unless
+commissions.read), employee profile (own unless users.read) — all enforce their rule.

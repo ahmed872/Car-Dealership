@@ -375,6 +375,11 @@ export class WorkOrdersService {
     if (wo.status !== 'awaiting_approval') {
       throw conflict('work_order_not_awaiting_approval', 'This work order is not awaiting approval', { status: wo.status });
     }
+    // The approver decides on what they reviewed: any change to the order or its items since then
+    // makes the decision stale.
+    if (input.version !== undefined && input.version !== wo.version) {
+      throw conflict('version_conflict', 'This work order was changed after you opened it. Reload and review it again.', { currentVersion: wo.version });
+    }
     await this.approvals.assertNotSelfApproval(ctx, { type: 'work_order', entityType: 'work_order', entityId: wo.id, makers: [wo.createdBy] });
     const db = this.dbs.db;
     const items = await db.select().from(workOrderItems).where(eq(workOrderItems.workOrderId, id)).orderBy(asc(workOrderItems.createdAt), asc(workOrderItems.id)).for('update');

@@ -235,6 +235,8 @@ export const zWorkOrderApprove = z.object({
   /** Pays items that have no supplier (direct purchases) from this account. */
   payNow: zPayNow.optional().nullable(),
   note: zOptText(500),
+  /** The version the approver reviewed; an order changed since then is refused (409 version_conflict). */
+  version: z.number().int().min(1).optional(),
 });
 export const zWorkOrderListQuery = zPaginationQuery.extend({
   status: z.enum(WORK_ORDER_STATUSES).optional(),

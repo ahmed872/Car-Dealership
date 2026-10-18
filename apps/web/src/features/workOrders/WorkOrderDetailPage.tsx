@@ -94,7 +94,7 @@ function ApproveModal({ wo, onClose }: { wo: WorkOrderDetail; onClose: () => voi
                 return;
               }
               setErr(null);
-              m.mutate({ note: note.trim() || null, payNow: payNowBody(payNow), __idemKey: key });
+              m.mutate({ note: note.trim() || null, payNow: payNowBody(payNow), version: wo.version, __idemKey: key });
             }}
           >
             {t('workOrders.approve.confirm')}
