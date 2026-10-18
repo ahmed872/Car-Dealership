@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
+import { Link } from 'react-router-dom';
 import type { TenantSettings } from '@autohub/shared';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
@@ -310,18 +311,61 @@ export function CompanySettingsPage() {
                       />
                     )}
                   />
-                  <Checkbox label={t('settings.showReserved')} {...reg('settings.showroom.showReserved')} />
-                  <Checkbox label={t('settings.showPrices')} {...reg('settings.showroom.showPrices')} />
-                  <Field label={t('settings.whatsapp')}>
-                    {(id) => (
+                  <Checkbox
+                    label={t('settings.showReserved')}
+                    description={t('showroom.settings.showReservedHint')}
+                    {...reg('settings.showroom.showReserved')}
+                  />
+                  <Checkbox
+                    label={t('settings.showPrices')}
+                    description={t('showroom.settings.showPricesHint')}
+                    {...reg('settings.showroom.showPrices')}
+                  />
+                  <Checkbox
+                    className="sm:col-span-2"
+                    label={t('showroom.settings.acknowledge')}
+                    description={t('showroom.settings.acknowledgeHint')}
+                    {...reg('settings.showroom.acknowledgeInquiries')}
+                  />
+                  <Field label={t('settings.whatsapp')} hint={t('showroom.settings.whatsappHint')}>
+                    {(id, d) => (
                       <Input
                         id={id}
+                        aria-describedby={d}
                         dir="ltr"
+                        inputMode="tel"
+                        maxLength={20}
                         placeholder="+9665…"
                         {...reg('settings.showroom.whatsappNumber')}
                       />
                     )}
                   </Field>
+                  <span />
+                  <Field label={t('showroom.settings.headlineAr')}>
+                    {(id) => <Input id={id} dir="rtl" maxLength={200} {...reg('settings.showroom.headlineAr')} />}
+                  </Field>
+                  <Field label={t('showroom.settings.headlineEn')}>
+                    {(id) => <Input id={id} dir="ltr" maxLength={200} {...reg('settings.showroom.headlineEn')} />}
+                  </Field>
+                  {c.settings.showroom.enabled && (
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] sm:col-span-2">
+                      <span className="text-muted">{t('showroom.settings.publicLink')}:</span>
+                      <a
+                        href={`/showroom/${encodeURIComponent(c.slug)}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        dir="ltr"
+                        className="num font-medium break-all text-brand-strong hover:underline"
+                      >
+                        {`${window.location.origin}/showroom/${c.slug}`}
+                      </a>
+                      {can('showroom.manage') && (
+                        <Link to="/app/showroom" className="font-medium text-brand-strong hover:underline">
+                          {t('showroom.settings.manageListings')}
+                        </Link>
+                      )}
+                    </div>
+                  )}
                 </FormSection>
               </fieldset>
             </form>

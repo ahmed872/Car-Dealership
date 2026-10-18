@@ -26,6 +26,7 @@ import { useApiMutation } from '@/lib/hooks';
 import { useBranches } from '@/pages/settings/BranchesPage';
 import { useFeatures, useMakes, useModels, useVehicle, Vehicle } from './api';
 import { useStatusLabel } from './components';
+import { useVinApply, VinDecodeButton } from '@/features/showroom/VinDecode';
 
 type FormValues = Record<string, string | boolean | string[]>;
 
@@ -99,6 +100,7 @@ export function VehicleFormPage() {
   });
   const makeId = form.watch('makeId') as string | undefined;
   const models = useModels(makeId);
+  const applyVin = useVinApply(form.setValue, models.data);
 
   useEffect(() => {
     if (!isEdit && branches.data?.length && !form.getValues('branchId')) {
@@ -243,7 +245,12 @@ export function VehicleFormPage() {
                 hint={vinCheck?.warnings.includes('check_digit') ? t('vehicles.vinCheckWarning') : undefined}
                 error={vinCheck && !vinCheck.valid ? t('vehicles.vinInvalid') : null}
               >
-                {(fid, d) => <Input id={fid} aria-describedby={d} dir="ltr" className="num uppercase" maxLength={17} {...form.register('vin')} />}
+                {(fid, d) => (
+                  <div className="flex gap-2">
+                    <Input id={fid} aria-describedby={d} dir="ltr" className="num min-w-0 flex-1 uppercase" maxLength={17} {...form.register('vin')} />
+                    {!isEdit && can('vehicles.create') && <VinDecodeButton vin={vin} onApply={applyVin} />}
+                  </div>
+                )}
               </Field>
               <Checkbox className="sm:col-span-2" label={t('vehicles.vinNonStandard')} {...form.register('vinNonStandard')} />
               {text('engineNumber', { dir: 'ltr' })}
