@@ -18,6 +18,8 @@ const testEnv = {
   RATE_LIMIT_PER_MIN: '100000',
   AUTH_RATE_LIMIT_PER_MIN: '100000',
   CHROMIUM_PATH: process.env.CHROMIUM_PATH ?? '/opt/pw-browsers/chromium-1194/chrome-linux/chrome',
+  // Webhook tests talk to local stub gateways; strict mode is tested by passing an explicit policy.
+  OUTBOUND_ALLOW_PRIVATE_HOSTS: 'true',
 };
 
 export default defineConfig({

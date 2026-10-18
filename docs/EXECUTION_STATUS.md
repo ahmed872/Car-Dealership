@@ -1,29 +1,34 @@
 # Execution Status
 
-**Current phase:** Phase 6 backend complete and merged; web pages for Phases 3–6 in progress, then Phase 7.
-**Last completed tasks (2026-10-17):**
-- Phase 6 backend:
-  - dashboard (permission-gated blocks, branch scope, own-only for reps);
-  - reports for inventory valuation and aging, sales profitability (from the ledger, grouped
-    by salesperson, branch, source, payment type or month), lead conversion, cash flow, and
-    receivables and installment aging, each reconciled to the ledger on company-wide runs;
-  - CSV, XLSX and PDF exports with the same column policy, audited.
-- Costs posted after a sale now carry the sale dimension, so profitability includes them.
-- Phase 3 web pages for purchasing, costs, work orders and approvals are committed (ece9eb3).
-- Full API suite: 26 files, 291 tests passing. Shared: 46 passing.
+**Current phase:** Phase 7 backend complete (showroom, integrations, insights) after an adversarial security review; Phase 7 web and the remaining Phase 3/4 web pages in progress; then Phase 8.
+**Last completed tasks (2026-10-18):**
+- Phase 5 and Phase 6 web pages committed (4536abf, 938c135); list-filter race fixed (21f3eb4).
+- CI repaired: it never installed Chromium, so the PDF tests failed from Phase 5 on (1cc027f);
+  run on 21f3eb4 is green.
+- Phase 7 backend: public showroom with allow-listed fields, listings with publish rules and QR,
+  inquiries into customers/leads with triage, integration settings with encrypted secrets, VIN
+  decoder, AI descriptions as reviewed suggestions, messaging adapters delivered after commit,
+  price guidance and aging recommendations (D-035..D-037).
+- Security review fixes: SSRF guard with connect-time address checks and no redirects; no network
+  calls inside business transactions; inquiry intake bounded (repeat attachment, daily cap,
+  acknowledgements off by default, inactive/ambiguous matches go to triage); only general photos
+  public; WebP metadata scrubbed; branch-scoped comparables; platform AI quota.
+- Database privileges: earlier migrations had re-granted revoked UPDATE/DELETE rights; all
+  restrictions now live in `app_apply_privileges()` (D-038) with a test that pins them.
 
 **In progress (background agents; partial work is saved on disk):**
-- Phase 3/4 web workflow `wf_c6e05060-0fb` (script
-  `phase3-4-web-wf_5d942e13-d19.js`, resumable). It is building cash/expenses/accounting,
-  customers/leads/notifications, appointments/reservations/receivables and wishes/employees.
-- The Phase 5 web agent (sandbox j) is building sales, installments, commissions and cash
-  closing.
+- Phase 3/4 web workflow `wf_c6e05060-0fb` (script `phase3-4-web-wf_5d942e13-d19.js`, resumable):
+  cash/expenses/accounting, customers/leads/notifications, appointments/reservations/receivables,
+  wishes/employees.
 
 **Exact next tasks:**
-1. Review, fix and commit each finished web feature (tsc, eslint, look at the screenshots).
-2. Phase 6 web: dashboard page and a reports page (generic `ReportResult` table, filters,
-   export buttons).
-3. Phase 7: digital showroom and integration adapters.
+1. Phase 7 web: public showroom pages, listing tab on Vehicle 360, integrations settings, inquiry
+   triage list, price guidance and aging recommendations.
+2. Review and commit each finished Phase 3/4 web feature; web integration pass (task list in
+   EXECUTION_PLAN / KNOWN_ISSUES: module import cycle, phone display, API gaps).
+3. Phase 8: hardening (KI-001, KI-005, KI-021), permission matrix, isolation sweep, Playwright
+   E2E (AR/EN/mobile), backup and restore drill, performance smoke, Docker/compose, runbooks,
+   readiness report; then the final audit and report.
 
 | Phase | Status |
 |---|---|
@@ -32,9 +37,9 @@
 | 2 Vehicles & Inventory | Complete |
 | 3 Acquisitions & Cost Engine | Backend complete; 3 adversarial reviews fixed; web pages in progress |
 | 4 CRM & Operations | Backend complete & tested (merged); web pages in progress |
-| 5 Sales & Financial | Backend complete & tested (merged); web pages in progress |
-| 6 Dashboard & Reports | Backend complete & tested (merged); web pages not started |
-| 7 Showroom & Integrations | Not started |
+| 5 Sales & Financial | Complete (backend + web) |
+| 6 Dashboard & Reports | Complete (backend + web) |
+| 7 Showroom & Integrations | Backend complete & reviewed; web pages next |
 | 8 Hardening | Not started |
 
 ## Phase 1 — delivered

@@ -16,6 +16,7 @@
     "db:migrate:prod": "node dist/db/migrate.js"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "0.135.0",
     "@autohub/shared": "workspace:*",
     "@aws-sdk/client-s3": "3.908.0",
     "@fontsource/ibm-plex-sans-arabic": "5.2.6",

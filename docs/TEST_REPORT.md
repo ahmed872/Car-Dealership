@@ -158,3 +158,35 @@ Export review: sales (AR and EN) and receivables (AR) PDFs were rendered and ins
   - that exports omit cost columns without `vehicles.view_cost`;
   - the audit rows.
 
+
+### Phase 7 backend: showroom, integrations, insights (2026-10-17/18)
+| Command | Result |
+|---|---|
+| `npx vitest run test/showroom.spec.ts` (apps/api, autohub_test_m), first run | DI error: `PublicShowroomService` needed `FilesService` (missing `VehiclesModule` import). Fixed |
+| Second run | 7/9: system-created customers were assigned to the system user (`assignee_not_member`) and the rate limiter carried across tests. Fixed (customers created by the system start unassigned; the spec resets the per-client throttle) |
+| Third run | **9/9** |
+| Full API suite (autohub_test_m) | 27 files, **300 passed** |
+| Adversarial security review (read-only agent) | 12 findings: 2 high (migrations re-granting revoked privileges; webhook SSRF through redirects, mapped IPv6 and DNS), 1 medium-high (network calls under the company write lock), 4 medium/low-medium, 4 low, 1 info. All addressed in code except a CAPTCHA (KI-018) and erasure of inquiry personal data (KI-021) |
+| After the fixes: `test/outbound-http.spec.ts`, `test/db-privileges.spec.ts`, `test/showroom.spec.ts` | 3 + 2 + 13 passed (one first-run failure: `outboundPost` threw synchronously instead of rejecting; made async) |
+| Full API suite after the fixes (autohub_test_m) | 29 files, **309 passed** |
+| `packages/shared`: `npx vitest run` | **46 passed** |
+| `eslint` (api src+test, shared src), `tsc --noEmit` (api) | clean |
+
+What the new tests cover:
+- Public showroom: only published, listable vehicles; no VIN, floor price, cost, stock number or
+  internal ids in any public response; hidden prices; reserved/sold visibility; other companies'
+  slugs; private and recategorised photos never served; QR codes; plan gating.
+- Inquiries: customer and unassigned lead created; repeat attached (no new records); deactivated
+  customer's number queued for triage with the same answer; daily cap; honeypot, consent, rate
+  limit; acknowledgements only when enabled, delivered after commit, signed, failing gateway
+  recorded, redirects not followed.
+- Integrations: secrets encrypted and never returned or audited; VIN decoding success, invalid,
+  disabled and timeout (503); AI suggestions from a local Claude stub (never the live API),
+  template fallback on refusal, 500 and garbage, nothing saved until staff accept.
+- SSRF guard in strict mode: address classes (including IPv4-mapped, NAT64, 6to4, Teredo), https,
+  credentials, and the connect-time check refusing `localhost`.
+- Database privileges of the application role after all migrations.
+- Price guidance: thin data, sufficient data, branch-limited user sees no other-branch sales,
+  individual sales hidden without `sales.read`; aging recommendations.
+Not tested: the AI platform-key daily quota (needs a platform key in the test environment) and
+any real third-party provider (none is called from tests).

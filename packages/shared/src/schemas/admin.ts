@@ -137,6 +137,7 @@ export function defaultTenantSettings(market: MarketCode, locale?: 'ar' | 'en'):
       enabled: false,
       showReserved: false,
       showPrices: true,
+      acknowledgeInquiries: false,
       whatsappNumber: null,
       headlineAr: null,
       headlineEn: null,

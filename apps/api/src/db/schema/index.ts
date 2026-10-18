@@ -4,3 +4,4 @@ export * from './vehicles';
 export * from './purchasing';
 export * from './crm';
 export * from './sales';
+export * from './showroom';

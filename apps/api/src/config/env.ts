@@ -48,11 +48,22 @@ const EnvSchema = z
     RATE_LIMIT_PER_MIN: z.coerce.number().int().min(10).max(1_000_000).default(600),
     AUTH_RATE_LIMIT_PER_MIN: z.coerce.number().int().min(1).max(1_000_000).default(10),
     ANTHROPIC_API_KEY: z.string().optional(),
-    ANTHROPIC_MODEL: z.string().default('claude-sonnet-5-5'),
-    VIN_DECODER: z.enum(['none', 'nhtsa']).default('none'),
+    ANTHROPIC_MODEL: z.string().default('claude-opus-5-5'),
+    /** AI descriptions per company per 24 hours when the PLATFORM key is used (a company key has no cap here). */
+    AI_PLATFORM_DAILY_LIMIT: z.coerce.number().int().min(0).max(100_000).default(50),
     ALLOW_TENANT_SELF_SIGNUP: bool.default(false),
+    /**
+     * DEVELOPMENT/TEST ONLY: lets company webhooks reach http:// and private addresses (local stub
+     * gateways). Refused in production.
+     */
+    OUTBOUND_ALLOW_PRIVATE_HOSTS: bool.default(false),
+    /** Online showroom inquiries a company accepts per 24 hours; more are acknowledged but not stored. */
+    SHOWROOM_DAILY_INQUIRY_LIMIT: z.coerce.number().int().min(1).max(100_000).default(200),
   })
   .superRefine((env, ctx) => {
+    if (env.NODE_ENV === 'production' && env.OUTBOUND_ALLOW_PRIVATE_HOSTS) {
+      ctx.addIssue({ code: 'custom', path: ['OUTBOUND_ALLOW_PRIVATE_HOSTS'], message: 'OUTBOUND_ALLOW_PRIVATE_HOSTS must not be set in production' });
+    }
     if (env.STORAGE_DRIVER === 's3' && !env.S3_BUCKET) {
       ctx.addIssue({
         code: 'custom',

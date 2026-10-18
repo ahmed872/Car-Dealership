@@ -7,10 +7,10 @@ Severity: P0 (blocker) · P1 (high) · P2 (medium) · P3 (low).
 | ID | Item | Status | What is needed |
 |---|---|---|---|
 | EXT-01 | E-invoicing: ZATCA (KSA), FTA (UAE), ETA (Egypt) | Not implemented | Certified integration, onboarding credentials, legal review |
-| EXT-02 | WhatsApp Business API / SMS / email delivery | Adapter interface + log-only adapter | Provider account & API keys |
+| EXT-02 | WhatsApp Business API / SMS / email delivery | Log-only adapter (default) and a generic signed-webhook adapter for a company's own gateway; every message is recorded in `message_log`. No direct WhatsApp/SMS/email provider is integrated. | Provider account & API keys |
 | EXT-03 | Subscription billing payment gateway | Internal plan model only; gateway adapter disabled | Choice of provider (e.g. Stripe/PayTabs/Paymob) + keys |
-| EXT-04 | OCR of documents | Interface only | Provider choice + keys |
-| EXT-05 | AI text generation (ad copy, summaries) | Anthropic adapter, disabled without key; template fallback | `ANTHROPIC_API_KEY` |
+| EXT-04 | OCR of documents | Interface only (returns 501 `integration_not_available`) | Provider choice + keys |
+| EXT-05 | AI text generation (listing descriptions) | Anthropic adapter, per-company key entered in Integrations (encrypted); off by default; deterministic template fallback. Tested only against a local stub, never against the live API. | A company's Anthropic API key |
 | EXT-06 | Market price data / traffic fines / insurance APIs | Not implemented (no assumed official APIs) | Market-specific research & contracts |
 | EXT-07 | Object storage (S3/R2) in production | S3 driver implemented, tested only with local driver | Bucket + credentials |
 | EXT-08 | Production deployment | Not performed | Hosting account, domain, TLS |
@@ -35,4 +35,10 @@ Severity: P0 (blocker) · P1 (high) · P2 (medium) · P3 (low).
 | KI-014 | P3 | Reports are not paginated; one run returns at most 20,000 rows and says when it was cut (`truncated`). | Narrow the filters; add paging or background export jobs if a customer needs more. |
 | KI-015 | P3 | Receivables aging: installment sales age by their oldest unpaid installment; other sales age from the recognition date (the whole balance counts as overdue, since it was due at delivery). | Accepted; per-sale due dates for external-finance balances would refine it. |
 | KI-016 | P3 | The dashboard shows customer advances only to all-branch users, because reservation deposits carry no branch. | By design. |
+| KI-017 | P3 | VIN decoding uses the free NHTSA vPIC service, which covers vehicles built for the North American market well and GCC/Egypt-spec vehicles only partly. Results are suggestions; the user confirms make, model and year. Tested only against a local stub. | Add a regional decoder if a provider is chosen. |
+| KI-018 | P2 | No CAPTCHA on public inquiries (needs a provider such as Cloudflare Turnstile and keys). Abuse is bounded by the per-client rate limit, the honeypot, repeat attachment and the per-company daily cap. | Add a CAPTCHA adapter when a provider is chosen. |
+| KI-019 | P3 | The showroom inquiry rate limit is per client address and process-local (in-memory throttler). Several API instances behind a load balancer each keep their own count, and behind a reverse proxy `TRUST_PROXY` must be on or all visitors share one address. | Shared (Redis) throttler storage for multi-instance deployments; set `TRUST_PROXY` behind a proxy. |
+| KI-020 | P3 | Price guidance needs at least three of the company's own recognised sales of the same make/model (±2 years); new companies will mostly see "not enough data". No external market prices are used (EXT-06). | By design. |
+| KI-021 | P2 | Showroom inquiries and the message log are append-only and hold personal data of people who are not customers; there is no erasure or retention job yet (KSA PDPL, UAE PDPL, Egypt Law 151/2020 give data subjects erasure rights). | Phase 8 or later: a SECURITY DEFINER redaction function and a retention policy, reviewed with counsel. |
+| KI-022 | P3 | A message delivered by the webhook is recorded in its own transaction after the business commit; if the process stops between the two, the message may be sent but not recorded. | Accepted; an outbox table would make it exact. |
 

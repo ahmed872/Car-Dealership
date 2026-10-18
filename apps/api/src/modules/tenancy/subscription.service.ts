@@ -54,6 +54,12 @@ export class SubscriptionService {
     return { users: u?.n ?? 0, branches: b?.n ?? 0, vehicles };
   }
 
+  async assertFeature(feature: string): Promise<void> {
+    if (!(await this.hasFeature(feature))) {
+      throw new AppError('plan_feature_missing', 402, `Your plan does not include ${feature}. Upgrade to use it.`, { feature });
+    }
+  }
+
   /** Throws when adding one more `kind` would exceed the plan limit. NULL limits mean unlimited. */
   async assertWithinLimit(kind: LimitKind): Promise<void> {
     const sub = await this.current();

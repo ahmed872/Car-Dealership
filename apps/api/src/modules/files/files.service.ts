@@ -11,7 +11,7 @@ import { AppError, forbidden, notFound } from '../../common/errors';
 import { DbService } from '../../db/db.service';
 import { files } from '../../db/schema';
 import { createStorage, StorageDriver } from './storage';
-import { scrubJpeg, scrubPng, sniff, SniffedType } from './sniff';
+import { scrubJpeg, scrubPng, scrubWebp, sniff, SniffedType } from './sniff';
 
 export interface UploadedTemp {
   path: string;
@@ -71,7 +71,7 @@ export class FilesService {
     }
     if (type.kind === 'image' && opts.scrub !== false) {
       const buf = await readFile(upload.path);
-      const cleaned = type.mime === 'image/jpeg' ? scrubJpeg(buf) : type.mime === 'image/png' ? scrubPng(buf) : buf;
+      const cleaned = type.mime === 'image/jpeg' ? scrubJpeg(buf) : type.mime === 'image/png' ? scrubPng(buf) : type.mime === 'image/webp' ? scrubWebp(buf) : buf;
       if (cleaned !== buf) await writeFile(upload.path, cleaned);
     }
     const sha256 = await new Promise<string>((resolve, reject) => {

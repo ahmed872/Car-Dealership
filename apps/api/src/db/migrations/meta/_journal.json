@@ -78,6 +78,20 @@
       "when": 1792199061521,
       "tag": "0010_sales_security",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1792270777999,
+      "tag": "0011_showroom",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1792270779621,
+      "tag": "0012_showroom_security",
+      "breakpoints": true
     }
   ]
 }

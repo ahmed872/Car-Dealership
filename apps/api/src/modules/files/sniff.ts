@@ -106,3 +106,34 @@ export function scrubPng(input: Buffer): Buffer {
   }
   return Buffer.concat(out);
 }
+
+/**
+ * Drops the EXIF and XMP chunks from a WebP file (RIFF container) and clears their flags in the
+ * extended header, so GPS coordinates do not travel with published photos.
+ */
+export function scrubWebp(input: Buffer): Buffer {
+  if (input.length < 12 || input.toString('ascii', 0, 4) !== 'RIFF' || input.toString('ascii', 8, 12) !== 'WEBP') return input;
+  const out: Buffer[] = [];
+  let removed = false;
+  let i = 12;
+  while (i + 8 <= input.length) {
+    const type = input.toString('ascii', i, i + 4);
+    const len = input.readUInt32LE(i + 4);
+    const end = Math.min(input.length, i + 8 + len + (len % 2)); // chunks are padded to an even size
+    if (type === 'EXIF' || type === 'XMP ') {
+      removed = true;
+    } else {
+      const chunk = Buffer.from(input.subarray(i, end));
+      if (type === 'VP8X' && chunk.length >= 9) chunk[8] = chunk[8]! & ~0x0c; // clear the EXIF (0x08) and XMP (0x04) flags
+      out.push(chunk);
+    }
+    i = end;
+  }
+  if (!removed) return input;
+  const body = Buffer.concat(out);
+  const header = Buffer.alloc(12);
+  header.write('RIFF', 0, 'ascii');
+  header.writeUInt32LE(body.length + 4, 4);
+  header.write('WEBP', 8, 'ascii');
+  return Buffer.concat([header, body]);
+}

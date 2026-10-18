@@ -46,7 +46,8 @@ export class VehicleMediaService {
         category,
         caption: meta.caption ?? null,
         // Damage photos are internal by default; only general photos go public.
-        isPublic: meta.isPublic ?? category === 'general',
+        // Only general photos may be shown publicly; damage, inspection and document images never are.
+        isPublic: category === 'general' && (meta.isPublic ?? true),
         isPrimary: !hasPrimary && kind === 'photo',
         sortOrder: (maxOrder ?? 0) + 1,
         createdBy: ctx.userId,
@@ -64,6 +65,9 @@ export class VehicleMediaService {
       .from(vehicleMedia)
       .where(and(eq(vehicleMedia.id, mediaId), eq(vehicleMedia.vehicleId, vehicleId)));
     if (!before) throw notFound('Media');
+    // Moving a photo out of "general" (e.g. to "document") also withdraws it from public view.
+    const category = input.category ?? before.category;
+    if (input.isPublic && category !== 'general') throw unprocessable('media_not_publishable', 'Only general photos can be shown publicly');
     if (input.isPrimary) {
       if (before.kind !== 'photo') throw unprocessable('primary_must_be_photo', 'Only a photo can be the main image');
       await this.dbs.db.update(vehicleMedia).set({ isPrimary: false }).where(and(eq(vehicleMedia.vehicleId, vehicleId), eq(vehicleMedia.isPrimary, true)));
@@ -72,9 +76,9 @@ export class VehicleMediaService {
       .update(vehicleMedia)
       .set({
         caption: input.caption === undefined ? before.caption : input.caption,
-        isPublic: input.isPublic ?? before.isPublic,
+        isPublic: category === 'general' && (input.isPublic ?? before.isPublic),
         isPrimary: input.isPrimary ?? before.isPrimary,
-        category: input.category ?? before.category,
+        category,
       })
       .where(eq(vehicleMedia.id, mediaId))
       .returning();

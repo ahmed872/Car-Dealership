@@ -41,6 +41,7 @@ import { AuditService, diff } from '../audit/audit.service';
 import { ReceiptsService } from '../finance/receipts.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { ReservationsService } from '../reservations/reservations.service';
+import { SYSTEM_USER_ID } from '../jobs/system-context';
 
 registerUniqueConstraint('customers_national_id_uq', 'customer_national_id_taken', 'A customer with this national ID already exists');
 
@@ -590,7 +591,8 @@ export class CustomersService {
     const branchId = input.branchId ?? (!ctx.allBranches && ctx.branchIds.length === 1 ? ctx.branchIds[0]! : null);
     if (branchId) await this.assertBranch(ctx, branchId);
     // The creator owns the customer unless told otherwise; assigning to someone else is a manager action.
-    const assignedUserId = input.assignedUserId === undefined ? ctx.userId : input.assignedUserId;
+    // Customers created by the system (e.g. online showroom inquiries) start unassigned.
+    const assignedUserId = input.assignedUserId === undefined ? (ctx.userId === SYSTEM_USER_ID ? null : ctx.userId) : input.assignedUserId;
     if (assignedUserId && assignedUserId !== ctx.userId) this.assertCanAssign(ctx);
     if (assignedUserId) await this.assertAssignee(ctx, assignedUserId, branchId);
 

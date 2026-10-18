@@ -224,6 +224,91 @@ amounts as numbers for spreadsheet arithmetic (exact to the cent far beyond deal
 magnitudes); the database decimal stays the source of truth. PDFs embed the Arabic fonts and
 switch to landscape and smaller type for wide reports.
 
+### D-035 Integrations are optional adapters with encrypted, write-only secrets
+Each external service (VIN decoder, AI text, messaging, OCR) is a per-company setting
+(`integration_settings`) that is off by default and needs the `integrations` plan feature; a
+company that moves to a plan without it keeps its settings but they stop working. Secrets are
+stored with `encryptSecret` and are write-only: the API returns `hasSecret` and, for secrets of 16
+characters or more, the last four characters. The audit entry records only that the secret
+changed, and leaves URL query strings out. A failing adapter never breaks a core flow, and no
+adapter makes a network call inside a business transaction (which would hold the company's write
+lock, D-025):
+- VIN decoding is a suggestion endpoint (NHTSA vPIC, fixed URL, 5 s timeout, GET so no write lock):
+  422 for an invalid VIN, 409 when switched off, 503 `integration_unavailable` on any error or
+  timeout. Vehicle creation never calls it.
+- AI descriptions are suggestions that staff review and save; nothing is written to the listing by
+  the generator. The route reads settings and facts, calls the model with no transaction open
+  (20 s, no retries), then audits the attempt. It falls back to a deterministic bilingual template
+  when the integration is off, has no key, or the model refuses, errors, times out or returns
+  unparseable text. Only specifications are sent, never prices, cost, VIN, plate or notes; free
+  text (trim, colour, feature names) is shortened and stripped of markup. With the platform key a
+  company gets `AI_PLATFORM_DAILY_LIMIT` generations per day, then the template.
+- Messages are prepared inside the business transaction and delivered after it commits (a
+  rolled-back request never messages anyone); the outcome is written to the append-only
+  `message_log`. The default adapter only logs (`logged`); the webhook adapter POSTs an
+  HMAC-signed JSON body and records `sent` or `failed`.
+- OCR has an interface only (`501 integration_not_available`).
+
+Webhook URLs are guarded against SSRF (`common/outbound-http.ts`): https only, no credentials in
+the URL, only globally routable addresses (private, loopback, link-local, CGNAT, reserved,
+multicast, IPv4-mapped IPv6, NAT64, 6to4, Teredo and ULA are refused), checked when saved and again
+inside the socket's DNS lookup so the address checked is the one connected to, and redirects are
+never followed. `OUTBOUND_ALLOW_PRIVATE_HOSTS` relaxes this for development and tests only and is
+refused in production.
+
+### D-036 The public showroom is separate content with an allow-list
+A vehicle appears publicly only if it has a published listing (`vehicle_listings`), the company
+has switched the showroom on (settings `showroom.enabled`) and has the `showroom` plan feature,
+and the vehicle's status is `available` (or `reserved` when `showReserved` is on). The public API
+returns an explicit allow-list: titles, descriptions, make/model/year, body, fuel, transmission,
+colour, odometer, features, public photos and, only when `showPrices` is on, the asking price.
+VIN, plate, stock number, floor price, cost, notes and internal ids are never selected. Only
+photos in the `general` category can be public: moving a photo to another category withdraws it,
+and they are served only for a currently visible vehicle, with a sandboxing CSP. JPEG, PNG and
+WebP uploads are stripped of location metadata. The public routes resolve the company through the
+`app_showroom_tenant_id(slug)` SECURITY DEFINER helper and then run inside that tenant's RLS
+context. An unknown slug, a disabled showroom and another company's listing all return the same
+404. Publishing needs `showroom.manage`; listings are versioned and audited.
+
+Inquiries and test-drive requests need explicit consent (its time is stored), are rate-limited
+per client (5/minute), carry a hidden honeypot field (a filled field is acknowledged but nothing
+is stored), and are capped per company (`SHOWROOM_DAILY_INQUIRY_LIMIT` per 24 hours; beyond it they
+are acknowledged but not stored). The visitor always gets the same `{status: "received"}`, so the
+endpoint does not reveal whether a phone number belongs to a customer.
+- A repeat from the same phone about the same vehicle within a day is attached to the first one's
+  customer and lead (`unlinked_reason = repeat`); no new records are created.
+- Otherwise one active customer matching the phone is reused, or a customer is created (source
+  `showroom`, unassigned); the customer's open lead for the vehicle is reused, or an unassigned
+  showroom lead is created. The timeline note says the contact is unverified and carries the name
+  the visitor typed.
+- An inactive or ambiguous phone match, or a business rule refusing the lead, stores the inquiry
+  unlinked for staff triage (`GET /showroom/inquiries?unlinked=true`, `leads.assign`).
+- The branch's users with `leads.assign` are notified. An acknowledgement to the visitor's
+  (unverified) number is sent only if the company enabled `showroom.acknowledgeInquiries` (off by
+  default, to avoid messaging numbers nobody verified), and only after the transaction commits.
+The inquiry is stored append-only with a keyed hash of the client address, not the address.
+
+### D-037 Pricing insights are estimates from the company's own sales
+Price guidance compares a vehicle with the company's own recognised sales of the same make and
+model, model year within ±2, limited to the branches the user may see. It needs at least three
+comparables and returns the median, minimum and maximum agreed price, the average days to sell,
+and how the asking price compares with the median; the individual comparable sales are listed only
+to users with `sales.read`. The response is labelled `estimate: true, basis: own_sales`; no external
+market data is used or implied. Aging recommendations are rule-based (critical age, missing price,
+unpublished listing, fewer than three public photos, asking price more than 5% above the
+comparable median). Both need `vehicles.read` and `pricing.update`, and respect branch scope.
+
+### D-038 The application role's privileges are applied in one place
+Every security migration up to 0010 re-ran `GRANT ... ON ALL TABLES` to cover its new tables, and
+in doing so silently gave back the UPDATE/DELETE rights that earlier migrations had revoked
+(DELETE on customers, receipts, acquisitions, supplier payments and sales; INSERT/UPDATE on the
+global `subscription_plans`; UPDATE on history tables). Row triggers still protected the ledger,
+cash book and audit trail, but documents without triggers were only protected by the application.
+Migration 0012 introduces `app_apply_privileges()`, an idempotent function holding every
+restriction, and calls it. From now on a migration grants only on its own new tables and ends with
+`SELECT app_apply_privileges();`, extending the function when it adds a restriction.
+`test/db-privileges.spec.ts` pins the final state.
+
 ## Business assumptions
 
 ### B-001 Revenue recognition default = on delivery **[PO-CONFIRM]**

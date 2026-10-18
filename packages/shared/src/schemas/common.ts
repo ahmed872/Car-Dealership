@@ -108,6 +108,8 @@ export const zTenantSettings = z.object({
     enabled: z.boolean().default(false),
     showReserved: z.boolean().default(false),
     showPrices: z.boolean().default(true),
+    /** Send an automatic acknowledgement to the phone number an online inquiry gave (unverified). */
+    acknowledgeInquiries: z.boolean().default(false),
     whatsappNumber: zOptText(20),
     headlineAr: zOptText(200),
     headlineEn: zOptText(200),
