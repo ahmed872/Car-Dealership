@@ -205,3 +205,37 @@ Spot check of routes whose policy is `authenticated` (checks inside the service)
 (supplier_payments.create or suppliers.read + payments.read), sale approve/reject (the sale's
 approval permission), sale cancel (sales.cancel / sales.cancel_confirmed), commissions (own unless
 commissions.read), employee profile (own unless users.read) — all enforce their rule.
+
+### Phase 8 hardening, part 2: isolation sweep and performance smoke (2026-10-18)
+| Command | Result |
+|---|---|
+| `test/isolation-sweep.spec.ts`, first run | failed only because `/cash/transfers/:transferId` was not mapped to a record (transfers live in the cash book, not a table); mapping added |
+| Run with 8 record types unseeded (random ids) | passed, but coverage was too weak to keep: seeded refunds (via a cancelled reservation with a deposit), appointments, stock counts, expenses, supplier payments and a listing |
+| Final run | **1/1**: 38 single-record GET routes; 35 called by company B with a real company-A id, every one refused (403/404); company A's owner reads all 35 (200). Installment plans and commissions use a random id here; their cross-company refusal is tested with real records in `sales.spec.ts` |
+| `test/route-policies.spec.ts` after moving `listRoutes()` into fixtures | **4/4** |
+
+Performance smoke (`PERF_SMOKE=1 npx vitest run test/perf-smoke.spec.ts`, opt-in, not part of CI):
+one company seeded through the real API — 1,500 customers, 1,000 leads, 250 vehicles bought and
+made available, 120 sold and delivered — in 136 s. Timed in-process (supertest, no network, local
+PostgreSQL 16, 4 CPUs); 15 runs per list route, 10 for the dashboard, 5 per report, 3 for the export.
+
+| Route | p50 ms | p95 ms |
+|---|---|---|
+| `GET /vehicles` (page 1) | 13 | 20 |
+| `GET /vehicles?q=Camry&status=available` | 14 | 18 |
+| `GET /customers` (page 1) | 16 | 22 |
+| `GET /customers?q=…` | 16 | 20 |
+| `GET /leads` (page 1) | 22 | 32 |
+| `GET /sales` (page 1) | 16 | 21 |
+| `GET /approvals` | 11 | 15 |
+| `GET /notifications` | 10 | 14 |
+| `GET /dashboard` | 19 | 28 |
+| `GET /reports/inventory` | 15 | 21 |
+| `GET /reports/sales` | 21 | 35 |
+| `GET /reports/receivables` | 17 | 21 |
+| `GET /reports/cash-flow` | 14 | 16 |
+| `GET /ledger/trial-balance` | 16 | 17 |
+| `GET /reports/sales/export?format=xlsx` | 51 | 111 |
+
+These are smoke numbers for one busy showroom on one machine, not a load test: no concurrency,
+no network, no browser rendering. Load testing at production volumes remains open (KI-023).
