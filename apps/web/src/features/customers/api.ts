@@ -343,9 +343,7 @@ export function useCrmMutation<TVars = unknown, TRes = unknown>(opts: MutationOp
 // ── Formatting helpers ───────────────────────────────────────────────────────────────────
 
 /** Stored phones are canonical digits with the country code ("966501234567"). */
-export function fmtPhone(p: string | null | undefined): string {
-  return p ? `+${p}` : '—';
-}
+export { fmtPhone } from '@/lib/format';
 
 /** ISO instant → value for <input type="datetime-local"> (browser time). */
 export function toLocalInput(iso: string | null | undefined): string {

@@ -82,3 +82,12 @@ export function todayIso(timeZone?: string): string {
   const get = (t: string) => parts.find((p) => p.type === t)?.value ?? '';
   return `${get('year')}-${get('month')}-${get('day')}`;
 }
+
+/**
+ * A stored phone for display. Customer phones are canonical digits with the country code
+ * ("966501234567"); other records may already carry the "+". Render inside dir="ltr".
+ */
+export function fmtPhone(p: string | null | undefined): string {
+  if (!p) return '—';
+  return /^\d{8,15}$/.test(p) ? `+${p}` : p;
+}

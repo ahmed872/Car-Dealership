@@ -27,7 +27,7 @@ import { Alert, ErrorState, PageLoader } from '@/components/ui/Feedback';
 import { PageHeader } from '@/components/ui/Layout';
 import { useMakes, useModels } from '@/features/vehicles/api';
 import { Can, useAuth } from '@/lib/auth';
-import { fmtDate, fmtDateTime, fmtNumber, fmtPct } from '@/lib/format';
+import { fmtDate, fmtDateTime, fmtNumber, fmtPct, fmtPhone } from '@/lib/format';
 import { useApi } from '@/lib/hooks';
 import { Paged, Refund, SaleDetail, SaleDocumentType, TradeIn, useSale } from './api';
 import {
@@ -708,7 +708,7 @@ function SaleView({ sale: s, onReload }: { sale: SaleDetail; onReload: () => voi
                     value: <span className="num">{[s.vehicleSnapshot.stockNumber, s.vehicleSnapshot.vin, s.vehicleSnapshot.plateNumber].filter(Boolean).join(' · ')}</span>,
                   },
                   { label: t('sales.fields.customer'), value: s.customerSnapshot.fullName },
-                  { label: t('common.phone'), value: s.customerSnapshot.phone ? <span dir="ltr" className="num">{s.customerSnapshot.phone}</span> : '—' },
+                  { label: t('common.phone'), value: s.customerSnapshot.phone ? <span dir="ltr" className="num">{fmtPhone(s.customerSnapshot.phone)}</span> : '—' },
                   { label: t('sales.fields.salesperson'), value: s.salespersonName ?? '—' },
                   ...(s.notes ? [{ label: t('common.notes'), value: s.notes }] : []),
                 ]}
