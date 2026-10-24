@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { ALL_PERMISSIONS } from '../permissions';
 import { MARKETS, MarketCode } from '../markets';
-import { zLocale, zMarket, zOptText, zPercent, zPhone, zText, zUuid, TenantSettings } from './common';
+import { DEFAULT_FX_MAX_DEVIATION_PCT, zLocale, zMarket, zOptText, zPercent, zPhone, zText, zUuid, TenantSettings } from './common';
 
 export const PASSWORD_MIN_LENGTH = 10;
 export const zPassword = z
@@ -143,5 +143,7 @@ export function defaultTenantSettings(market: MarketCode, locale?: 'ar' | 'en'):
       headlineEn: null,
     },
     statusLabels: {},
+    // No reference rates: foreign-currency amounts are refused until an administrator sets them.
+    fx: { referenceRates: {}, maxDeviationPct: DEFAULT_FX_MAX_DEVIATION_PCT },
   };
 }

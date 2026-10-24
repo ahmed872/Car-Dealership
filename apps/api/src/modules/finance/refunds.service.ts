@@ -29,6 +29,29 @@ export interface RefundSourceHandler {
 
 type RefundRow = typeof refunds.$inferSelect;
 
+/** A posted receipt behind a refund's source, as stored (its own currency, amount and rate). */
+export interface RefundSourceReceipt {
+  receiptId: string;
+  number: string;
+  receivedAt: string;
+  /** What the receipt was allocated to: the source itself, or for a sale its plan / converted reservation. */
+  targetType: string;
+  currency: string;
+  amount: string;
+  exchangeRate: string;
+  amountBase: string;
+  /** Base amount of this receipt allocated to the source. */
+  allocatedBase: string;
+}
+
+/** Read-only view of the customer money behind a refund (F6: the approver sees foreign rates). */
+export interface RefundSourceFunds {
+  baseCurrency: string;
+  /** True when any of the money came in a currency other than the base currency. */
+  foreignCurrency: boolean;
+  receipts: RefundSourceReceipt[];
+}
+
 /** Refund amounts that are committed (not rejected/cancelled) against a source. */
 const COMMITTED = ['requested', 'approved', 'paid'] as const;
 
@@ -86,6 +109,30 @@ export class RefundsService {
   }
 
   /**
+   * The posted receipts behind a refund source, read from the stored rows: receipts allocated to
+   * the source itself, and for a sale also those allocated to its installment plan and to the
+   * reservation whose deposit was converted into it.
+   */
+  async sourceFunds(ctx: TenantContext, sourceType: string, sourceId: string): Promise<RefundSourceFunds> {
+    const receipts = await this.dbs.query<RefundSourceReceipt & Record<string, unknown>>(
+      `SELECT r.id AS "receiptId", r.number, r.received_at::text AS "receivedAt", ra.target_type AS "targetType",
+              r.currency, r.amount::text AS amount, r.exchange_rate::text AS "exchangeRate", r.amount_base::text AS "amountBase",
+              ra.amount_base::text AS "allocatedBase"
+         FROM receipt_allocations ra
+         JOIN receipts r ON r.id = ra.receipt_id
+        WHERE r.status = 'posted'
+          AND ((ra.target_type = $1 AND ra.target_id = $2)
+            OR ($1 = 'sale' AND ra.target_type = 'installment' AND ra.target_id IN (SELECT p.id FROM installment_plans p WHERE p.sale_id = $2))
+            OR ($1 = 'sale' AND ra.target_type = 'reservation'
+                AND ra.target_id IN (SELECT s.reservation_id FROM sales s WHERE s.id = $2 AND s.deposit_transferred > 0)))
+        ORDER BY r.received_at, r.number`,
+      [sourceType, sourceId],
+    );
+    const baseCurrency = ctx.tenant.baseCurrency;
+    return { baseCurrency, foreignCurrency: receipts.some((x) => x.currency !== baseCurrency), receipts };
+  }
+
+  /**
    * Opens a refund request. `internal` is used by workflows (e.g. reservation cancellation) that
    * already checked their own permission; the request still needs an approver.
    */
@@ -117,13 +164,27 @@ export class RefundsService {
         requestedBy: ctx.userId,
       })
       .returning();
+    // The approver must see when the money came in a foreign currency, and at which rate (F6).
+    const funds = await this.sourceFunds(ctx, input.sourceType, input.sourceId);
+    const foreign = funds.receipts
+      .filter((x) => x.currency !== ctx.tenant.baseCurrency)
+      .map((x) => ({ number: x.number, currency: x.currency, amount: x.amount, exchangeRate: x.exchangeRate, amountBase: x.amountBase }));
+    const foreignNote = foreign.length
+      ? ` · ${foreign[0]!.amount} ${foreign[0]!.currency} @ ${d(foreign[0]!.exchangeRate).toString()}${foreign.length > 1 ? ` (+${foreign.length - 1})` : ''}`
+      : '';
     await this.approvals.open(ctx, {
       type: 'refund',
       entityType: 'refund',
       entityId: r!.id,
       requiredPermission: 'refunds.approve',
-      summary: `${number} · ${info.label}: ${r!.amountBase} ${ctx.tenant.baseCurrency}`,
-      payload: { customerId: info.customerId, amountBase: r!.amountBase, sourceType: input.sourceType, sourceId: input.sourceId },
+      summary: `${number} · ${info.label}: ${r!.amountBase} ${ctx.tenant.baseCurrency}${foreignNote}`,
+      payload: {
+        customerId: info.customerId,
+        amountBase: r!.amountBase,
+        sourceType: input.sourceType,
+        sourceId: input.sourceId,
+        ...(foreign.length ? { foreignReceipts: foreign.slice(0, 20) } : {}),
+      },
       branchId: info.branchId,
     });
     await this.audit.record({ action: 'refund.requested', entityType: 'refund', entityId: r!.id, summary: `${number}: ${r!.amountBase}`, after: r });
@@ -243,6 +304,6 @@ export class RefundsService {
     const [r] = await this.dbs.db.select().from(refunds).where(eq(refunds.id, id));
     if (!r) throw notFound('Refund');
     assertBranchAccess(ctx, r.branchId);
-    return r;
+    return { ...r, sourceFunds: await this.sourceFunds(ctx, r.sourceType, r.sourceId) };
   }
 }

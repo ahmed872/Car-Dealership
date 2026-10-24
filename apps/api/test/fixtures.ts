@@ -83,6 +83,17 @@ export async function createCashAccount(
   return res.body as { id: string; name: string; balance: string; balanceBase: string; currency: string };
 }
 
+/**
+ * Sets the company's FX reference rates (and optionally the tolerance, in percent) through the
+ * real PATCH /company route. Foreign-currency amounts are refused without a reference rate, and a
+ * stated rate must lie within the tolerance around it (F6).
+ */
+export async function setFxReferences(c: Client, referenceRates: Record<string, string>, maxDeviationPct?: string) {
+  const res = await c.patch('/company', { settings: { fx: { referenceRates, ...(maxDeviationPct !== undefined ? { maxDeviationPct } : {}) } } });
+  if (res.status !== 200) throw new Error(`set fx references failed ${res.status} ${JSON.stringify(res.body)}`);
+  return res.body.settings.fx as { referenceRates: Record<string, string>; maxDeviationPct: string };
+}
+
 export async function costCategory(c: Client, code: string) {
   const res = await c.get('/cost-categories');
   const cat = (res.body as Array<{ id: string; code: string }>).find((x) => x.code === code);

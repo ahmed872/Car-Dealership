@@ -14,6 +14,7 @@ import {
   createSupplier,
   createVehicle,
   glBalance,
+  setFxReferences,
 } from './fixtures';
 import { addMember, Client, closeApp, createPlatformAdmin, createTenant, getApp, idem, ownerPool, TestTenant } from './helpers';
 
@@ -99,6 +100,8 @@ describe('supplier payments', () => {
     t2 = await createTenant(app, admin);
     pool = ownerPool();
     owner = t.owner;
+    // USD is opened at 3.75 and paid out at 3.6725 (2.07% apart) to realize FX: a 3% band.
+    await setFxReferences(owner, { USD: '3.75' }, '3');
     accountant = (await addMember(app, t, 'accountant')).client;
     supplier = await createSupplier(owner, { name: 'Al Majd Motors' });
     other = await createSupplier(owner, { name: 'Desert Spare Parts' });

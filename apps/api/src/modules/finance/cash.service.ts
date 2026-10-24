@@ -7,7 +7,7 @@ import { DbService } from '../../db/db.service';
 import { cashAccounts, cashTransactions } from '../../db/schema';
 import { ACCOUNTS } from '../ledger/chart';
 import { PostingLine, PostingService } from '../ledger/posting.service';
-import { resolveFx } from './fx';
+import { assertRateInBand, resolveFx } from './fx';
 
 export interface CashMove {
   cashAccountId: string;
@@ -265,6 +265,10 @@ export class CashService {
     // Destination value: a base-currency account receives exactly amountTo; a foreign one the
     // transaction value (same currency as the source → it inherits the carrying cost, no FX).
     const toBase = to.currency === base ? amountTo : to.currency === from.currency ? fromBase : txnBase;
+    const rateTo = d(toBase).dividedBy(amountTo).toDecimalPlaces(8).toFixed(8);
+    // A foreign destination in another currency gets its rate from the stated amountTo: it must lie
+    // in the company band as well, or an arbitrary amountTo would set any carrying cost (F6).
+    if (to.currency !== base && to.currency !== from.currency) assertRateInBand(ctx, to.currency as CurrencyCode, rateTo);
     const fx = fxLine(d(fromBase).minus(toBase), 'fx:transfer', from.branchId);
     const journalEntryId = await this.posting.post({
       sourceType: 'cash_transfer',
@@ -280,7 +284,6 @@ export class CashService {
         ...(fx ? [fx] : []),
       ],
     });
-    const rateTo = d(toBase).dividedBy(amountTo).toDecimalPlaces(8).toFixed(8);
     const common = { tenantId: ctx.tenant.id, sourceType: 'cash_transfer', sourceId: t.transferId, businessDate: t.businessDate, reference: t.reference ?? null, description: t.description.slice(0, 500), journalEntryId, createdBy: ctx.userId };
     await this.dbs.db.insert(cashTransactions).values([
       // exchange_rate keeps the transaction rate the user stated; amount_base is the carrying cost relieved.

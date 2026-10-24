@@ -99,7 +99,10 @@ export class CostsService {
       if (!s) throw notFound('Supplier');
       if (!s.isActive) throw unprocessable('supplier_inactive', 'This supplier is inactive');
     }
-    const fx = resolveFx(ctx, input.currency, input.exchangeRate);
+    // With an override the base amount was fixed upstream (an approved acquisition's stored base, or
+    // a shared invoice split after its rate was band-checked): the stored rate is not re-checked
+    // against today's reference, or a purchase recorded before a reference change could not be approved.
+    const fx = resolveFx(ctx, input.currency, input.exchangeRate, { recorded: opts.amountBaseOverride !== undefined });
     const amount = money(input.amount, input.currency);
     const amountBase = opts.amountBaseOverride ? money(opts.amountBaseOverride, ctx.tenant.baseCurrency) : fx.toBase(amount);
     if (d(amountBase).lte(0)) throw unprocessable('invalid_amount', 'The cost amount in base currency must be positive');

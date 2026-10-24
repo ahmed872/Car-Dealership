@@ -13,6 +13,7 @@ import {
   createSupplier,
   createVehicle,
   glBalance,
+  setFxReferences,
 } from './fixtures';
 import { addMember, Client, closeApp, createPlatformAdmin, createTenant, getApp, idem, ownerPool, TestTenant } from './helpers';
 
@@ -97,6 +98,7 @@ describe('vehicle costs', () => {
     t2 = await createTenant(app, admin);
     pool = ownerPool();
     owner = t.owner;
+    await setFxReferences(owner, { USD: '3.75' });
     const acc = await addMember(app, t, 'accountant');
     accountant = acc.client;
     accountantId = acc.userId;

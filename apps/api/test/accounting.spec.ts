@@ -3,7 +3,7 @@ import type { INestApplication } from '@nestjs/common';
 import { Pool } from 'pg';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { todayInZone } from '@autohub/shared';
-import { costCategory, createAcquisition, createSupplier } from './fixtures';
+import { costCategory, createAcquisition, createSupplier, setFxReferences } from './fixtures';
 import { addMember, Client, closeApp, createPlatformAdmin, createTenant, getApp, idem, ownerPool, PASSWORD, TestTenant, uniq } from './helpers';
 
 const TODAY = todayInZone('Asia/Riyadh'); // SA tenants
@@ -50,6 +50,7 @@ describe('accounting: transfers, cash book, GL reports, reconciliation', () => {
     app = await getApp();
     admin = await createPlatformAdmin(app);
     t = await createTenant(app, admin);
+    await setFxReferences(t.owner, { USD: '3.75' });
     pool = ownerPool();
   });
   afterAll(async () => {
