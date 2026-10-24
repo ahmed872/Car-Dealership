@@ -1,46 +1,46 @@
 # Execution Status
 
-**Current phase:** Phase 7 backend complete (showroom, integrations, insights) after an adversarial security review; Phase 7 web and the remaining Phase 3/4 web pages in progress; then Phase 8.
+**Current phase:** Phase 8 (hardening). Phase 7 complete (backend e21d0bf, web ae87708).
 **Last completed tasks (2026-10-18):**
-- Phase 5 and Phase 6 web pages committed (4536abf, 938c135); list-filter race fixed (21f3eb4).
-- CI repaired: it never installed Chromium, so the PDF tests failed from Phase 5 on (1cc027f);
-  run on 21f3eb4 is green.
-- Phase 7 backend: public showroom with allow-listed fields, listings with publish rules and QR,
-  inquiries into customers/leads with triage, integration settings with encrypted secrets, VIN
-  decoder, AI descriptions as reviewed suggestions, messaging adapters delivered after commit,
-  price guidance and aging recommendations (D-035..D-037).
-- Security review fixes: SSRF guard with connect-time address checks and no redirects; no network
-  calls inside business transactions; inquiry intake bounded (repeat attachment, daily cap,
-  acknowledgements off by default, inactive/ambiguous matches go to triage); only general photos
-  public; WebP metadata scrubbed; branch-scoped comparables; platform AI quota.
-- Database privileges: earlier migrations had re-granted revoked UPDATE/DELETE rights; all
-  restrictions now live in `app_apply_privileges()` (D-038) with a test that pins them.
+- Phase 7 web: staff showroom (listings, suggestions, publish/QR, price guidance, inquiry triage,
+  aging, integrations) and the public showroom pages, verified in Chromium AR/EN, desktop/390px.
+- Phase 8 part 1 (4d5c9da): database-enforced tenant references (composite FKs + shared-catalog
+  triggers, D-039), work-order versions (D-040), route policy matrix (`route-policies.spec.ts`,
+  docs/PERMISSION_MATRIX.md).
+- Phase 8 part 2 (6d316ce on branch `phase8-wip`, not merged yet): tenant isolation sweep over
+  every single-record GET route (38 routes, 35 with a real foreign id, all refused) and an
+  opt-in performance smoke (`PERF_SMOKE=1`).
+- Whole-app security review: 11 verified findings (F1 critical: a company owner could take over
+  the platform-admin account by attaching it as a member and resetting its password; F2 high:
+  branch-scope escape through user management; F3–F6 medium; F7–F11 low). Fixes in progress.
 
 **In progress (background agents; partial work is saved on disk):**
-- Phase 3/4 web workflow `wf_c6e05060-0fb` (script `phase3-4-web-wf_5d942e13-d19.js`, resumable):
-  cash/expenses/accounting, customers/leads/notifications, appointments/reservations/receivables,
-  wishes/employees.
+- Security fixes F1–F5, F7–F11 in worktree `scratchpad/wt-phase8` (branch `phase8-wip`, DB r).
+- F6 (client-supplied FX rates unbounded) in worktree `scratchpad/wt-fx` (branch `fx-band`, DB s):
+  company reference rates with a tolerance band.
+- Playwright E2E suite in worktree `scratchpad/wt-e2e` (branch `e2e-wip`, DB t, ports 3191/5291).
+- Infra: Dockerfiles, compose, nginx, runbooks and a real backup/restore drill (DB q).
+- Phase 4 web workflow `wf_c6e05060-0fb` (resumable): appointments/reservations/receivables and
+  wishes/employees (files in the main checkout, uncommitted until reviewed).
 
 **Exact next tasks:**
-1. Phase 7 web: public showroom pages, listing tab on Vehicle 360, integrations settings, inquiry
-   triage list, price guidance and aging recommendations.
-2. Review and commit each finished Phase 3/4 web feature; web integration pass (task list in
-   EXECUTION_PLAN / KNOWN_ISSUES: module import cycle, phone display, API gaps).
-3. Phase 8: hardening (KI-001, KI-005, KI-021), permission matrix, isolation sweep, Playwright
-   E2E (AR/EN/mobile), backup and restore drill, performance smoke, Docker/compose, runbooks,
-   readiness report; then the final audit and report.
+1. Review, full-suite, merge and push the security fixes and F6 (then web settings UI for
+   reference rates and i18n for the new error codes).
+2. Review and commit the Phase 4 web features; web integration pass (task #14 list).
+3. Merge the E2E suite and extend it to Phase 4/7 pages; CI job.
+4. Infra deliverables and drill results; readiness report; final audit and final report.
 
 | Phase | Status |
 |---|---|
 | 0 Discovery & Architecture | Complete |
 | 1 Foundation | Complete |
 | 2 Vehicles & Inventory | Complete |
-| 3 Acquisitions & Cost Engine | Backend complete; 3 adversarial reviews fixed; web pages in progress |
+| 3 Acquisitions & Cost Engine | Complete (backend + web) |
 | 4 CRM & Operations | Backend complete & tested (merged); web pages in progress |
 | 5 Sales & Financial | Complete (backend + web) |
 | 6 Dashboard & Reports | Complete (backend + web) |
-| 7 Showroom & Integrations | Backend complete & reviewed; web pages next |
-| 8 Hardening | Not started |
+| 7 Showroom & Integrations | Complete (backend + web) |
+| 8 Hardening | In progress: tenant FKs, matrix, isolation sweep done; security fixes, E2E, infra in progress |
 
 ## Phase 1 — delivered
 - pnpm workspace: `packages/shared`, `apps/api`, `apps/web`, `e2e`.
