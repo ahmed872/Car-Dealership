@@ -363,6 +363,21 @@ are rate limited per client (`EXPORT_RATE_LIMIT_PER_MIN`, default 20/min), and a
 (reports and sale documents) share one process-wide gate: `PDF_MAX_CONCURRENT` (2) running,
 `PDF_MAX_QUEUE` (4) waiting, then 503 `pdf_busy`.
 
+### D-046 Foreign-currency rates are bounded by company reference rates (F6)
+A stated exchange rate is accepted only for a currency with a company reference rate
+(`settings.fx.referenceRates`, base-currency units per unit; the base currency cannot have one) and
+only if |rate − reference| / reference × 100 ≤ `settings.fx.maxDeviationPct` (default 2, 0–100);
+otherwise 422 `fx_reference_missing` / `fx_rate_out_of_band`. The check is in `resolveFx`, so it
+covers receipts, deposits, supplier payments, opening balances, transfers (including the rate
+implied by `amountTo` into a foreign account in another currency), expenses, vehicle costs and
+acquisitions. A missing rate is still `exchange_rate_required`: the reference is never used
+silently, and no market rates are fetched. A rate checked when its document was recorded is not
+re-checked on approval; a new conversion (re-pricing) is. Reference rates and the tolerance are
+company settings (`settings.manage`, audited by `company.updated`). PATCH /company patches field by
+field inside each settings section (`sectionPatchOf`), so a partial section no longer resets that
+section's other values. Refund detail and the refund approval show the currency, amount and rate
+of the receipts behind the refund.
+
 ## Business assumptions
 
 ### B-001 Revenue recognition default = on delivery **[PO-CONFIRM]**
