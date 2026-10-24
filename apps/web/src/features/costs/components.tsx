@@ -1,10 +1,10 @@
 import clsx from 'clsx';
 import { Loader2, Search, X } from 'lucide-react';
-import { ComponentProps, forwardRef, ReactNode, useEffect, useId, useRef, useState } from 'react';
+import { ReactNode, useEffect, useId, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { PAYMENT_METHODS, Paginated } from '@autohub/shared';
 import { Badge, Tone } from '@/components/ui/Badge';
-import { Checkbox, Field, Input, MoneyInput, Select } from '@/components/ui/Field';
+import { Checkbox, Field, Input, Select } from '@/components/ui/Field';
 import { useAuth } from '@/lib/auth';
 import { useApi, useDebounced } from '@/lib/hooks';
 import type { VehicleListItem } from '@/features/vehicles/api';
@@ -517,17 +517,3 @@ export function Row({
     </div>
   );
 }
-
-/**
- * MoneyInput inside an LTR box: the kit's input is always LTR, so its currency tag (positioned with
- * `end-3`) must share that direction or, in Arabic, it lands on top of the typed amount.
- */
-export const MoneyBox = forwardRef<HTMLInputElement, ComponentProps<typeof MoneyInput>>(
-  function MoneyBox(props, ref) {
-    return (
-      <div dir="ltr">
-        <MoneyInput ref={ref} {...props} />
-      </div>
-    );
-  },
-);

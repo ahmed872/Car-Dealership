@@ -19,7 +19,7 @@ import {
 import { Button } from '@/components/ui/Button';
 import { Card, CardBody, CardHeader } from '@/components/ui/Card';
 import { Alert, EmptyState, ErrorState, PageLoader, Spinner } from '@/components/ui/Feedback';
-import { Field, Input, Select, Textarea } from '@/components/ui/Field';
+import { Field, Input, MoneyInput, Select, Textarea } from '@/components/ui/Field';
 import { PageHeader } from '@/components/ui/Layout';
 import { useVehicle } from '@/features/vehicles/api';
 import { VehicleStatusBadge, vehicleTitle } from '@/features/vehicles/components';
@@ -31,7 +31,6 @@ import { useAssignableMembers } from '@/lib/members';
 import { InstallmentTerms, SaleDetail, SalePaymentType, SalePreview, useSale } from './api';
 import { CustomerPicker, VehiclePicker } from './pickers';
 import {
-  AmountInput,
   FailureAlert,
   isMoney,
   Money,
@@ -464,7 +463,7 @@ function SaleForm({ sale, onReload }: { sale: SaleDetail | null; onReload: () =>
                 hint={settings?.tax.pricesIncludeTax ? t('sales.form.priceIncludesTax') : t('sales.form.priceExcludesTax')}
               >
                 {(id, desc) => (
-                  <AmountInput id={id} aria-describedby={desc} currency={base} value={s.agreedPrice} invalid={!!errors.agreedPrice} onChange={(e) => set({ agreedPrice: e.target.value })} />
+                  <MoneyInput id={id} aria-describedby={desc} currency={base} value={s.agreedPrice} invalid={!!errors.agreedPrice} onChange={(e) => set({ agreedPrice: e.target.value })} />
                 )}
               </Field>
               <div className="sm:col-span-2">
@@ -498,7 +497,7 @@ function SaleForm({ sale, onReload }: { sale: SaleDetail | null; onReload: () =>
                 <>
                   <Field label={t('sales.fields.downPayment')} required error={err('downPayment')} hint={t('sales.form.downPaymentHint')}>
                     {(id, desc) => (
-                      <AmountInput id={id} aria-describedby={desc} currency={base} value={s.downPayment} invalid={!!errors.downPayment} onChange={(e) => set({ downPayment: e.target.value })} />
+                      <MoneyInput id={id} aria-describedby={desc} currency={base} value={s.downPayment} invalid={!!errors.downPayment} onChange={(e) => set({ downPayment: e.target.value })} />
                     )}
                   </Field>
                   <Field label={t('sales.fields.instMethod')} error={err('installmentTerms.method')}>
@@ -556,7 +555,7 @@ function SaleForm({ sale, onReload }: { sale: SaleDetail | null; onReload: () =>
                   </Field>
                   <Field label={t('sales.fields.feesTotal')} hint={t('sales.form.feesHint')} error={err('installmentTerms.feesTotal')}>
                     {(id, desc) => (
-                      <AmountInput id={id} aria-describedby={desc} currency={base} value={s.feesTotal} invalid={!!errors['installmentTerms.feesTotal']} onChange={(e) => set({ feesTotal: e.target.value })} />
+                      <MoneyInput id={id} aria-describedby={desc} currency={base} value={s.feesTotal} invalid={!!errors['installmentTerms.feesTotal']} onChange={(e) => set({ feesTotal: e.target.value })} />
                     )}
                   </Field>
                 </>
@@ -572,7 +571,7 @@ function SaleForm({ sale, onReload }: { sale: SaleDetail | null; onReload: () =>
                   </Field>
                   <Field label={t('sales.fields.efAmount')} required error={err('externalFinance.amount')} hint={t('sales.form.efAmountHint')}>
                     {(id, desc) => (
-                      <AmountInput id={id} aria-describedby={desc} currency={base} value={s.efAmount} invalid={!!errors['externalFinance.amount']} onChange={(e) => set({ efAmount: e.target.value })} />
+                      <MoneyInput id={id} aria-describedby={desc} currency={base} value={s.efAmount} invalid={!!errors['externalFinance.amount']} onChange={(e) => set({ efAmount: e.target.value })} />
                     )}
                   </Field>
                   {isEdit && sale?.externalFinance?.status === 'approved' && (

@@ -7,14 +7,13 @@ import { Button } from '@/components/ui/Button';
 import { Card, CardBody, CardHeader } from '@/components/ui/Card';
 import { DataTable } from '@/components/ui/DataTable';
 import { Alert, EmptyState, ErrorState, Skeleton } from '@/components/ui/Feedback';
-import { Field, Input, Select, Textarea } from '@/components/ui/Field';
+import { Field, Input, MoneyInput, Select, Textarea } from '@/components/ui/Field';
 import { PageHeader } from '@/components/ui/Layout';
 import { useAuth } from '@/lib/auth';
 import { fmtDate, fmtDateTime } from '@/lib/format';
 import { useApi, useListParams } from '@/lib/hooks';
 import type { CashAccountOption, CashAccountRow, CashClosing, ExpectedBalance } from '@/features/sales/api';
 import {
-  AmountInput,
   FailureAlert,
   isMoney,
   Money,
@@ -268,7 +267,7 @@ function CloseDayForm({ account, canRead, closedThrough }: { account: Account; c
           </Row>
         </dl>
         <Field label={t('cashClosing.counted')} required error={counted.trim() && !countedOk ? fm('invalid_amount') : null} hint={t('cashClosing.countedHint')}>
-          {(id, desc) => <AmountInput id={id} aria-describedby={desc} currency={account.currency} value={counted} invalid={!!counted.trim() && !countedOk} onChange={(e) => setCounted(e.target.value)} />}
+          {(id, desc) => <MoneyInput id={id} aria-describedby={desc} currency={account.currency} value={counted} invalid={!!counted.trim() && !countedOk} onChange={(e) => setCounted(e.target.value)} />}
         </Field>
         {hasDiff && diff !== null && (
           <Alert tone={canAdjust && !foreign ? 'warning' : 'danger'} title={d(diff).gt(0) ? t('cashClosing.over') : t('cashClosing.short')}>

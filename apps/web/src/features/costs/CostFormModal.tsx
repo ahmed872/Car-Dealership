@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { CURRENCY_CODES, CurrencyCode, todayInZone } from '@autohub/shared';
 import { Button } from '@/components/ui/Button';
 import { Alert, errorMessage } from '@/components/ui/Feedback';
-import { Field, Input, Select, Textarea } from '@/components/ui/Field';
+import { Field, Input, MoneyInput, Select, Textarea } from '@/components/ui/Field';
 import { Modal } from '@/components/ui/Modal';
 import { ApiError, newIdempotencyKey } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
@@ -22,7 +22,7 @@ import {
   useVehicleCategories,
   VehicleCostRow,
 } from './api';
-import { initialPayNow, payNowBody, PayNowFields, PayNowState, SupplierPicker, MoneyBox } from './components';
+import { initialPayNow, payNowBody, PayNowFields, PayNowState, SupplierPicker } from './components';
 
 /** Server error codes that belong to a specific field of this form. */
 const FIELD_FOR_CODE: Record<string, string> = {
@@ -222,7 +222,7 @@ export function CostFormModal({
           </Field>
           <Field label={t('costs.form.amount')} required error={errors.amount}>
             {(id, desc) => (
-              <MoneyBox
+              <MoneyInput
                 id={id}
                 aria-describedby={desc}
                 invalid={!!errors.amount}

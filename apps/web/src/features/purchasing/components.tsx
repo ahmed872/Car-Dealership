@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useQuery } from '@tanstack/react-query';
 import clsx from 'clsx';
 import { AlertTriangle, ChevronDown, Search, X } from 'lucide-react';
-import { ComponentProps, forwardRef, KeyboardEvent, ReactNode, useCallback, useEffect, useId, useMemo, useState } from 'react';
+import { KeyboardEvent, ReactNode, useCallback, useEffect, useId, useMemo, useState } from 'react';
 import { FieldValues, Path, Resolver, useForm, UseFormSetError } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
@@ -22,7 +22,7 @@ import {
 import { Badge, Tone } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Alert, EmptyState } from '@/components/ui/Feedback';
-import { Checkbox, Field, Input, MoneyInput, Select, Textarea } from '@/components/ui/Field';
+import { Checkbox, Field, Input, Select, Textarea } from '@/components/ui/Field';
 import { Modal } from '@/components/ui/Modal';
 import { api, ApiError, newIdempotencyKey } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
@@ -77,14 +77,6 @@ export function acquisitionVehicleTitle(
 ): string {
   return [lang === 'en' ? v.makeEn : v.makeAr, lang === 'en' ? v.modelEn : v.modelAr, v.modelYear].filter(Boolean).join(' ');
 }
-
-/**
- * MoneyInput whose currency tag never covers the digits in Arabic: the kit's input is dir="ltr" but
- * places the tag at the page's inline end (the left in RTL), so the padding must follow it there.
- */
-export const AmountInput = forwardRef<HTMLInputElement, ComponentProps<typeof MoneyInput>>(function AmountInput({ className, ...rest }, ref) {
-  return <MoneyInput ref={ref} className={clsx(rest.currency && 'rtl:ps-14 rtl:pe-3', className)} {...rest} />;
-});
 
 // ── Money / FX helpers (decimal arithmetic only — never floats) ─────────────────────────
 
