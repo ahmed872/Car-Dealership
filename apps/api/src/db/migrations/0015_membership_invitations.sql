@@ -1,0 +1,2 @@
+ALTER TABLE "memberships" DROP CONSTRAINT "memberships_status_chk";--> statement-breakpoint
+ALTER TABLE "memberships" ADD CONSTRAINT "memberships_status_chk" CHECK (status IN ('active', 'suspended', 'invited'));

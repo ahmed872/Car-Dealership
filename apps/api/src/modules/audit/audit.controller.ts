@@ -3,7 +3,8 @@ import { ApiTags } from '@nestjs/swagger';
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 import { zPaginationQuery } from '@autohub/shared';
-import { RequirePermissions } from '../../common/context';
+import { Ctx, RequirePermissions, TenantContext } from '../../common/context';
+import { AppError } from '../../common/errors';
 import { AuditService } from './audit.service';
 
 const zAuditQuery = zPaginationQuery.extend({
@@ -15,6 +16,17 @@ const zAuditQuery = zPaginationQuery.extend({
 });
 class AuditQueryDto extends createZodDto(zAuditQuery) {}
 
+/**
+ * The audit log is a company-wide record: entries are not attributable to a branch (their before /
+ * after snapshots can describe any branch's customers, vehicles or users), so it is readable only
+ * with access to all branches, like the general-ledger reports.
+ */
+function assertCompanyScope(ctx: TenantContext): void {
+  if (!ctx.allBranches) {
+    throw new AppError('company_scope_required', 403, 'The audit log covers the whole company; it requires access to all branches');
+  }
+}
+
 @ApiTags('audit')
 @Controller('audit-logs')
 export class AuditController {
@@ -22,7 +34,8 @@ export class AuditController {
 
   @Get()
   @RequirePermissions('audit.read')
-  list(@Query() q: AuditQueryDto) {
+  list(@Ctx() ctx: TenantContext, @Query() q: AuditQueryDto) {
+    assertCompanyScope(ctx);
     return this.audit.list(q);
   }
 
@@ -30,7 +43,8 @@ export class AuditController {
   @Post('verify')
   @HttpCode(200)
   @RequirePermissions('audit.read')
-  verify() {
+  verify(@Ctx() ctx: TenantContext) {
+    assertCompanyScope(ctx);
     return this.audit.verify();
   }
 }

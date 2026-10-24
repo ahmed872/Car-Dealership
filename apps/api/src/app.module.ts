@@ -15,6 +15,8 @@ import { HealthController } from './modules/health/health.controller';
 import { PlatformController } from './modules/tenancy/platform.controller';
 import { ProvisioningService } from './modules/tenancy/provisioning.service';
 import { TenancyController } from './modules/tenancy/tenancy.controller';
+import { InvitationsController } from './modules/users/invitations.controller';
+import { InvitationsService } from './modules/users/invitations.service';
 import { UsersController } from './modules/users/users.controller';
 import { UsersService } from './modules/users/users.service';
 import { DOMAIN_MODULES } from './domain-modules';
@@ -55,6 +57,7 @@ const env = getEnv();
     AuthController,
     TenancyController,
     UsersController,
+    InvitationsController,
     AuditController,
     PlatformController,
   ],
@@ -62,6 +65,7 @@ const env = getEnv();
     AuthService,
     ProvisioningService,
     UsersService,
+    InvitationsService,
     { provide: APP_PIPE, useClass: ZodValidationPipe },
     // Guard order matters: rate limit → session → CSRF → permissions.
     { provide: APP_GUARD, useClass: ThrottlerGuard },

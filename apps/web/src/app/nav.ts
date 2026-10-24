@@ -10,6 +10,8 @@ export interface NavItem {
   icon: LucideIcon;
   /** Shown when the user holds ANY of these permissions. */
   anyOf?: Permission[];
+  /** Company-wide pages (the API requires access to all branches): hidden for branch-scoped users. */
+  companyWide?: boolean;
   end?: boolean;
 }
 
@@ -35,7 +37,7 @@ const BASE: Record<NavGroupKey, NavItem[]> = {
     { to: '/app/settings/branches', labelKey: 'nav.branches', icon: Building2, anyOf: ['branches.manage', 'settings.read'] },
     { to: '/app/settings/users', labelKey: 'nav.users', icon: Users, anyOf: ['users.read'] },
     { to: '/app/settings/roles', labelKey: 'nav.roles', icon: KeyRound, anyOf: ['users.read', 'roles.manage'] },
-    { to: '/app/settings/audit', labelKey: 'nav.audit', icon: History, anyOf: ['audit.read'] },
+    { to: '/app/settings/audit', labelKey: 'nav.audit', icon: History, anyOf: ['audit.read'], companyWide: true },
   ],
 };
 

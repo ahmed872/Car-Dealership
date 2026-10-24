@@ -4,6 +4,7 @@ import {
   ChevronDown,
   Languages,
   LogOut,
+  MailPlus,
   Menu,
   Moon,
   ShieldCheck,
@@ -17,6 +18,7 @@ import { NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { currentLang, setLanguage } from '@/i18n';
 import { useAuth } from '@/lib/auth';
 import { FEATURE_MODULES } from '@/features/modules';
+import { useInvitations } from '@/pages/auth/Invitations';
 import { NAV } from './nav';
 
 const HEADER_WIDGETS = FEATURE_MODULES.flatMap((m) => m.headerWidgets ?? []);
@@ -78,7 +80,7 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
       )}
       <div className="scrollbar-thin flex-1 space-y-5 overflow-y-auto px-3 pb-6">
         {NAV.map((group) => {
-          const items = group.items.filter((i) => !i.anyOf || canAny(...i.anyOf));
+          const items = group.items.filter((i) => (!i.anyOf || canAny(...i.anyOf)) && (!i.companyWide || !!me?.allBranches));
           if (!items.length) return null;
           return (
             <div key={group.labelKey}>
@@ -204,6 +206,7 @@ export function MenuItem({
 function Topbar({ onMenu }: { onMenu: () => void }) {
   const { t } = useTranslation();
   const { me, signOut } = useAuth();
+  const invitations = useInvitations();
   const navigate = useNavigate();
   const [dark, toggleTheme] = useTheme();
   const lang = currentLang();
@@ -267,6 +270,14 @@ function Topbar({ onMenu }: { onMenu: () => void }) {
             >
               {t('nav.account')}
             </MenuItem>
+            {!!invitations.data?.length && (
+              <MenuItem
+                icon={<MailPlus className="h-4 w-4 text-muted" />}
+                onClick={() => (close(), navigate('/select-company'))}
+              >
+                {t('auth.pendingInvitations', { count: invitations.data.length })}
+              </MenuItem>
+            )}
             {(me?.tenants.length ?? 0) > 1 && (
               <MenuItem
                 icon={<Building className="h-4 w-4 text-muted" />}

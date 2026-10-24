@@ -16,6 +16,12 @@ type CreateUser = z.infer<typeof zCreateUser>;
 type UpdateMembership = z.infer<typeof zUpdateMembership>;
 type RoleInput = z.infer<typeof zRoleInput>;
 
+/** The branches a membership can reach (`allBranches` wins over the list). */
+interface MemberScope {
+  allBranches: boolean;
+  branchIds: string[];
+}
+
 @Injectable()
 export class UsersService {
   constructor(
@@ -35,25 +41,58 @@ export class UsersService {
     }
   }
 
-  async list() {
+  /**
+   * Branch scope is authority too: a user manager without access to all branches may only grant, and
+   * only manage members whose access lies entirely within, their own branches. An all-branch member
+   * is therefore out of reach for them.
+   */
+  private assertScopeCovers(ctx: TenantContext, target: MemberScope): void {
+    if (ctx.allBranches) return;
+    const own = new Set(ctx.branchIds);
+    if (target.allBranches || target.branchIds.some((b) => !own.has(b))) {
+      throw new AppError(
+        'branch_scope_exceeded',
+        403,
+        'You can only grant or manage access to branches you can access yourself',
+      );
+    }
+  }
+
+  private async scopeOf(m: { id: string; allBranches: boolean }): Promise<MemberScope> {
+    if (m.allBranches) return { allBranches: true, branchIds: [] };
+    const rows = await this.dbs.db
+      .select({ branchId: membershipBranches.branchId })
+      .from(membershipBranches)
+      .where(eq(membershipBranches.membershipId, m.id));
+    return { allBranches: false, branchIds: rows.map((r) => r.branchId) };
+  }
+
+  async list(ctx: TenantContext) {
     const db = this.dbs.db;
+    // An invited person's account is not the company's until they accept: the company sees only the
+    // email it typed, never the account's global name, phone or sign-in activity.
+    const invited = sql`(${memberships.status} = 'invited')`;
     const rows = await db
       .select({
         membershipId: memberships.id,
         userId: users.id,
         email: users.email,
-        fullName: users.fullName,
-        phone: users.phone,
+        fullName: sql<string | null>`CASE WHEN ${invited} THEN NULL ELSE ${users.fullName} END`,
+        phone: sql<string | null>`CASE WHEN ${invited} THEN NULL ELSE ${users.phone} END`,
         status: memberships.status,
         allBranches: memberships.allBranches,
-        lastLoginAt: users.lastLoginAt,
+        lastLoginAt: sql<Date | null>`CASE WHEN ${invited} THEN NULL ELSE ${users.lastLoginAt} END`.mapWith(
+          users.lastLoginAt,
+        ),
         role: { id: roles.id, name: roles.name, key: roles.key },
         createdAt: memberships.createdAt,
       })
       .from(memberships)
       .innerJoin(users, eq(users.id, memberships.userId))
       .innerJoin(roles, eq(roles.id, memberships.roleId))
-      .orderBy(asc(users.fullName));
+      // Explicit tenant filter: RLS also exposes the caller's own memberships in other companies.
+      .where(eq(memberships.tenantId, ctx.tenant.id))
+      .orderBy(invited, sql`CASE WHEN ${invited} THEN ${users.email} ELSE ${users.fullName} END`);
     const links = await db.select().from(membershipBranches);
     return rows.map((r) => ({
       ...r,
@@ -76,6 +115,13 @@ export class UsersService {
     if (found.length !== new Set(ids).size) throw notFound('Branch');
   }
 
+  /**
+   * Adds a member. A new email gets a new account with the given password and an ACTIVE membership.
+   * An email that already has an account (possibly another company's user, or a platform
+   * administrator) is only INVITED: the membership grants nothing until the person accepts it
+   * themselves (`/me/invitations`), and the supplied name, phone and password are ignored — a company
+   * never takes over or changes an account it did not create.
+   */
   async create(ctx: TenantContext, input: CreateUser) {
     await this.subscriptions.assertWithinLimit('users');
     const role = await this.getRole(input.roleId);
@@ -87,13 +133,18 @@ export class UsersService {
         'Assign at least one branch or grant access to all branches',
       );
     }
+    this.assertScopeCovers(ctx, { allBranches: input.allBranches, branchIds: input.branchIds });
     await this.assertBranches(input.branchIds);
     const db = this.dbs.db;
 
-    let [user] = await db.select({ id: users.id }).from(users).where(eq(users.email, input.email)).limit(1);
-    let created = false;
-    if (!user) {
-      [user] = await db
+    const [existing] = await db.select({ id: users.id }).from(users).where(eq(users.email, input.email)).limit(1);
+    let userId: string;
+    let status: 'active' | 'invited';
+    if (existing) {
+      userId = existing.id;
+      status = 'invited';
+    } else {
+      const [user] = await db
         .insert(users)
         .values({
           email: input.email,
@@ -103,11 +154,12 @@ export class UsersService {
           passwordChangedAt: new Date(),
         })
         .returning({ id: users.id });
-      created = true;
+      userId = user!.id;
+      status = 'active';
     }
     const [m] = await db
       .insert(memberships)
-      .values({ tenantId: ctx.tenant.id, userId: user!.id, roleId: role.id, allBranches: input.allBranches })
+      .values({ tenantId: ctx.tenant.id, userId, roleId: role.id, allBranches: input.allBranches, status })
       .returning();
     if (!input.allBranches) {
       await db
@@ -117,20 +169,23 @@ export class UsersService {
         );
     }
     await this.audit.record({
-      action: 'user.added',
+      action: status === 'invited' ? 'user.invited' : 'user.added',
       entityType: 'membership',
       entityId: m!.id,
-      summary: `${input.email} added with role ${role.name}`,
+      summary:
+        status === 'invited'
+          ? `${input.email} invited with role ${role.name}`
+          : `${input.email} added with role ${role.name}`,
       after: {
         email: input.email,
         roleId: role.id,
         allBranches: input.allBranches,
         branchIds: input.branchIds,
-        newAccount: created,
+        status,
       },
     });
-    // An existing account keeps its own password; we never overwrite another tenant's user credentials.
-    return { membershipId: m!.id, userId: user!.id, accountCreated: created };
+    // The same shape for a new and an existing account (only `status` differs).
+    return { membershipId: m!.id, userId, status };
   }
 
   private async ownerCount(): Promise<number> {
@@ -152,9 +207,19 @@ export class UsersService {
     ) {
       throw forbidden('You cannot change your own role, status or branch access');
     }
+    // A pending invitation becomes active only when the invitee accepts it, and the account is not the
+    // company's to edit: only the offered role and branches can still change.
+    if (m.status === 'invited' && (input.status !== undefined || input.fullName !== undefined || input.phone !== undefined)) {
+      throw conflict(
+        'invitation_pending',
+        'This person has not accepted the invitation yet; only the offered role and branches can change',
+      );
+    }
     const currentRole = await this.getRole(m.roleId);
     // Managing a user whose role exceeds your own authority is also escalation.
     this.assertCanGrant(ctx, currentRole.permissions, currentRole.maxDiscountPct);
+    const currentScope = await this.scopeOf(m);
+    this.assertScopeCovers(ctx, currentScope);
     let newRole = currentRole;
     if (input.roleId && input.roleId !== m.roleId) {
       newRole = await this.getRole(input.roleId);
@@ -168,6 +233,9 @@ export class UsersService {
       throw conflict('last_owner', 'The company must keep at least one active owner');
     }
     const allBranches = input.allBranches ?? m.allBranches;
+    if (input.branchIds || input.allBranches !== undefined) {
+      this.assertScopeCovers(ctx, { allBranches, branchIds: allBranches ? [] : (input.branchIds ?? []) });
+    }
     if (input.branchIds) await this.assertBranches(input.branchIds);
 
     const [after] = await db
@@ -186,7 +254,7 @@ export class UsersService {
       }
     }
     if (input.fullName || input.phone !== undefined) {
-      await this.assertSoleTenant(m.userId);
+      await this.assertAccountManageable(m);
       await db
         .update(users)
         .set({
@@ -205,22 +273,50 @@ export class UsersService {
     return after;
   }
 
+  /**
+   * A company may change the global account (password, name, phone) only of an ACTIVE member whose
+   * account it exclusively owns, and never a platform administrator's account.
+   */
+  private async assertAccountManageable(m: { userId: string; status: string }): Promise<void> {
+    if (m.status !== 'active') {
+      throw conflict('membership_not_active', "Only an active member's account can be changed by the company");
+    }
+    const [u] = await this.dbs.db
+      .select({ isPlatformAdmin: users.isPlatformAdmin })
+      .from(users)
+      .where(eq(users.id, m.userId));
+    if (!u || u.isPlatformAdmin) {
+      throw new AppError(
+        'platform_admin_account',
+        403,
+        'A platform administrator account can only be changed by its owner',
+      );
+    }
+    await this.assertSoleTenant(m.userId);
+  }
+
   /** Global user records may only be edited by a tenant that exclusively owns the account. */
   private async assertSoleTenant(userId: string): Promise<void> {
-    // RLS hides other tenants' memberships, so a narrow definer function returns only the count.
+    // RLS hides other tenants' memberships, so a narrow definer function returns only the count
+    // (of accepted memberships: a pending invitation elsewhere does not make the account shared).
     const [row] = await this.dbs.query<{ n: number }>(`SELECT app_user_membership_count($1) AS n`, [userId]);
     if ((row?.n ?? 0) > 1) {
-      throw forbidden('This account is shared with another company; the user must change it themselves');
+      throw new AppError(
+        'account_shared',
+        403,
+        'This account is shared with another company; the user must change it themselves',
+      );
     }
   }
 
   async resetPassword(ctx: TenantContext, membershipId: string, newPassword: string) {
     const db = this.dbs.db;
-    const [m] = await db.select().from(memberships).where(eq(memberships.id, membershipId));
+    const [m] = await db.select().from(memberships).where(eq(memberships.id, membershipId)).for('update');
     if (!m) throw notFound('User');
     const role = await this.getRole(m.roleId);
     this.assertCanGrant(ctx, role.permissions, role.maxDiscountPct);
-    await this.assertSoleTenant(m.userId);
+    this.assertScopeCovers(ctx, await this.scopeOf(m));
+    await this.assertAccountManageable(m);
     await db
       .update(users)
       .set({

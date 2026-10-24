@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import ExcelJS from 'exceljs';
 import { ExportFormat, ReportCell, ReportColumn, ReportResult } from '@autohub/shared';
+import { unprocessable } from '../../common/errors';
 import { PdfService } from '../pdf/pdf.service';
 
 type Locale = 'ar' | 'en';
@@ -16,6 +17,12 @@ const esc = (v: unknown): string =>
 export function neutraliseFormula(s: string): string {
   return /^[=+\-@\t\r]/.test(s) ? `'${s}` : s;
 }
+
+/**
+ * A PDF is rendered by Chromium in this process, so it is limited to what a person would print;
+ * larger results go to XLSX / CSV, which are cheap to produce.
+ */
+export const MAX_PDF_ROWS = 2_000;
 
 const PARAM_LABELS: Record<string, { en: string; ar: string }> = {
   from: { en: 'From', ar: 'من' },
@@ -61,6 +68,13 @@ export class ReportExportService {
   async render(r: ReportResult, format: ExportFormat, locale: Locale, company: string, currency: string): Promise<{ body: Buffer; contentType: string; ext: string }> {
     if (format === 'csv') return { body: this.csv(r, locale), contentType: 'text/csv; charset=utf-8', ext: 'csv' };
     if (format === 'xlsx') return { body: await this.xlsx(r, locale, company), contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', ext: 'xlsx' };
+    if (r.rows.length > MAX_PDF_ROWS) {
+      throw unprocessable('pdf_too_many_rows', `A PDF export is limited to ${MAX_PDF_ROWS} rows; narrow the filters or export to Excel (XLSX) or CSV`, {
+        maxRows: MAX_PDF_ROWS,
+        rows: r.rows.length,
+        formats: ['xlsx', 'csv'],
+      });
+    }
     return { body: await this.pdf.render(this.html(r, locale, company, currency), { landscape: r.columns.length > 7 }), contentType: 'application/pdf', ext: 'pdf' };
   }
 

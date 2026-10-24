@@ -1,5 +1,6 @@
 import { Controller, Get, Param, Query, Res, StreamableFile } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import type { Response } from 'express';
 import { createZodDto, ZodValidationException } from 'nestjs-zod';
 import {
@@ -16,6 +17,7 @@ import {
   zReceivablesReportQuery,
   zSalesReportQuery,
 } from '@autohub/shared';
+import { getEnv } from '../../config/env';
 import { Ctx, RequirePermissions, TenantContext } from '../../common/context';
 import { notFound } from '../../common/errors';
 import { AuditService } from '../audit/audit.service';
@@ -76,9 +78,14 @@ export class ReportsController {
     return this.reports.receivables(ctx, q);
   }
 
-  /** CSV / XLSX / PDF of a report with the same filters and the same column policy as the screen. */
+  /**
+   * CSV / XLSX / PDF of a report with the same filters and the same column policy as the screen.
+   * Exports run whole reports, so they have their own per-client rate limit; PDFs are also capped in
+   * rows (pdf_too_many_rows) and in concurrent renders (pdf_busy).
+   */
   @Get('reports/:key/export')
   @RequirePermissions('reports.export')
+  @Throttle({ default: { limit: () => getEnv().EXPORT_RATE_LIMIT_PER_MIN, ttl: 60_000 } })
   async export(@Ctx() ctx: TenantContext, @Param('key') key: string, @Query() raw: Record<string, unknown>, @Res({ passthrough: true }) res: Response) {
     if (!(REPORT_KEYS as readonly string[]).includes(key)) throw notFound('Report');
     const opts = zExportQuery.safeParse(raw);

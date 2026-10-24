@@ -47,6 +47,12 @@ const EnvSchema = z
     TRUST_PROXY: bool.default(false),
     RATE_LIMIT_PER_MIN: z.coerce.number().int().min(10).max(1_000_000).default(600),
     AUTH_RATE_LIMIT_PER_MIN: z.coerce.number().int().min(1).max(1_000_000).default(10),
+    /** Report exports (CSV / XLSX / PDF) per client per minute. */
+    EXPORT_RATE_LIMIT_PER_MIN: z.coerce.number().int().min(1).max(1_000_000).default(20),
+    /** Chromium renders (report and sale-document PDFs) running at once in this process. */
+    PDF_MAX_CONCURRENT: z.coerce.number().int().min(1).max(32).default(2),
+    /** Renders that may wait for a free slot; beyond this a request gets 503 `pdf_busy`. */
+    PDF_MAX_QUEUE: z.coerce.number().int().min(0).max(256).default(4),
     ANTHROPIC_API_KEY: z.string().optional(),
     ANTHROPIC_MODEL: z.string().default('claude-opus-5-5'),
     /** AI descriptions per company per 24 hours when the PLATFORM key is used (a company key has no cap here). */
