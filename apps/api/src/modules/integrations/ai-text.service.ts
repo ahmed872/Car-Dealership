@@ -37,6 +37,11 @@ const L = {
 } as const;
 const pick = (map: Record<string, readonly [string, string]>, v: string | null, i: 0 | 1) => (v && map[v] ? map[v]![i] : null);
 const groupDigits = (n: number) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+/** The given parts as one sentence ending with a full stop, or null when there are none. */
+const sentence = (parts: Array<string | null | false>, sep: string) => {
+  const text = parts.filter(Boolean).join(sep);
+  return text ? `${text}.` : null;
+};
 
 /** Plain, factual description built only from the facts (always available, no third party). */
 export function templateDescription(f: ListingFacts): { ar: string; en: string } {
@@ -44,14 +49,14 @@ export function templateDescription(f: ListingFacts): { ar: string; en: string }
   const nameAr = [f.makeAr, f.modelAr, f.trim, f.modelYear].filter(Boolean).join(' ');
   const en = [
     `${nameEn}.`,
-    [pick(L.body, f.bodyType, 0), pick(L.gear, f.transmission, 0) && `${pick(L.gear, f.transmission, 0)} transmission`, pick(L.fuel, f.fuelType, 0)].filter(Boolean).join(', ') || null,
+    sentence([pick(L.body, f.bodyType, 0), pick(L.gear, f.transmission, 0) && `${pick(L.gear, f.transmission, 0)} transmission`, pick(L.fuel, f.fuelType, 0)], ', '),
     f.exteriorColor ? `Colour: ${f.exteriorColor}.` : null,
     f.odometerValue !== null ? `Odometer: ${groupDigits(f.odometerValue)} ${f.odometerUnit}.` : null,
     f.features.length ? `Features: ${f.features.map((x) => x.en).join(', ')}.` : null,
   ].filter(Boolean);
   const ar = [
     `${nameAr}.`,
-    [pick(L.body, f.bodyType, 1), pick(L.gear, f.transmission, 1) && `ناقل حركة ${pick(L.gear, f.transmission, 1)}`, pick(L.fuel, f.fuelType, 1) && `وقود ${pick(L.fuel, f.fuelType, 1)}`].filter(Boolean).join('، ') || null,
+    sentence([pick(L.body, f.bodyType, 1), pick(L.gear, f.transmission, 1) && `ناقل حركة ${pick(L.gear, f.transmission, 1)}`, pick(L.fuel, f.fuelType, 1) && `وقود ${pick(L.fuel, f.fuelType, 1)}`], '، '),
     f.exteriorColor ? `اللون: ${f.exteriorColor}.` : null,
     f.odometerValue !== null ? `العداد: ${groupDigits(f.odometerValue)} ${f.odometerUnit === 'mi' ? 'ميل' : 'كم'}.` : null,
     f.features.length ? `المزايا: ${f.features.map((x) => x.ar).join('، ')}.` : null,

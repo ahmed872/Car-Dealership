@@ -32,9 +32,9 @@ import { useAuth } from '@/lib/auth';
 import { fmtDate, fmtDateTime, fmtMoney } from '@/lib/format';
 import { useApi } from '@/lib/hooks';
 import { LeadStatusBadge, StageBadge, FollowUpText, LeadCreateModal } from '@/features/leads/components';
-import { useStageName } from '@/features/leads/api';
+import { LeadCard, useStageName } from '@/features/leads/api';
 import { Customer360, Interaction, InteractionType, Paged, useCrmError, useCrmMutation, useCustomer } from './api';
-import { ActiveBadge, AssigneeDirectoryNotice, AssigneeSelect, CustomerTypeBadge, InteractionModal, InteractionTimeline, PhoneText, useCanLogInteraction } from './components';
+import { ActiveBadge, AssigneeSelect, CustomerTypeBadge, InteractionModal, InteractionTimeline, PhoneText, useCanLogInteraction } from './components';
 
 type TabKey = 'timeline' | 'leads' | 'reservations' | 'receipts' | 'appointments' | 'wishes';
 
@@ -103,10 +103,7 @@ function AssignModal({ c, onClose }: { c: Customer360['customer']; onClose: () =
     >
       <Field label={t('customers.fields.assignedUser')} hint={t('customers.detail.assignHint')}>
         {(id) => (
-          <>
-            <AssigneeSelect id={id} value={userId} onChange={setUserId} branchId={c.branchId} perm="customers.read" emptyLabel={t('customers.unassigned')} />
-            <AssigneeDirectoryNotice />
-          </>
+          <AssigneeSelect id={id} value={userId} onChange={setUserId} branchId={c.branchId} perm="customers.read" emptyLabel={t('customers.unassigned')} />
         )}
       </Field>
     </Modal>
@@ -157,6 +154,47 @@ function TimelineTab({ customerId, canLog, onLog }: { customerId: string; canLog
           description={canLog ? t('customers.detail.noInteractionsHint') : undefined}
         />
       )}
+    </Card>
+  );
+}
+
+/** Every lead of the customer the user may see (GET /leads?customerId=, same visibility rules as the leads list). */
+function LeadsTab({ customerId, canCreate, onCreate }: { customerId: string; canCreate: boolean; onCreate: () => void }) {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const [page, setPage] = useState(1);
+  const pageSize = 10;
+  const q = useApi<Paged<LeadCard>>(['leads', 'customer', customerId], '/leads', { customerId, page, pageSize, sort: '-createdAt' }, { placeholderData: (p) => p });
+  return (
+    <Card>
+      <CardHeader
+        title={t('customers.detail.leads')}
+        actions={
+          canCreate ? (
+            <Button size="sm" icon={<Plus className="h-4 w-4" />} onClick={onCreate}>
+              {t('customers.detail.newLead')}
+            </Button>
+          ) : undefined
+        }
+      />
+      <DataTable
+        rows={q.data?.items}
+        loading={q.isLoading}
+        error={q.error}
+        onRetry={() => q.refetch()}
+        rowKey={(l) => l.id}
+        onRowClick={(l) => navigate(`/app/leads/${l.id}`)}
+        empty={<EmptyState icon={<Handshake className="h-5 w-5" />} title={t('customers.detail.noLeads')} />}
+        columns={[
+          { key: 'number', header: t('leads.fields.number'), cell: (l) => <span className="num font-medium whitespace-nowrap">{l.number}</span> },
+          { key: 'stage', header: t('leads.fields.stage'), cell: (l) => <StageBadge stage={{ nameEn: l.stageNameEn, nameAr: l.stageNameAr, code: l.stageCode, kind: l.status === 'open' ? 'open' : l.status }} /> },
+          { key: 'status', header: t('common.status'), cell: (l) => <LeadStatusBadge status={l.status} /> },
+          { key: 'owner', header: t('leads.fields.assignee'), hideOnMobile: true, cell: (l) => (l.assigneeName ? <span className="whitespace-nowrap">{l.assigneeName}</span> : <span className="text-subtle">{t('customers.unassigned')}</span>) },
+          { key: 'follow', header: t('leads.fields.nextFollowUpAt'), cell: (l) => (l.status === 'open' ? <FollowUpText at={l.nextFollowUpAt} /> : <span className="text-subtle">—</span>) },
+          { key: 'created', header: t('common.createdAt'), hideOnMobile: true, cell: (l) => <span className="whitespace-nowrap text-muted">{fmtDate(l.createdAt)}</span> },
+        ]}
+        footer={q.data && q.data.total > pageSize ? <Pagination page={q.data.page} pageSize={q.data.pageSize} total={q.data.total} onPage={setPage} /> : undefined}
+      />
     </Card>
   );
 }
@@ -280,35 +318,7 @@ export function CustomerDetailPage() {
         <div className="min-w-0 space-y-4">
           <Tabs<TabKey> tabs={tabs} value={shownTab} onChange={setTab} />
           {shownTab === 'timeline' && <TimelineTab customerId={c.id} canLog={canLog && c.isActive} onLog={() => setLogOpen('call')} />}
-          {shownTab === 'leads' && data.leads && (
-            <Card>
-              <CardHeader
-                title={t('customers.detail.leads')}
-                subtitle={(counts.leads ?? 0) > data.leads.length ? t('customers.detail.recentOnly', { shown: data.leads.length, total: counts.leads }) : undefined}
-                actions={
-                  can('leads.manage') && c.isActive ? (
-                    <Button size="sm" icon={<Plus className="h-4 w-4" />} onClick={() => setLeadOpen(true)}>
-                      {t('customers.detail.newLead')}
-                    </Button>
-                  ) : undefined
-                }
-              />
-              <DataTable
-                rows={data.leads}
-                rowKey={(l) => l.id}
-                onRowClick={(l) => navigate(`/app/leads/${l.id}`)}
-                empty={<EmptyState icon={<Handshake className="h-5 w-5" />} title={t('customers.detail.noLeads')} />}
-                columns={[
-                  { key: 'number', header: t('leads.fields.number'), cell: (l) => <span className="num font-medium">{l.number}</span> },
-                  { key: 'stage', header: t('leads.fields.stage'), cell: (l) => <StageBadge stage={{ nameEn: l.stageNameEn, nameAr: l.stageNameAr, code: l.stageCode, kind: l.status === 'open' ? 'open' : l.status }} /> },
-                  { key: 'status', header: t('common.status'), cell: (l) => <LeadStatusBadge status={l.status} /> },
-                  { key: 'owner', header: t('leads.fields.assignee'), hideOnMobile: true, cell: (l) => l.assignedUserName ?? <span className="text-subtle">{t('customers.unassigned')}</span> },
-                  { key: 'follow', header: t('leads.fields.nextFollowUpAt'), cell: (l) => (l.status === 'open' ? <FollowUpText at={l.nextFollowUpAt} /> : <span className="text-subtle">—</span>) },
-                  { key: 'created', header: t('common.createdAt'), hideOnMobile: true, cell: (l) => <span className="text-muted">{fmtDate(l.createdAt)}</span> },
-                ]}
-              />
-            </Card>
-          )}
+          {shownTab === 'leads' && data.leads && <LeadsTab customerId={c.id} canCreate={can('leads.manage') && c.isActive} onCreate={() => setLeadOpen(true)} />}
           {shownTab === 'reservations' && data.reservations && (
             <Card>
               <CardHeader

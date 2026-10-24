@@ -12,6 +12,7 @@ import { PageHeader } from '@/components/ui/Layout';
 import { ConfirmDialog, Modal } from '@/components/ui/Modal';
 import { Can, useAuth } from '@/lib/auth';
 import { useApi, useApiMutation } from '@/lib/hooks';
+import { ASSIGNABLE_MEMBERS_KEY } from '@/lib/members';
 
 export interface Role {
   id: string;
@@ -43,7 +44,7 @@ function RoleEditor({ role, onDone }: { role: Role | null; onDone: () => void })
   const save = useApiMutation<Record<string, unknown>>({
     path: role ? `/roles/${role.id}` : '/roles',
     method: role ? 'PUT' : 'POST',
-    invalidate: [['roles']],
+    invalidate: [['roles'], [ASSIGNABLE_MEMBERS_KEY]],
     onSuccess: onDone,
   });
   const toggle = (p: Permission, on: boolean) =>
@@ -128,7 +129,7 @@ export function RolesPage() {
   const del = useApiMutation<{ id: string }>({
     path: (v) => `/roles/${v.id}`,
     method: 'DELETE',
-    invalidate: [['roles']],
+    invalidate: [['roles'], [ASSIGNABLE_MEMBERS_KEY]],
     success: t('common.deletedSuccessfully'),
     onSuccess: () => setDeleting(null),
   });

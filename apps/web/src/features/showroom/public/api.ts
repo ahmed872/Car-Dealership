@@ -36,7 +36,8 @@ export interface PublicVehicleCard {
   price: { amount: string; currency: string } | null;
   branch: { name: string; city: string | null };
   photoUrl: string | null;
-  share: { url: string; whatsappUrl: string | null };
+  /** whatsappUrls: the chat text (title — link) per language; whatsappUrl: in the company's document language. */
+  share: { url: string; whatsappUrl: string | null; whatsappUrls: { ar: string; en: string } | null };
 }
 
 export interface PublicVehicleDetail extends PublicVehicleCard {

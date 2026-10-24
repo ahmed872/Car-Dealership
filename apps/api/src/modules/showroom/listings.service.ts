@@ -10,7 +10,7 @@ import { vehicleListings, vehicles } from '../../db/schema';
 import { AuditService } from '../audit/audit.service';
 import { AiTextService, templateDescription } from '../integrations/ai-text.service';
 import { SubscriptionService } from '../tenancy/subscription.service';
-import { listingFacts, publicLinks, visibleStatuses } from './showroom-common';
+import { companyLocale, listingFacts, publicLinks, visibleStatuses } from './showroom-common';
 
 type ListingRow = typeof vehicleListings.$inferSelect;
 type VehicleRow = typeof vehicles.$inferSelect;
@@ -57,7 +57,8 @@ export class ListingsService {
     if (!(await this.subscription.hasFeature('showroom'))) reasons.push('plan_without_showroom');
     if (!l?.isPublished) reasons.push('not_published');
     if (!visibleStatuses(ctx.tenant.settings).includes(v.status)) reasons.push('status_not_listed');
-    const title = l?.titleEn ?? (await this.defaultTitles(v.id)).titleEn;
+    const defaults = l?.titleAr && l.titleEn ? { titleAr: l.titleAr, titleEn: l.titleEn } : await this.defaultTitles(v.id);
+    const titles = { ar: l?.titleAr ?? defaults.titleAr, en: l?.titleEn ?? defaults.titleEn };
     return {
       vehicleId: v.id,
       stockNumber: v.stockNumber,
@@ -76,7 +77,7 @@ export class ListingsService {
           }
         : null,
       visibility: { public: reasons.length === 0, reasons },
-      links: l ? publicLinks(getEnv().PUBLIC_WEB_URL, ctx.tenant.slug, l.id, title, showroom.whatsappNumber) : null,
+      links: l ? publicLinks(getEnv().PUBLIC_WEB_URL, ctx.tenant.slug, l.id, titles, showroom.whatsappNumber, companyLocale(ctx.tenant.settings)) : null,
     };
   }
 
@@ -192,11 +193,13 @@ export class ListingsService {
     return { suggestion: { descriptionAr: text.ar, descriptionEn: text.en }, generation };
   }
 
-  async qr(ctx: TenantContext, vehicleId: string, format: 'svg' | 'png'): Promise<{ contentType: string; body: Buffer }> {
+  /** QR code of the public listing link; `filename` names the download after the stock number. */
+  async qr(ctx: TenantContext, vehicleId: string, format: 'svg' | 'png'): Promise<{ contentType: string; body: Buffer; filename: string }> {
     const p = await this.get(ctx, vehicleId);
     if (!p.links) throw conflict('listing_missing', 'Create the listing first');
-    if (format === 'png') return { contentType: 'image/png', body: await QRCode.toBuffer(p.links.url, { margin: 1, width: 512, errorCorrectionLevel: 'M' }) };
-    return { contentType: 'image/svg+xml', body: Buffer.from(await QRCode.toString(p.links.url, { type: 'svg', margin: 1, errorCorrectionLevel: 'M' })) };
+    const filename = `listing-${p.stockNumber}-qr.${format}`;
+    if (format === 'png') return { contentType: 'image/png', filename, body: await QRCode.toBuffer(p.links.url, { margin: 1, width: 512, errorCorrectionLevel: 'M' }) };
+    return { contentType: 'image/svg+xml', filename, body: Buffer.from(await QRCode.toString(p.links.url, { type: 'svg', margin: 1, errorCorrectionLevel: 'M' })) };
   }
 
   /**
@@ -238,7 +241,8 @@ export class ListingsService {
         titleAr: vehicleListings.titleAr,
         titleEn: vehicleListings.titleEn,
         isPublished: vehicleListings.isPublished,
-        descriptionSource: vehicleListings.descriptionSource,
+        // A listing without any description text has no description source to report.
+        descriptionSource: sql<string | null>`CASE WHEN coalesce(${vehicleListings.descriptionAr}, '') = '' AND coalesce(${vehicleListings.descriptionEn}, '') = '' THEN NULL ELSE ${vehicleListings.descriptionSource} END`,
         publishedAt: vehicleListings.publishedAt,
         publicPhotos: sql<number>`(SELECT count(*)::int FROM vehicle_media m WHERE m.vehicle_id = vehicles.id AND m.is_public AND m.kind = 'photo')`,
       })

@@ -7,10 +7,30 @@ export function visibleStatuses(settings: TenantSettings): string[] {
   return settings.showroom.showReserved ? ['available', 'reserved'] : ['available'];
 }
 
-export function publicLinks(publicWebUrl: string, slug: string, listingId: string, title: string, whatsappNumber: string | null | undefined) {
+/** The company's document language (older settings may lack documents.defaultLocale). */
+export function companyLocale(settings: TenantSettings): 'ar' | 'en' {
+  return settings.documents?.defaultLocale ?? settings.locale;
+}
+
+/**
+ * The public page of a listing and the WhatsApp chat link to the company about it. The chat's
+ * prefilled text (title — link) exists in both languages: `whatsappUrls` for the viewer's language
+ * (staff pages and the public page pick the one matching their UI), `whatsappUrl` in the company's
+ * document language for callers that cannot choose.
+ */
+export function publicLinks(
+  publicWebUrl: string,
+  slug: string,
+  listingId: string,
+  titles: { ar: string; en: string },
+  whatsappNumber: string | null | undefined,
+  defaultLocale: 'ar' | 'en',
+) {
   const url = `${publicWebUrl.replace(/\/$/, '')}/showroom/${encodeURIComponent(slug)}/vehicles/${listingId}`;
   const digits = (whatsappNumber ?? '').replace(/\D/g, '');
-  return { url, whatsappUrl: digits ? `https://wa.me/${digits}?text=${encodeURIComponent(`${title} — ${url}`)}` : null };
+  const chat = (title: string) => `https://wa.me/${digits}?text=${encodeURIComponent(`${title} — ${url}`)}`;
+  const whatsappUrls = digits ? { ar: chat(titles.ar), en: chat(titles.en) } : null;
+  return { url, whatsappUrl: whatsappUrls ? whatsappUrls[defaultLocale] : null, whatsappUrls };
 }
 
 /** Specification facts of a vehicle (the only data the AI adapter ever receives). */

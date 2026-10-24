@@ -61,17 +61,6 @@ export interface AppointmentList {
   truncated: boolean;
 }
 
-/** GET /users (membership list) — used for the assignee picker (needs users.read). */
-export interface MemberRow {
-  membershipId: string;
-  userId: string;
-  fullName: string;
-  status: string;
-  allBranches: boolean;
-  branchIds: string[];
-  role: { id: string; name: string; key: string | null };
-}
-
 export const APPOINTMENT_KEYS: unknown[][] = [['appointments'], ['appointment'], ['customer'], ['vehicle'], ['lead']];
 
 /** Booked appointments can still be changed. */

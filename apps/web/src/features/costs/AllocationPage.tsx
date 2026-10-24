@@ -23,6 +23,7 @@ import { PageHeader } from '@/components/ui/Layout';
 import { api, ApiError, newIdempotencyKey } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { fmtMoney } from '@/lib/format';
+import { useFxRateField, withFxHint } from '@/lib/fx';
 import { useApiMutation } from '@/lib/hooks';
 import {
   categoryName,
@@ -103,6 +104,7 @@ export function AllocationPage() {
   } | null>(null);
 
   const foreign = currency !== base;
+  const fxField = useFxRateField(foreign ? currency : null, rate, setRate);
   const totalOk = isPositiveMoney(total);
   const rateOk = !foreign || isRate(rate);
 
@@ -637,13 +639,14 @@ export function AllocationPage() {
                 label={t('costs.form.exchangeRate')}
                 required
                 error={errors.exchangeRate}
-                hint={
+                hint={withFxHint(
                   previewBase(total, rate, base, rounding)
                     ? t('costs.form.baseAmount', {
                         amount: fmtMoney(previewBase(total, rate, base, rounding), base),
                       })
-                    : t('costs.form.exchangeRateHint', { currency, base })
-                }
+                    : t('costs.form.exchangeRateHint', { currency, base }),
+                  fxField.hint,
+                )}
               >
                 {(id, desc) => (
                   <Input

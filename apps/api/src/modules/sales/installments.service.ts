@@ -405,9 +405,11 @@ export class InstallmentsService {
       .where(eq(installmentAllocations.planId, plan.id))
       .groupBy(receipts.id)
       .orderBy(asc(receipts.receivedAt));
+    const [customer] = await this.dbs.db.select({ fullName: customers.fullName }).from(customers).where(eq(customers.id, plan.customerId));
     return {
       ...plan,
       saleNumber: sale.number,
+      customerName: customer?.fullName ?? null,
       outstanding: closed ? '0.00' : this.outstanding(st).toFixed(2),
       overdueAmount: sum(lines.filter((l) => l.status === 'overdue').map((l) => l.remaining)).toFixed(2),
       lines,

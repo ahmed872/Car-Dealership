@@ -39,6 +39,9 @@ const ar = {
   reopenTitle: 'إعادة فتح يوم {{date}}',
   reopenHint: 'يُعاد فتح آخر يوم مغلق فقط، ليقبل الحركات من جديد. يبقى قيد الفرق المرحَّل كما هو، ويُسجَّل السبب في سجل التدقيق.',
   reopened: 'أُعيد فتح يوم {{date}}',
+  closedBy: 'أغلقه: {{name}}',
+  reopenedBy: 'أعاد فتحه: {{name}}',
+  unknownUser: 'مستخدم غير معروف',
 };
 
 const en: typeof ar = {
@@ -81,6 +84,9 @@ const en: typeof ar = {
   reopenTitle: 'Reopen {{date}}',
   reopenHint: 'Only the latest closed day can be reopened so it accepts entries again. The posted difference stays as it is; the reason is recorded in the audit trail.',
   reopened: '{{date}} reopened',
+  closedBy: 'Closed by {{name}}',
+  reopenedBy: 'Reopened by {{name}}',
+  unknownUser: 'unknown user',
 };
 
 export default { ar, en };

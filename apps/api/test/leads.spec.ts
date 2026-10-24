@@ -122,6 +122,42 @@ describe('leads & sales pipeline', () => {
     expect(board.body.totals.count).toBe(board.body.columns.reduce((n: number, c: { count: number }) => n + c.count, 0));
   });
 
+  it("filters by customer within the reps' own-leads rule; Customer 360 counts and lists the same leads", async () => {
+    const c = await createCustomer(manager.client);
+    const assign = async (userId: string) => {
+      const res = await manager.client.post('/leads', { customerId: c.id, branchId: t.branchId, source: 'phone', assignedUserId: userId });
+      expect(res.status, JSON.stringify(res.body)).toBe(201);
+      return res.body as { id: string };
+    };
+    const mine = await assign(rep.userId);
+    const theirs = await assign(rep2.userId);
+    const elsewhere = await lead(rep.client);
+    const ids = (r: { body: { items: Array<{ id: string }> } }) => r.body.items.map((i) => i.id).sort();
+
+    const mgr = await manager.client.get(`/leads?customerId=${c.id}`);
+    expect(mgr.status, JSON.stringify(mgr.body)).toBe(200);
+    expect(ids(mgr)).toEqual([mine.id, theirs.id].sort());
+    expect(mgr.body.total).toBe(2);
+    const repList = await rep.client.get(`/leads?customerId=${c.id}`);
+    expect(ids(repList)).toEqual([mine.id]);
+    expect(repList.body.total).toBe(1);
+    expect(ids(await rep.client.get(`/leads?customerId=${elsewhere.customerId}`))).toEqual([elsewhere.id]);
+    expect((await rep.client.get('/leads?customerId=not-a-uuid')).status).toBe(422);
+
+    // Customer 360 shows a rep the same leads as the list, not other reps' leads.
+    const repView = await rep.client.get(`/customers/${c.id}`);
+    expect(repView.status, JSON.stringify(repView.body)).toBe(200);
+    expect(repView.body.counts.leads).toBe(1);
+    expect(repView.body.leads.map((l: { id: string }) => l.id)).toEqual([mine.id]);
+    const mgrView = await manager.client.get(`/customers/${c.id}`);
+    expect(mgrView.body.counts.leads).toBe(2);
+
+    // Another company filtering by this customer gets nothing.
+    const foreign = await other.owner.get(`/leads?customerId=${c.id}`);
+    expect(foreign.status).toBe(200);
+    expect(foreign.body.items).toEqual([]);
+  });
+
   it('follow-up reminders: overdue list per user and exactly one notification per due follow-up', async () => {
     const past = new Date(Date.now() - 2 * 3_600_000).toISOString();
     const l = await lead(rep2.client, { nextFollowUpAt: past });

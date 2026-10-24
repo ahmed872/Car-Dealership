@@ -6,3 +6,8 @@
 export function ownEntry<T extends object>(map: T, key: string): T[keyof T] | undefined {
   return Object.hasOwn(map, key) ? map[key as keyof T] : undefined;
 }
+
+/** Escapes LIKE/ILIKE wildcards (and the backslash escape itself) in a user-supplied search term. */
+export function escapeLike(s: string): string {
+  return s.replace(/[\\%_]/g, (m) => `\\${m}`);
+}

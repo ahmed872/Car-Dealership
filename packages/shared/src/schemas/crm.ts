@@ -107,6 +107,7 @@ export const zLeadStageChange = z.object({ stageId: zUuid, note: zOptText(500), 
 export const zLeadLost = z.object({ reason: z.enum(LOST_REASONS), notes: zOptText(1000), version: z.number().int().min(1) });
 export const zLeadListQuery = zPaginationQuery.extend({
   status: z.enum(LEAD_STATUSES).optional(),
+  customerId: zUuid.optional(),
   stageId: zUuid.optional(),
   assignedUserId: zUuid.optional(),
   source: z.enum(LEAD_SOURCES).optional(),

@@ -523,6 +523,7 @@ export class LeadsService {
   async list(ctx: TenantContext, q: LeadListQuery) {
     const conds = this.scope(ctx);
     if (q.status) conds.push(eq(leads.status, q.status));
+    if (q.customerId) conds.push(eq(leads.customerId, q.customerId));
     if (q.stageId) conds.push(eq(leads.stageId, q.stageId));
     if (q.assignedUserId) conds.push(eq(leads.assignedUserId, q.assignedUserId));
     if (q.source) conds.push(eq(leads.source, q.source));

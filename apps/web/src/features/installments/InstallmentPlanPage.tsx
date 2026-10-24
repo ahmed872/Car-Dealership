@@ -16,7 +16,7 @@ import { ApiError } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { fmtDate, fmtDateTime, fmtNumber, fmtPct } from '@/lib/format';
 import { useApi } from '@/lib/hooks';
-import type { CashAccountOption, InstallmentPlanDetail, PaymentMethod, SaleDetail, SettlementQuote } from '@/features/sales/api';
+import type { CashAccountOption, InstallmentPlanDetail, PaymentMethod, SettlementQuote } from '@/features/sales/api';
 import { useCashAccountOptions } from '@/features/sales/api';
 import {
   CashAccountSelect,
@@ -52,11 +52,9 @@ function PlanView({ plan: p, onReload }: { plan: InstallmentPlanDetail; onReload
   const { t } = useTranslation();
   const { can } = useAuth();
   const [collect, setCollect] = useState(false);
-  const sale = useApi<SaleDetail>(['sale', p.saleId], can('sales.read') ? `/sales/${p.saleId}` : null);
   const next = p.lines.find((l) => d(l.remaining).gt(0));
   const active = p.status === 'active';
   const canCollect = active && d(p.outstanding).gt(0) && can('payments.receive');
-  const customerName = sale.data?.customerSnapshot.fullName;
 
   return (
     <>
@@ -68,7 +66,7 @@ function PlanView({ plan: p, onReload }: { plan: InstallmentPlanDetail; onReload
             <PlanStatusBadge status={p.status} />
           </span>
         }
-        subtitle={customerName}
+        subtitle={p.customerName ?? undefined}
         actions={
           canCollect && (
             <Button icon={<Wallet className="h-4 w-4" />} onClick={() => setCollect(true)}>
@@ -150,6 +148,16 @@ function PlanView({ plan: p, onReload }: { plan: InstallmentPlanDetail; onReload
                     </Link>
                   ) : (
                     <span className="num">{p.saleNumber}</span>
+                  ),
+                },
+                {
+                  label: t('installments.fields.customer'),
+                  value: can('customers.read') ? (
+                    <Link to={`/app/customers/${p.customerId}`} className="font-medium text-brand-strong hover:underline">
+                      {p.customerName ?? '—'}
+                    </Link>
+                  ) : (
+                    (p.customerName ?? '—')
                   ),
                 },
                 { label: t('sales.fields.instMethod'), value: t(`sales.instMethod.${p.method}`) },

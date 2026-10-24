@@ -12,7 +12,7 @@ import { useApi, useListParams } from '@/lib/hooks';
 import { Refund, RefundSourceType, RefundStatus } from './api';
 import { RefundsTable } from './components';
 import { RequestRefundModal } from './dialogs';
-import { CustomerPicker, Paged } from './kit';
+import { CustomerPicker, ListSearchInput, Paged, useListSearch } from './kit';
 
 type StatusTab = 'all' | RefundStatus;
 const TABS: StatusTab[] = ['requested', 'approved', 'paid', 'rejected', 'cancelled', 'all'];
@@ -26,12 +26,14 @@ export function RefundsPage() {
   const sourceId = lp.get('sourceId');
   const [customerLabel, setCustomerLabel] = useState('');
   const [requesting, setRequesting] = useState(false);
+  const search = useListSearch(lp);
   const q = useApi<Paged<Refund>>(
     ['refunds'],
     '/refunds',
     {
       page: lp.page,
       pageSize: 25,
+      q: lp.get('q') || undefined,
       status: status === 'all' ? undefined : status,
       customerId: lp.get('customerId') || undefined,
       sourceType: sourceType || undefined,
@@ -67,7 +69,8 @@ export function RefundsPage() {
             }))}
           />
         </div>
-        <div className="grid gap-2 p-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,220px)_auto]">
+        <div className="grid gap-2 p-4 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,220px)_auto]">
+          <ListSearchInput value={search.text} onChange={search.setText} placeholder={t('receivables.refunds.searchHint')} />
           <CustomerPicker
             value={lp.get('customerId')}
             selectedLabel={lp.get('customerId') ? customerLabel || t('receivables.receipts.selectedCustomer') : ''}
@@ -88,12 +91,13 @@ export function RefundsPage() {
               </option>
             ))}
           </Select>
-          {(lp.get('customerId') || sourceType || sourceId) && (
+          {(lp.get('customerId') || sourceType || sourceId || lp.get('q')) && (
             <Button
               variant="ghost"
               onClick={() => {
                 setCustomerLabel('');
-                lp.set({ customerId: null, sourceType: null, sourceId: null });
+                search.clear();
+                lp.set({ customerId: null, sourceType: null, sourceId: null, q: null });
               }}
             >
               {t('common.clearFilters')}

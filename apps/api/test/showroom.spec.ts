@@ -5,7 +5,8 @@ import request from 'supertest';
 import { Pool } from 'pg';
 import { ThrottlerStorage, ThrottlerStorageService } from '@nestjs/throttler';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from 'vitest';
-import { AiTextService } from '../src/modules/integrations/ai-text.service';
+import { contentDisposition } from '../src/common/content-disposition';
+import { AiTextService, templateDescription } from '../src/modules/integrations/ai-text.service';
 import { MessagingService } from '../src/modules/integrations/messaging.service';
 import { VinDecoderService } from '../src/modules/integrations/vin-decoder.service';
 import {
@@ -133,6 +134,15 @@ describe('digital showroom and integrations', () => {
       expect(card).toMatchObject({ titleEn: 'Clean Camry', status: 'available', price: { amount: '95000.00', currency: 'SAR' } });
       expect(card.share.url).toContain(`/showroom/${slug}/vehicles/${listingId}`);
       expect(card.share.whatsappUrl).toMatch(/^https:\/\/wa\.me\/966500000001\?text=/);
+      // The chat text exists in both languages (the page picks the viewer's); the plain link uses the company's document language.
+      const text = (u: string) => decodeURIComponent(new URL(u).searchParams.get('text') ?? '');
+      expect(text(card.share.whatsappUrls.en)).toBe(`Clean Camry — ${card.share.url}`);
+      expect(text(card.share.whatsappUrls.ar)).toBe(`كامري نظيفة — ${card.share.url}`);
+      const docLocale = (await owner.get('/company')).body.settings.documents.defaultLocale as 'ar' | 'en';
+      expect(card.share.whatsappUrl).toBe(card.share.whatsappUrls[docLocale]);
+      const staff = (await owner.get(`/vehicles/${v1}/listing`)).body.links;
+      expect(text(staff.whatsappUrls.ar)).toBe(`كامري نظيفة — ${staff.url}`);
+      expect(text(staff.whatsappUrls.en)).toBe(`Clean Camry — ${staff.url}`);
 
       const detail = await pub(`/vehicles/${listingId}`);
       expect(detail.status).toBe(200);
@@ -197,9 +207,16 @@ describe('digital showroom and integrations', () => {
       const svg = await owner.get(`/vehicles/${v}/listing/qr`);
       expect(svg.status).toBe(200);
       expect(svg.headers['content-type']).toContain('image/svg+xml');
+      // Downloads are named after the stock number.
+      const stock = (await owner.get(`/vehicles/${v}`)).body.vehicle.stockNumber as string;
+      expect(svg.headers['content-disposition']).toBe(`attachment; filename="listing-${stock}-qr.svg"; filename*=UTF-8''listing-${stock}-qr.svg`);
+      expect((await rep.client.get(`/vehicles/${v}/listing/qr`)).status).toBe(200);
+      const noVehicles = await addMemberWithPermissions(app, t, ['customers.read']);
+      expect((await noVehicles.client.get(`/vehicles/${v}/listing/qr`)).status).toBe(403);
       expect(String(svg.body)).toContain('<svg');
       const png = await owner.get(`/vehicles/${v}/listing/qr?format=png`).responseType('blob');
       expect((png.body as Buffer).subarray(1, 4).toString()).toBe('PNG');
+      expect(png.headers['content-disposition']).toContain(`filename="listing-${stock}-qr.png"`);
       const stale = await owner.put(`/vehicles/${v}/listing`, { titleEn: 'y', version: 1 });
       expect(stale.status).toBe(409);
       // A plan without the showroom feature cannot publish.
@@ -210,6 +227,27 @@ describe('digital showroom and integrations', () => {
       expect(gated.status).toBe(402);
       expect(gated.body.error.code).toBe('plan_feature_missing');
       expect((await starter.owner.put('/integrations/vin_decoder', { enabled: true })).status).toBe(402);
+    });
+
+    it('download names: ASCII fallback plus the exact UTF-8 name, never a path or a quote', () => {
+      expect(contentDisposition('attachment', 'listing-STK-2026-000012-qr.png')).toBe(
+        `attachment; filename="listing-STK-2026-000012-qr.png"; filename*=UTF-8''listing-STK-2026-000012-qr.png`,
+      );
+      expect(contentDisposition('attachment', 'listing-سيارة-7-qr.svg')).toBe(
+        `attachment; filename="listing-_-7-qr.svg"; filename*=UTF-8''listing-%D8%B3%D9%8A%D8%A7%D8%B1%D8%A9-7-qr.svg`,
+      );
+      expect(contentDisposition('inline', 'Café "A"/../b.pdf')).toBe(`inline; filename="Cafe_A_.._b.pdf"; filename*=UTF-8''Caf%C3%A9%20%22A%22_.._b.pdf`);
+      expect(contentDisposition('attachment', '')).toBe(`attachment; filename="download"; filename*=UTF-8''download`);
+    });
+
+    it('the listings list reports no description source for a listing without a description', async () => {
+      const bare = await vehicle();
+      expect((await owner.put(`/vehicles/${bare}/listing`, { titleEn: 'Title only', titleAr: 'عنوان فقط' })).status).toBe(200);
+      const described = await vehicle();
+      expect((await owner.put(`/vehicles/${described}/listing`, { titleEn: 'Described', descriptionEn: 'Typed by staff.' })).status).toBe(200);
+      const rows = (await owner.get('/showroom/listings?pageSize=100')).body.items as Array<{ vehicleId: string; descriptionSource: string | null }>;
+      expect(rows.find((r) => r.vehicleId === bare)?.descriptionSource).toBeNull();
+      expect(rows.find((r) => r.vehicleId === described)?.descriptionSource).toBe('manual');
     });
 
     it('only general photos are public: recategorising a photo withdraws it, and other categories cannot be made public', async () => {
@@ -410,6 +448,12 @@ describe('digital showroom and integrations', () => {
       expect(off.body.generation).toMatchObject({ source: 'template', fallbackReason: 'not_enabled' });
       expect(off.body.suggestion.descriptionAr).toContain('تويوتا');
       expect(off.body.suggestion.descriptionEn).toContain('Toyota');
+      expect(off.body.suggestion.descriptionEn).toMatch(/\.$/);
+      expect(off.body.suggestion.descriptionAr).toMatch(/\.$/);
+      // Every sentence of the template ends with a full stop, the specification line included.
+      const facts = { makeEn: 'Toyota', makeAr: 'تويوتا', modelEn: 'Camry', modelAr: 'كامري', modelYear: 2022, trim: null, bodyType: 'sedan', fuelType: 'petrol', transmission: 'automatic', exteriorColor: null, odometerValue: null, odometerUnit: 'km', condition: null, specRegion: null, features: [] };
+      expect(templateDescription(facts)).toEqual({ en: 'Toyota Camry 2022. Sedan, Automatic transmission, Petrol.', ar: 'تويوتا كامري 2022. سيدان، ناقل حركة أوتوماتيك، وقود بنزين.' });
+      expect(templateDescription({ ...facts, bodyType: null, fuelType: null, transmission: null }).en).toBe('Toyota Camry 2022.');
       // Nothing is saved until staff accept the suggestion.
       expect((await owner.get(`/vehicles/${v}/listing`)).body.listing).toBeNull();
 
@@ -481,6 +525,18 @@ describe('digital showroom and integrations', () => {
       const item = rec.body.items.find((x: { vehicleId: string }) => x.vehicleId === target);
       expect(item.daysInStock).toBeGreaterThanOrEqual(19);
       expect(item.actions.map((a: { code: string }) => a.code)).toEqual(expect.arrayContaining(['critical_age', 'add_photos', 'review_price']));
+      // Each item names the vehicle (make, model, year, stock number) in both languages.
+      const v = (await owner.get(`/vehicles/${target}`)).body.vehicle;
+      expect(item).toMatchObject({ stockNumber: v.stockNumber, makeEn: 'Toyota', makeAr: 'تويوتا', modelEn: 'Camry', modelAr: 'كامري', modelYear: v.modelYear });
+      expect((await rep.client.get('/inventory/aging-recommendations')).status).toBe(403);
+      // Branch scope and tenant isolation: other branches' and other companies' vehicles never appear.
+      const dammam = await createBranch(owner, 'Dammam aging');
+      const limited = await addMemberWithPermissions(app, t, ['vehicles.read', 'pricing.update'], { allBranches: false, branchIds: [dammam.id] });
+      const lim = await limited.client.get('/inventory/aging-recommendations');
+      expect(lim.status).toBe(200);
+      expect(lim.body.items.some((x: { vehicleId: string }) => x.vehicleId === target)).toBe(false);
+      const otherCo = await createTenant(app, await createPlatformAdmin(app));
+      expect((await otherCo.owner.get('/inventory/aging-recommendations')).body.items.some((x: { vehicleId: string }) => x.vehicleId === target)).toBe(false);
     });
 
     it('price guidance uses only sales the user may see, and lists individual sales only with sales.read', async () => {

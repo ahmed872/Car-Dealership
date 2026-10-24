@@ -1,16 +1,20 @@
 import { randomUUID } from 'node:crypto';
 import { Injectable } from '@nestjs/common';
-import { and, desc, eq } from 'drizzle-orm';
+import { and, desc, eq, getTableColumns } from 'drizzle-orm';
+import { alias } from 'drizzle-orm/pg-core';
 import { d, money, todayInZone } from '@autohub/shared';
 import { assertBranchAccess, assertPermission, hasPermission, TenantContext } from '../../common/context';
 import { conflict, forbidden, notFound, registerUniqueConstraint, unprocessable } from '../../common/errors';
 import { DbService } from '../../db/db.service';
-import { cashAccounts, cashDayClosings } from '../../db/schema';
+import { cashAccounts, cashDayClosings, users } from '../../db/schema';
 import { AuditService } from '../audit/audit.service';
 import { CashService } from '../finance/cash.service';
 import { ACCOUNTS } from '../ledger/chart';
 
 registerUniqueConstraint('cash_day_closings_live_uq', 'cash_day_closed', 'This cash day is already closed');
+
+const closer = alias(users, 'closer');
+const reopener = alias(users, 'reopener');
 
 /**
  * Daily cash closing (D-032). Closing a day for an account records the counted balance against
@@ -145,9 +149,17 @@ export class CashClosingService {
     return a;
   }
 
+  /** Closings of an account, newest first, with the names of who closed and who reopened each. */
   async list(ctx: TenantContext, accountId: string) {
     await this.readableAccount(ctx, accountId);
-    return this.dbs.db.select().from(cashDayClosings).where(eq(cashDayClosings.cashAccountId, accountId)).orderBy(desc(cashDayClosings.businessDate), desc(cashDayClosings.closedAt)).limit(366);
+    return this.dbs.db
+      .select({ ...getTableColumns(cashDayClosings), closedByName: closer.fullName, reopenedByName: reopener.fullName })
+      .from(cashDayClosings)
+      .leftJoin(closer, eq(closer.id, cashDayClosings.closedBy))
+      .leftJoin(reopener, eq(reopener.id, cashDayClosings.reopenedBy))
+      .where(eq(cashDayClosings.cashAccountId, accountId))
+      .orderBy(desc(cashDayClosings.businessDate), desc(cashDayClosings.closedAt))
+      .limit(366);
   }
 
   /** Expected balance for a day (what the count will be compared with). */

@@ -143,6 +143,7 @@ ownership rules are enforced inside the services on top of this.
 | GET | `/api/v1/me/invitations` | signed_in |  |  |
 | POST | `/api/v1/me/invitations/:id/accept` | signed_in |  |  |
 | POST | `/api/v1/me/invitations/:id/decline` | signed_in |  |  |
+| GET | `/api/v1/members/assignable` | authenticated |  |  |
 | GET | `/api/v1/notifications` | authenticated |  |  |
 | POST | `/api/v1/notifications/:id/read` | authenticated |  |  |
 | POST | `/api/v1/notifications/read-all` | authenticated |  |  |

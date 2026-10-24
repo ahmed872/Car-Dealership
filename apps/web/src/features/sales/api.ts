@@ -362,6 +362,7 @@ export interface InstallmentLine {
 /** GET /installment-plans/:id */
 export interface InstallmentPlanDetail extends InstallmentPlan {
   saleNumber: string;
+  customerName: string | null;
   outstanding: string;
   overdueAmount: string;
   lines: InstallmentLine[];
@@ -407,8 +408,10 @@ export interface CashClosing {
   status: 'closed' | 'reopened';
   notes: string | null;
   closedBy: string | null;
+  closedByName: string | null;
   closedAt: string;
   reopenedBy: string | null;
+  reopenedByName: string | null;
   reopenedAt: string | null;
   reopenReason: string | null;
 }

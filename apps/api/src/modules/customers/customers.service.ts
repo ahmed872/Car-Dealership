@@ -418,7 +418,7 @@ export class CustomersService {
    * Customer 360: profile, counts and the most recent leads, reservations, receipts (with the
    * advance balance), appointments, wishes and interactions. Each section is included only when
    * the caller holds its read permission (otherwise null); lead/appointment/reservation sections
-   * follow the caller's branch scope.
+   * follow the caller's branch scope, and leads also the reps' own-leads rule of GET /leads.
    */
   async get(ctx: TenantContext, id: string) {
     const c = await this.assertVisible(ctx, id);
@@ -428,6 +428,8 @@ export class CustomersService {
     const canAppts = hasPermission(ctx, 'appointments.read');
     const canRes = hasPermission(ctx, 'reservations.read');
     const canPay = hasPermission(ctx, 'payments.read');
+    // Same rule as GET /leads: sales reps (no leads.assign, no customers.read_all) see only their own leads.
+    const ownLeadsOf = !hasPermission(ctx, 'leads.assign') && !hasPermission(ctx, 'customers.read_all') ? ctx.userId : null;
 
     const [names] = await this.dbs.query<{ branch_name: string | null; assigned_user_name: string | null; created_by_name: string | null }>(
       `SELECT (SELECT name FROM branches WHERE id = $1) AS branch_name,
@@ -437,8 +439,10 @@ export class CustomersService {
     );
     const [cnt] = await this.dbs.query<Record<string, number | string | null>>(
       `SELECT
-         (SELECT count(*)::int FROM leads WHERE customer_id = $1 AND ($2::uuid[] IS NULL OR branch_id = ANY($2::uuid[]))) AS leads,
-         (SELECT count(*)::int FROM leads WHERE customer_id = $1 AND status = 'open' AND ($2::uuid[] IS NULL OR branch_id = ANY($2::uuid[]))) AS open_leads,
+         (SELECT count(*)::int FROM leads WHERE customer_id = $1 AND ($2::uuid[] IS NULL OR branch_id = ANY($2::uuid[]))
+             AND ($3::uuid IS NULL OR assigned_user_id = $3)) AS leads,
+         (SELECT count(*)::int FROM leads WHERE customer_id = $1 AND status = 'open' AND ($2::uuid[] IS NULL OR branch_id = ANY($2::uuid[]))
+             AND ($3::uuid IS NULL OR assigned_user_id = $3)) AS open_leads,
          (SELECT count(*)::int FROM reservations WHERE customer_id = $1 AND ($2::uuid[] IS NULL OR branch_id = ANY($2::uuid[]))) AS reservations,
          (SELECT count(*)::int FROM reservations WHERE customer_id = $1 AND status = 'active' AND ($2::uuid[] IS NULL OR branch_id = ANY($2::uuid[]))) AS active_reservations,
          (SELECT count(*)::int FROM appointments WHERE customer_id = $1 AND ($2::uuid[] IS NULL OR branch_id = ANY($2::uuid[]))) AS appointments,
@@ -448,7 +452,7 @@ export class CustomersService {
          (SELECT count(*)::int FROM customer_wishes WHERE customer_id = $1 AND status = 'active') AS active_wishes,
          (SELECT count(*)::int FROM customer_interactions WHERE customer_id = $1) AS interactions,
          (SELECT max(occurred_at) FROM customer_interactions WHERE customer_id = $1) AS last_interaction_at`,
-      [c.id, scope],
+      [c.id, scope, ownLeadsOf],
     );
     const scoped = <T extends { branchId: unknown }>(col: T['branchId']) => (scope ? inArray(col as typeof leads.branchId, scope.length ? scope : ['00000000-0000-0000-0000-000000000000']) : undefined);
 
@@ -479,7 +483,13 @@ export class CustomersService {
           .innerJoin(pipelineStages, eq(pipelineStages.id, leads.stageId))
           .leftJoin(users, eq(users.id, leads.assignedUserId))
           .leftJoin(vehicles, eq(vehicles.id, leads.vehicleId))
-          .where(and(eq(leads.customerId, c.id), scoped<{ branchId: typeof leads.branchId }>(leads.branchId)))
+          .where(
+            and(
+              eq(leads.customerId, c.id),
+              scoped<{ branchId: typeof leads.branchId }>(leads.branchId),
+              ownLeadsOf ? eq(leads.assignedUserId, ownLeadsOf) : undefined,
+            ),
+          )
           .orderBy(desc(leads.createdAt))
           .limit(5)
       : null;

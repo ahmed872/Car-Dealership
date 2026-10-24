@@ -162,6 +162,8 @@ export function ListingPanel({ d }: { d: VehicleDetail }) {
   const s = q.data;
   const l = s.listing;
   const lang = i18n.language;
+  // The WhatsApp chat text follows the viewer's language (the API builds both).
+  const whatsappUrl = s.links ? (s.links.whatsappUrls?.[lang === 'en' ? 'en' : 'ar'] ?? s.links.whatsappUrl) : null;
   const v = d.vehicle;
   const fallbackAr = [d.make.nameAr, d.model.nameAr, v.trim, v.modelYear].filter(Boolean).join(' ');
   const fallbackEn = [d.make.nameEn, d.model.nameEn, v.trim, v.modelYear].filter(Boolean).join(' ');
@@ -181,7 +183,7 @@ export function ListingPanel({ d }: { d: VehicleDetail }) {
     save.mutate(body);
   };
   const qr = (format: 'svg' | 'png') =>
-    download(`/vehicles/${vehicleId}/listing/qr`, { format }, `listing-${s.stockNumber}.${format}`).catch((e) => toast.error(describe(e)));
+    download(`/vehicles/${vehicleId}/listing/qr`, { format }, `listing-${s.stockNumber}-qr.${format}`).catch((e) => toast.error(describe(e)));
 
   return (
     <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_360px]">
@@ -377,8 +379,8 @@ export function ListingPanel({ d }: { d: VehicleDetail }) {
                 </div>
                 <div>
                   <p className="label">{t('showroom.share.whatsapp')}</p>
-                  {s.links.whatsappUrl ? (
-                    <CopyButton text={s.links.whatsappUrl} label={t('showroom.share.copy')} copiedLabel={t('showroom.share.copied')} />
+                  {whatsappUrl ? (
+                    <CopyButton text={whatsappUrl} label={t('showroom.share.copy')} copiedLabel={t('showroom.share.copied')} />
                   ) : (
                     <p className="text-xs text-muted">{t('showroom.share.noWhatsapp')}</p>
                   )}

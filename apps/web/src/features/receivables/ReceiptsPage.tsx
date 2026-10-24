@@ -14,7 +14,7 @@ import { useApi, useListParams } from '@/lib/hooks';
 import { ReceiptListItem } from './api';
 import { ReceiptStatusBadge, VoidReceiptDialog } from './components';
 import { RecordReceiptModal } from './dialogs';
-import { CustomerPicker, Money, Paged, useCashAccountOptions, useTenantMoney } from './kit';
+import { CustomerPicker, ListSearchInput, Money, Paged, useCashAccountOptions, useListSearch, useTenantMoney } from './kit';
 
 type StatusTab = 'all' | 'posted' | 'voided';
 
@@ -30,12 +30,14 @@ export function ReceiptsPage() {
   const [recording, setRecording] = useState(false);
   const [voiding, setVoiding] = useState<ReceiptListItem | null>(null);
   const accounts = useCashAccountOptions();
+  const search = useListSearch(lp);
   const q = useApi<Paged<ReceiptListItem>>(
     ['receipts'],
     '/receipts',
     {
       page: lp.page,
       pageSize: 25,
+      q: lp.get('q') || undefined,
       status: status === 'all' ? undefined : status,
       customerId: lp.get('customerId') || undefined,
       cashAccountId: lp.get('cashAccountId') || undefined,
@@ -68,7 +70,8 @@ export function ReceiptsPage() {
             ]}
           />
         </div>
-        <div className="grid gap-2 p-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,260px)_auto]">
+        <div className="grid gap-2 p-4 sm:grid-cols-2 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,240px)_auto]">
+          <ListSearchInput value={search.text} onChange={search.setText} placeholder={t('receivables.receipts.searchHint')} />
           <CustomerPicker
             value={lp.get('customerId')}
             selectedLabel={lp.get('customerId') ? customerLabel || t('receivables.receipts.selectedCustomer') : ''}
@@ -89,12 +92,13 @@ export function ReceiptsPage() {
               </option>
             ))}
           </Select>
-          {(lp.get('customerId') || lp.get('cashAccountId')) && (
+          {(lp.get('customerId') || lp.get('cashAccountId') || lp.get('q')) && (
             <Button
               variant="ghost"
               onClick={() => {
                 setCustomerLabel('');
-                lp.set({ customerId: null, cashAccountId: null });
+                search.clear();
+                lp.set({ customerId: null, cashAccountId: null, q: null });
               }}
             >
               {t('common.clearFilters')}

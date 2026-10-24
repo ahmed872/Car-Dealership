@@ -2,7 +2,17 @@ import type { INestApplication } from '@nestjs/common';
 import { Pool } from 'pg';
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
 import { JobsService } from '../src/modules/jobs/jobs.service';
-import { assertLedgerIntegrity, createCashAccount, createCustomer, createVehicle, glBalance, makeAvailable, secondApprover } from './fixtures';
+import {
+  addMemberWithPermissions,
+  assertLedgerIntegrity,
+  createBranch,
+  createCashAccount,
+  createCustomer,
+  createVehicle,
+  glBalance,
+  makeAvailable,
+  secondApprover,
+} from './fixtures';
 import { Client, closeApp, createPlatformAdmin, createTenant, getApp, idem, ownerPool, TestTenant } from './helpers';
 
 describe('reservations, deposits and refunds', () => {
@@ -164,6 +174,57 @@ describe('reservations, deposits and refunds', () => {
     expect(ref.status).toBe(201);
     const over = await owner.post('/refunds', { sourceType: 'reservation', sourceId: r.body.id, amountBase: '0.01', reason: 'double' }, idem());
     expect(over.status).toBe(409);
+  });
+
+  it('receipts and refunds search by number, reference and customer name; receipt allocations name their document', async () => {
+    const cust = await customer('Searchable Sultan');
+    const v = await availableVehicle();
+    const r = await owner.post(
+      '/reservations',
+      { vehicleId: v.id, customerId: cust, deposit: { cashAccountId: cash.id, amount: '2500.00', method: 'cash', reference: 'TRX-778899' } },
+      idem(),
+    );
+    expect(r.status, JSON.stringify(r.body)).toBe(201);
+    const receiptId = r.body.receipt.id as string;
+    const ids = (res: { body: { items: Array<{ id: string }> } }) => res.body.items.map((i) => i.id);
+    for (const q of [r.body.receipt.number as string, 'trx-7788', 'searchable sul']) {
+      const res = await owner.get(`/receipts?q=${encodeURIComponent(q)}`);
+      expect(res.status).toBe(200);
+      expect(ids(res), q).toEqual([receiptId]);
+      expect(res.body.total, q).toBe(1);
+    }
+    // Wildcards are literal: "%" matches no receipt rather than all of them.
+    expect((await owner.get(`/receipts?q=${encodeURIComponent('%')}`)).body.total).toBe(0);
+    expect(ids(await owner.get('/receipts?q=no-such-receipt'))).toEqual([]);
+
+    // The allocation carries the reservation number, so the receipt page needs no extra lookups.
+    const detail = await owner.get(`/receipts/${receiptId}`);
+    expect(detail.body.allocations).toEqual([expect.objectContaining({ targetType: 'reservation', targetId: r.body.id, documentNumber: r.body.number, amountBase: '2500.00' })]);
+
+    const c = await owner.post(`/reservations/${r.body.id}/cancel`, { reason: 'Changed plans', refund: 'per_policy' }, idem());
+    expect(c.status, JSON.stringify(c.body)).toBe(200);
+    const refund = c.body.refund as { id: string; number: string };
+    expect((await checker.post(`/refunds/${refund.id}/approve`, { note: 'OK' })).status).toBe(200);
+    expect((await owner.post(`/refunds/${refund.id}/pay`, { cashAccountId: cash.id, method: 'cash', reference: 'RF-REF-5521' }, idem())).status).toBe(200);
+    for (const q of [refund.number, 'rf-ref-55', 'SEARCHABLE']) {
+      const res = await owner.get(`/refunds?q=${encodeURIComponent(q)}`);
+      expect(res.status).toBe(200);
+      expect(ids(res), q).toEqual([refund.id]);
+    }
+    expect(ids(await owner.get('/refunds?q=no-such-refund'))).toEqual([]);
+
+    // payments.read is required; a user of another branch finds nothing; another company finds nothing.
+    const noPay = await addMemberWithPermissions(app, t, ['customers.read']);
+    expect((await noPay.client.get('/receipts?q=TRX')).status).toBe(403);
+    expect((await noPay.client.get('/refunds?q=TRX')).status).toBe(403);
+    const far = await createBranch(owner, 'Abha');
+    const farReader = await addMemberWithPermissions(app, t, ['payments.read'], { allBranches: false, branchIds: [far.id] });
+    expect(ids(await farReader.client.get('/receipts?q=TRX-778899'))).toEqual([]);
+    expect(ids(await farReader.client.get(`/refunds?q=${refund.number}`))).toEqual([]);
+    expect((await farReader.client.get(`/receipts/${receiptId}`)).status).toBe(403);
+    const other = await createTenant(app, await createPlatformAdmin(app));
+    expect(ids(await other.owner.get('/receipts?q=TRX-778899'))).toEqual([]);
+    expect((await other.owner.get(`/receipts/${receiptId}`)).status).toBe(404);
   });
 
   it('refuses vehicles that are not available, and below-floor prices without approval rights', async () => {

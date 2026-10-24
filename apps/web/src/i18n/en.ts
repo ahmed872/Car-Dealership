@@ -102,6 +102,10 @@ const en: Messages = {
     reject: 'Reject',
     submit: 'Submit',
   },
+  fx: {
+    band: 'Allowed: {{min}} – {{max}} (±{{pct}}% around the reference rate {{ref}})',
+    noReference: 'No {{currency}} reference rate is set in company settings; {{currency}} amounts are refused until an administrator sets one.',
+  },
   nav: {
     dashboard: 'Dashboard',
     operations: 'Operations',

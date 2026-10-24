@@ -18,7 +18,6 @@ const ar = {
   noBranch: 'بدون فرع',
   reload: 'إعادة التحميل',
   sameAsPhone: 'استخدام رقم الجوال',
-  assignOnlySelf: 'لا يمكنك الاطلاع على قائمة الموظفين، لذا يقتصر الإسناد عليك فقط.',
   inactiveEditTitle: 'هذا العميل غير نشط',
   inactiveEditHint: 'أعد تفعيل العميل من صفحته أولًا ثم عدّل بياناته.',
   filters: {
@@ -300,7 +299,6 @@ const en: typeof ar = {
   noBranch: 'No branch',
   reload: 'Reload',
   sameAsPhone: 'Use the mobile number',
-  assignOnlySelf: 'You cannot see the staff directory, so you can only assign to yourself.',
   inactiveEditTitle: 'This customer is inactive',
   inactiveEditHint: "Reactivate the customer from their page before editing their details.",
   filters: {

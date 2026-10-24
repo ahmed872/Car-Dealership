@@ -26,6 +26,7 @@ import { useToast } from '@/components/ui/Toast';
 import { api, ApiError, newIdempotencyKey } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { fmtDateTime, fmtMoney } from '@/lib/format';
+import { useFxRateField } from '@/lib/fx';
 import { useApi, useDebounced } from '@/lib/hooks';
 
 /**
@@ -373,6 +374,7 @@ export function MoneyInFields({
   const fm = useFieldMessage('receivables');
   const { currency, foreign, amountBase, errors } = useMoneyIn(value);
   const set = (patch: Partial<MoneyInValue>) => onChange({ ...value, ...patch });
+  const fxField = useFxRateField(foreign ? currency : null, value.rate, (rate) => set({ rate }));
 
   // A single base-currency account is the common case: preselect it.
   useEffect(() => {
@@ -407,7 +409,7 @@ export function MoneyInFields({
         )}
       </Field>
       {foreign && (
-        <Field label={t('receivables.kit.rate', { from: currency, to: base })} required error={touched ? fm(errors.rate) : null}>
+        <Field label={t('receivables.kit.rate', { from: currency, to: base })} required error={touched ? fm(errors.rate) : null} hint={fxField.hint}>
           {(id, desc) => (
             <Input id={id} aria-describedby={desc} dir="ltr" inputMode="decimal" className="num" value={value.rate} invalid={touched && !!errors.rate} onChange={(e) => set({ rate: e.target.value })} />
           )}
@@ -757,5 +759,29 @@ export function LeadPicker(props: PickerProps<LeadOption>) {
       queryKey="leads"
       toOption={(l) => ({ id: l.id, title: `${l.number} · ${l.customerName}`, hint: l.customerPhone ?? undefined })}
     />
+  );
+}
+
+/**
+ * Free-text list search kept in the URL as `q` (the API matches number, reference and customer
+ * name), applied after a short pause in typing. `clear()` empties it with the other filters.
+ */
+export function useListSearch(lp: { get: (k: string) => string; set: (u: Record<string, string | null>) => void }) {
+  const [text, setText] = useState(lp.get('q'));
+  const debounced = useDebounced(text.trim(), 350);
+  useEffect(() => {
+    if (debounced !== lp.get('q')) lp.set({ q: debounced || null });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debounced]);
+  return { text, setText, clear: () => setText('') };
+}
+
+export function ListSearchInput({ value, onChange, placeholder }: { value: string; onChange: (v: string) => void; placeholder: string }) {
+  const { t } = useTranslation();
+  return (
+    <div className="relative min-w-0">
+      <Search className="pointer-events-none absolute start-3 top-1/2 h-4 w-4 -translate-y-1/2 text-subtle" aria-hidden />
+      <Input type="search" value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} aria-label={t('common.search')} className="ps-9" maxLength={100} />
+    </div>
   );
 }

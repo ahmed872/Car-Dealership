@@ -81,16 +81,26 @@ export class InsightsService {
     const rows = await this.dbs.query<{
       id: string;
       stock_number: string;
+      make_en: string;
+      make_ar: string;
+      model_en: string;
+      model_ar: string;
+      model_year: number;
+      trim: string | null;
       status: string;
       days: number;
       asking_price: string | null;
       published: boolean;
       public_photos: number;
     }>(
-      `SELECT v.id, v.stock_number, v.status, ($3::date - (v.stocked_at AT TIME ZONE $4)::date)::int AS days, v.asking_price::text,
+      `SELECT v.id, v.stock_number, mk.name_en AS make_en, mk.name_ar AS make_ar, md.name_en AS model_en, md.name_ar AS model_ar, v.model_year, v.trim,
+              v.status, ($3::date - (v.stocked_at AT TIME ZONE $4)::date)::int AS days, v.asking_price::text,
               coalesce(l.is_published, false) AS published,
               (SELECT count(*)::int FROM vehicle_media m WHERE m.vehicle_id = v.id AND m.is_public AND m.kind = 'photo' AND m.category = 'general') AS public_photos
-         FROM vehicles v LEFT JOIN vehicle_listings l ON l.vehicle_id = v.id
+         FROM vehicles v
+         JOIN vehicle_makes mk ON mk.id = v.make_id
+         JOIN vehicle_models md ON md.id = v.model_id
+         LEFT JOIN vehicle_listings l ON l.vehicle_id = v.id
         WHERE v.status = ANY($1::text[]) AND ($3::date - (v.stocked_at AT TIME ZONE $4)::date) >= $2::int ${scope}
         ORDER BY days DESC
         LIMIT 500`,
@@ -111,7 +121,19 @@ export class InsightsService {
           if (d(r.asking_price).gt(d(med).times('1.05'))) actions.push({ code: 'review_price', detail: { askingPrice: r.asking_price, medianAgreedPrice: med, comparableCount: comps.length } });
         }
       }
-      out.push({ vehicleId: r.id, stockNumber: r.stock_number, status: r.status, daysInStock: r.days, actions });
+      out.push({
+        vehicleId: r.id,
+        stockNumber: r.stock_number,
+        makeEn: r.make_en,
+        makeAr: r.make_ar,
+        modelEn: r.model_en,
+        modelAr: r.model_ar,
+        modelYear: r.model_year,
+        trim: r.trim,
+        status: r.status,
+        daysInStock: r.days,
+        actions,
+      });
     }
     return { basis: 'rules_and_own_sales', staleDaysWarning: s.inventory.staleDaysWarning, staleDaysCritical: s.inventory.staleDaysCritical, items: out };
   }

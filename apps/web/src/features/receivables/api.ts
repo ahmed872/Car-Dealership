@@ -43,7 +43,8 @@ export interface ReceiptDetail {
   voidedAt: string | null;
   voidReason: string | null;
   createdAt: string;
-  allocations: Array<{ id: string; targetType: ReceiptTargetType; targetId: string; amountBase: string }>;
+  /** documentNumber: the reservation or sale number (an installment plan is known by its sale); null for customer credit. */
+  allocations: Array<{ id: string; targetType: ReceiptTargetType; targetId: string; amountBase: string; documentNumber: string | null }>;
 }
 
 /** GET /refunds items and GET /refunds/:id (the list adds customerName). */

@@ -11,7 +11,7 @@ import { PickedVehicle, SupplierPicker, VehiclePicker, MoneyBox } from '@/featur
 import { ApiError } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { useApiMutation } from '@/lib/hooks';
-import { eligibleMembers, useMembers, WorkOrderDetail, WorkOrderPriority, WorkOrderType } from './api';
+import { useWorkOrderAssignees, WorkOrderDetail, WorkOrderPriority, WorkOrderType } from './api';
 
 const FIELD_FOR_CODE: Record<string, string> = {
   vehicle_closed: 'vehicleId',
@@ -36,7 +36,6 @@ export function WorkOrderFormModal({
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { can, currency } = useAuth();
-  const members = useMembers();
   const sfe = useServerFieldErrors();
   const editing = !!wo;
 
@@ -55,7 +54,8 @@ export function WorkOrderFormModal({
   const [formError, setFormError] = useState<string | null>(null);
 
   const branchId = editing ? wo!.branchId : vehicle?.branchId;
-  const options = eligibleMembers(members.active, branchId);
+  const members = useWorkOrderAssignees(branchId);
+  const options = members.list;
   const canSupplier = can('suppliers.read');
 
   const onError = (err: unknown) => {
@@ -98,9 +98,9 @@ export function WorkOrderFormModal({
       title: title.trim(),
       description: description.trim() || null,
       estimatedCost: estimate.trim() || null,
+      assignedUserId: assignee || null,
     };
     // Only send pickers the caller can actually use, so an edit never clears what it cannot see.
-    if (members.allowed) body.assignedUserId = assignee || null;
     if (canSupplier) body.supplierId = supplier?.id ?? null;
     if (editing) update.mutate(body, { onError });
     else create.mutate({ ...body, vehicleId: vehicle!.id }, { onError });
@@ -187,20 +187,13 @@ export function WorkOrderFormModal({
           <Field
             label={t('workOrders.assignee')}
             error={errors.assignedUserId}
-            hint={
-              !members.allowed
-                ? editing && wo!.assigneeName
-                  ? `${wo!.assigneeName} — ${t('workOrders.assigneeNoPermission')}`
-                  : t('workOrders.assigneeNoPermission')
-                : undefined
-            }
+            hint={t('workOrders.assigneeHint')}
           >
             {(id, desc) => (
               <Select
                 id={id}
                 aria-describedby={desc}
                 invalid={!!errors.assignedUserId}
-                disabled={!members.allowed}
                 value={assignee}
                 onChange={(e) => {
                   setAssignee(e.target.value);
@@ -211,12 +204,12 @@ export function WorkOrderFormModal({
                   {members.isLoading ? t('common.loading') : t('workOrders.unassigned')}
                 </option>
                 {options.map((m) => (
-                  <option key={m.userId} value={m.userId}>
+                  <option key={m.id} value={m.id}>
                     {m.fullName}
                   </option>
                 ))}
                 {/* keep a current assignee visible even if no longer eligible */}
-                {assignee && !options.some((m) => m.userId === assignee) && editing && (
+                {assignee && !options.some((m) => m.id === assignee) && editing && (
                   <option value={assignee}>{wo!.assigneeName ?? '—'}</option>
                 )}
               </Select>

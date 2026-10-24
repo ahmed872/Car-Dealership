@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { ALL_PERMISSIONS } from '../permissions';
+import { ALL_PERMISSIONS, Permission } from '../permissions';
 import { MARKETS, MarketCode } from '../markets';
 import { DEFAULT_FX_MAX_DEVIATION_PCT, zLocale, zMarket, zOptText, zPercent100, zPhone, zText, zUuid, TenantSettings } from './common';
 
@@ -91,6 +91,19 @@ export const zUpdateMembership = z.object({
 });
 
 export const zResetPassword = z.object({ newPassword: zPassword });
+
+/**
+ * Permissions that define who can be given a kind of work, for the staff pickers
+ * (GET /members/assignable). Each matches the rule the API applies when the work is assigned:
+ * customers.read — customer owner; leads.read — lead assignee; appointments.manage — appointment
+ * assignee; sales.create — salesperson; work_orders.manage — work-order assignee.
+ */
+export const ASSIGNABLE_PERMISSIONS = ['customers.read', 'leads.read', 'appointments.manage', 'sales.create', 'work_orders.manage'] as const satisfies readonly Permission[];
+export type AssignablePermission = (typeof ASSIGNABLE_PERMISSIONS)[number];
+export const zAssignableMembersQuery = z.object({
+  permission: z.enum(ASSIGNABLE_PERMISSIONS),
+  branchId: zUuid.optional(),
+});
 
 export function defaultTenantSettings(market: MarketCode, locale?: 'ar' | 'en'): TenantSettings {
   const m = MARKETS[market];

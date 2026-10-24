@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { and, desc, eq, inArray, isNull, or, sql, SQL } from 'drizzle-orm';
+import { and, desc, eq, getTableColumns, inArray, isNull, or, sql, SQL } from 'drizzle-orm';
 import { CurrencyCode, d, money, sum, todayInZone } from '@autohub/shared';
 import { assertBranchAccess, assertPermission, TenantContext } from '../../common/context';
 import { conflict, notFound, unprocessable } from '../../common/errors';
+import { escapeLike } from '../../common/lookup';
 import { DbService } from '../../db/db.service';
 import { cashAccounts, customers, receiptAllocations, receipts } from '../../db/schema';
 import { AuditService } from '../audit/audit.service';
@@ -211,7 +212,18 @@ export class ReceiptsService {
     if (!r) throw notFound('Receipt');
     await this.cash.lockAccount(ctx, r.cashAccountId);
     if (r.status !== 'posted') throw conflict('already_voided', 'This receipt is already voided');
-    const allocations = await this.dbs.db.select().from(receiptAllocations).where(eq(receiptAllocations.receiptId, id));
+    // Each allocation carries the number of the document it paid (an installment plan is known by its sale).
+    const allocations = await this.dbs.db
+      .select({
+        ...getTableColumns(receiptAllocations),
+        documentNumber: sql<string | null>`CASE receipt_allocations.target_type
+          WHEN 'reservation' THEN (SELECT r.number FROM reservations r WHERE r.id = receipt_allocations.target_id)
+          WHEN 'sale' THEN (SELECT s.number FROM sales s WHERE s.id = receipt_allocations.target_id)
+          WHEN 'installment' THEN (SELECT s.number FROM installment_plans p JOIN sales s ON s.id = p.sale_id WHERE p.id = receipt_allocations.target_id)
+        END`,
+      })
+      .from(receiptAllocations)
+      .where(eq(receiptAllocations.receiptId, id));
     for (const a of allocations) {
       const h = ReceiptsService.handlers.get(a.targetType as ReceiptTargetType);
       await h?.beforeVoid?.(ctx, a.targetId, a.amountBase, id);
@@ -232,8 +244,19 @@ export class ReceiptsService {
     return after!;
   }
 
-  async list(ctx: TenantContext, f: { customerId?: string; cashAccountId?: string; status?: string; targetType?: string; targetId?: string; page: number; pageSize: number }) {
+  async list(
+    ctx: TenantContext,
+    f: { q?: string; customerId?: string; cashAccountId?: string; status?: string; targetType?: string; targetId?: string; page: number; pageSize: number },
+  ) {
     const conds: SQL[] = [];
+    if (f.q) {
+      // Receipt number, reference or customer name (literal column names: the count query has no join).
+      const like = `%${escapeLike(f.q)}%`;
+      conds.push(
+        sql`(receipts.number ILIKE ${like} OR receipts.reference ILIKE ${like}
+            OR EXISTS (SELECT 1 FROM customers c WHERE c.id = receipts.customer_id AND (c.full_name ILIKE ${like} OR c.company_name ILIKE ${like})))`,
+      );
+    }
     if (f.customerId) conds.push(eq(receipts.customerId, f.customerId));
     if (f.cashAccountId) conds.push(eq(receipts.cashAccountId, f.cashAccountId));
     if (f.status) conds.push(eq(receipts.status, f.status));
@@ -276,7 +299,18 @@ export class ReceiptsService {
     const [r] = await this.dbs.db.select().from(receipts).where(eq(receipts.id, id));
     if (!r) throw notFound('Receipt');
     assertBranchAccess(ctx, r.branchId);
-    const allocations = await this.dbs.db.select().from(receiptAllocations).where(eq(receiptAllocations.receiptId, id));
+    // Each allocation carries the number of the document it paid (an installment plan is known by its sale).
+    const allocations = await this.dbs.db
+      .select({
+        ...getTableColumns(receiptAllocations),
+        documentNumber: sql<string | null>`CASE receipt_allocations.target_type
+          WHEN 'reservation' THEN (SELECT r.number FROM reservations r WHERE r.id = receipt_allocations.target_id)
+          WHEN 'sale' THEN (SELECT s.number FROM sales s WHERE s.id = receipt_allocations.target_id)
+          WHEN 'installment' THEN (SELECT s.number FROM installment_plans p JOIN sales s ON s.id = p.sale_id WHERE p.id = receipt_allocations.target_id)
+        END`,
+      })
+      .from(receiptAllocations)
+      .where(eq(receiptAllocations.receiptId, id));
     const [cust] = await this.dbs.db.select({ fullName: customers.fullName }).from(customers).where(eq(customers.id, r.customerId));
     return { ...r, customerName: cust?.fullName ?? null, allocations };
   }

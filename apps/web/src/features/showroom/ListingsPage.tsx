@@ -127,7 +127,7 @@ export function ListingsPage() {
                 </div>
               ),
             },
-            { key: 'source', header: t('showroom.descriptionSource.label'), hideOnMobile: true, cell: (r) => (r.descriptionSource ? <DescriptionSourceBadge source={r.descriptionSource} /> : '—') },
+            { key: 'source', header: t('showroom.descriptionSource.label'), hideOnMobile: true, cell: (r) => (r.descriptionSource ? <DescriptionSourceBadge source={r.descriptionSource} /> : <span className="text-xs text-muted">{t('showroom.descriptionSource.none')}</span>) },
             {
               key: 'photos',
               header: t('showroom.listings.photos'),

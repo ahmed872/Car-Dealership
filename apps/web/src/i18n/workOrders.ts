@@ -147,7 +147,7 @@ const ar = {
     posted: 'مرحّلة',
     voided: 'ملغاة',
   },
-  assigneeNoPermission: 'تحتاج صلاحية عرض المستخدمين لاختيار المسؤول',
+  assigneeHint: 'الموظفون الذين يديرون أوامر العمل ولهم صلاحية على فرع السيارة',
   vehicleClosed: 'لا يمكن فتح أوامر عمل لسيارة مُسلَّمة أو مستبعدة',
   noItemsHint: 'أضف بندًا واحدًا على الأقل قبل إنهاء أمر العمل وإرساله للاعتماد',
   success: {
@@ -316,7 +316,7 @@ const en: WorkOrdersMessages = {
     posted: 'Posted',
     voided: 'Voided',
   },
-  assigneeNoPermission: 'You need permission to view users to choose an assignee',
+  assigneeHint: "Staff who manage work orders and can access the vehicle's branch",
   vehicleClosed: 'Work orders cannot be opened for delivered or removed vehicles',
   noItemsHint: 'Add at least one item before completing the work order and submitting it for approval',
   success: {

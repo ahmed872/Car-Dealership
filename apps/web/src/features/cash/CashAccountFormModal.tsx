@@ -13,6 +13,7 @@ import { Field, Input, Select } from '@/components/ui/Field';
 import { Modal } from '@/components/ui/Modal';
 import { useAuth } from '@/lib/auth';
 import { fmtMoney, todayIso } from '@/lib/format';
+import { useFxRateField, withFxHint } from '@/lib/fx';
 import type { CashAccountDetail, CashAccountType } from './api';
 import {
   AmountInput,
@@ -97,6 +98,8 @@ export function CashAccountFormModal({ account, onClose, onSaved }: Props) {
 
   const canOpening = can('ledger.post_manual');
   const foreign = currency !== base;
+  // A new foreign account's opening balance is converted at the company reference rate unless changed.
+  const fxField = useFxRateField(!account && canOpening && foreign ? currency : null, exchangeRate, setExchangeRate);
   const hasOpening = isMoney(openingBalance) && d(openingBalance.trim()).gt(0);
   const openingBase = hasOpening
     ? toBase(openingBalance, currency, foreign ? exchangeRate : '1', base, rounding)
@@ -349,11 +352,10 @@ export function CashAccountFormModal({ account, onClose, onSaved }: Props) {
                       label={t('cash.fx.rateLabel', { currency, base })}
                       required
                       error={err('exchangeRate')}
-                      hint={
-                        openingBase
-                          ? t('cash.fx.equals', { value: fmtMoney(openingBase, base) })
-                          : t('cash.fx.rateHint', { currency, base })
-                      }
+                      hint={withFxHint(
+                        openingBase ? t('cash.fx.equals', { value: fmtMoney(openingBase, base) }) : t('cash.fx.rateHint', { currency, base }),
+                        fxField.hint,
+                      )}
                       className="sm:col-span-2"
                     >
                       {(id, desc) => (

@@ -13,6 +13,7 @@ import { Modal } from '@/components/ui/Modal';
 import { fmtDateTime } from '@/lib/format';
 import { Can, useAuth } from '@/lib/auth';
 import { useApi, useApiMutation } from '@/lib/hooks';
+import { ASSIGNABLE_MEMBERS_KEY } from '@/lib/members';
 import { useBranches } from './BranchesPage';
 import { Role, useRoles } from './RolesPage';
 
@@ -64,7 +65,8 @@ function UserForm({ member, roles, onDone }: { member: Member | null; roles: Rol
   const save = useApiMutation<Record<string, unknown>, { status?: string }>({
     path: member ? `/users/${member.membershipId}` : '/users',
     method: member ? 'PATCH' : 'POST',
-    invalidate: [['users']],
+    // Role, branch and status changes also change who the assignee pickers offer.
+    invalidate: [['users'], [ASSIGNABLE_MEMBERS_KEY]],
     // An existing account is only invited; say so instead of a plain "saved".
     success: (res) => (!member && res.status === 'invited' ? t('users.invitationSent') : t('common.savedSuccessfully')),
     onSuccess: onDone,

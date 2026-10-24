@@ -101,7 +101,7 @@ function AccountClosing({ account, canRead }: { account: Account; canRead: boole
   const latestClosed = history.data?.find((c) => c.status === 'closed') ?? null;
 
   return (
-    <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
+    <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.75fr)]">
       <div className="min-w-0">
         {can('cash.close') ? (
           <CloseDayForm account={account} canRead={canRead} closedThrough={latestClosed?.businessDate ?? null} />
@@ -128,14 +128,33 @@ function AccountClosing({ account, canRead }: { account: Account; canRead: boole
                   key: 'date',
                   header: t('cashClosing.businessDate'),
                   cell: (c) => (
-                    <div>
-                      <p className="font-medium whitespace-nowrap">{fmtDate(c.businessDate)}</p>
-                      <p className="text-xs text-muted">{fmtDateTime(c.closedAt)}</p>
+                    <div className="min-w-[8rem] text-xs whitespace-normal text-muted">
+                      <p className="text-sm font-medium whitespace-nowrap text-ink">{fmtDate(c.businessDate)}</p>
+                      {/* Who closed / reopened, by name (isolated so Latin names keep their order in Arabic). */}
+                      <p>{t('cashClosing.closedBy', { name: `\u2068${c.closedByName ?? t('cashClosing.unknownUser')}\u2069` })}</p>
+                      <p>{fmtDateTime(c.closedAt)}</p>
+                      {c.status === 'reopened' && (
+                        <>
+                          <p className="mt-1">{t('cashClosing.reopenedBy', { name: `\u2068${c.reopenedByName ?? t('cashClosing.unknownUser')}\u2069` })}</p>
+                          {c.reopenedAt && <p>{fmtDateTime(c.reopenedAt)}</p>}
+                        </>
+                      )}
                     </div>
                   ),
                 },
-                { key: 'expected', header: t('cashClosing.expected'), align: 'end', cell: (c) => <Money value={c.expectedBalance} currency={account.currency} /> },
-                { key: 'counted', header: t('cashClosing.counted'), align: 'end', cell: (c) => <Money value={c.countedBalance} currency={account.currency} className="font-medium" /> },
+                {
+                  key: 'counted',
+                  header: t('cashClosing.counted'),
+                  align: 'end',
+                  cell: (c) => (
+                    <div>
+                      <Money value={c.countedBalance} currency={account.currency} className="font-medium whitespace-nowrap" />
+                      <p className="text-xs text-muted">
+                        {t('cashClosing.expected')}: <Money value={c.expectedBalance} currency={account.currency} className="whitespace-nowrap" />
+                      </p>
+                    </div>
+                  ),
+                },
                 {
                   key: 'diff',
                   header: t('cashClosing.difference'),
@@ -152,24 +171,20 @@ function AccountClosing({ account, canRead }: { account: Account; canRead: boole
                   key: 'status',
                   header: t('common.status'),
                   cell: (c) => (
-                    <div className="max-w-[200px]">
+                    <div className="max-w-[150px] whitespace-normal">
                       <Badge tone={c.status === 'closed' ? 'success' : 'warning'}>{t(`cashClosing.status.${c.status}`)}</Badge>
                       {c.status === 'reopened' && c.reopenReason && <p className="mt-0.5 line-clamp-2 text-xs text-muted">{c.reopenReason}</p>}
                       {c.notes && <p className="mt-0.5 line-clamp-2 text-xs text-muted">{c.notes}</p>}
+                      {/* Only the latest closing can be reopened; the action sits with its status so the table fits. */}
+                      {c.id === latestClosed?.id && can('cash.reopen') && (
+                        <div className="mt-1 -ms-2">
+                          <Button size="sm" variant="ghost" icon={<RotateCcw className="h-4 w-4" />} onClick={() => setReopening(c)}>
+                            {t('cashClosing.reopen')}
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   ),
-                },
-                {
-                  key: 'actions',
-                  header: <span className="sr-only">{t('common.actions')}</span>,
-                  className: 'relative',
-                  align: 'end',
-                  cell: (c) =>
-                    c.id === latestClosed?.id && can('cash.reopen') ? (
-                      <Button size="sm" variant="ghost" icon={<RotateCcw className="h-4 w-4" />} onClick={() => setReopening(c)}>
-                        {t('cashClosing.reopen')}
-                      </Button>
-                    ) : null,
                 },
               ]}
             />

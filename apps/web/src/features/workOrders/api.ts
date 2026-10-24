@@ -7,8 +7,8 @@ import {
 } from '@autohub/shared';
 import type { Tone } from '@/components/ui/Badge';
 import type { CostStatus, PaymentMethod } from '@/features/costs/api';
-import { useAuth } from '@/lib/auth';
 import { useApi } from '@/lib/hooks';
+import { useAssignableMembers } from '@/lib/members';
 
 export type WorkOrderStatus = (typeof WORK_ORDER_STATUSES)[number];
 export type WorkOrderType = (typeof WORK_ORDER_TYPES)[number];
@@ -129,16 +129,6 @@ export interface WorkOrderDetail {
   payments: WorkOrderPayment[];
 }
 
-/** Member row of GET /users (users.read). */
-export interface Member {
-  userId: string;
-  fullName: string;
-  email: string;
-  status: string;
-  allBranches: boolean;
-  branchIds: string[];
-}
-
 export const EDITABLE_STATUSES: ReadonlySet<WorkOrderStatus> = new Set(['open', 'in_progress']);
 
 export const statusTone: Record<WorkOrderStatus, Tone> = {
@@ -168,16 +158,12 @@ export function woVehicleTitle(
 export const useWorkOrder = (id: string | undefined) =>
   useApi<WorkOrderDetail>(['work-order', id], id ? `/work-orders/${id}` : null);
 
-/** Active company members (for the assignee picker); null when the caller cannot read users. */
-export function useMembers() {
-  const { can } = useAuth();
-  const allowed = can('users.read');
-  const q = useApi<Member[]>(['users'], allowed ? '/users' : null, undefined, { staleTime: 5 * 60_000 });
-  return { ...q, allowed, active: q.data?.filter((m) => m.status === 'active') ?? [] };
-}
-
-/** Members who may be assigned to a vehicle in `branchId` (server rule assignee_no_branch_access). */
-export function eligibleMembers(members: Member[], branchId: string | null | undefined): Member[] {
-  if (!branchId) return members;
-  return members.filter((m) => m.allBranches || m.branchIds.includes(branchId));
+/**
+ * Staff who can be given work orders: active members whose role holds work_orders.manage and who
+ * can reach `branchId` (the vehicle's branch; without it, the caller's branches). From
+ * GET /members/assignable, so no member-directory permission is needed.
+ */
+export function useWorkOrderAssignees(branchId?: string | null) {
+  const q = useAssignableMembers('work_orders.manage', branchId);
+  return { ...q, list: q.data ?? [] };
 }

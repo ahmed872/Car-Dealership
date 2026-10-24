@@ -9,10 +9,11 @@ import {
   Patch,
   Post,
   Put,
+  Query,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { createZodDto } from 'nestjs-zod';
-import { PERMISSIONS, zCreateUser, zResetPassword, zRoleInput, zUpdateMembership } from '@autohub/shared';
+import { PERMISSIONS, zAssignableMembersQuery, zCreateUser, zResetPassword, zRoleInput, zUpdateMembership } from '@autohub/shared';
 import { Authenticated, Ctx, RequirePermissions, TenantContext } from '../../common/context';
 import { UsersService } from './users.service';
 
@@ -20,6 +21,7 @@ class CreateUserDto extends createZodDto(zCreateUser) {}
 class UpdateMembershipDto extends createZodDto(zUpdateMembership) {}
 class ResetPasswordDto extends createZodDto(zResetPassword) {}
 class RoleDto extends createZodDto(zRoleInput) {}
+class AssignableMembersQueryDto extends createZodDto(zAssignableMembersQuery) {}
 
 @ApiTags('users')
 @Controller()
@@ -30,6 +32,16 @@ export class UsersController {
   @RequirePermissions('users.read')
   list(@Ctx() ctx: TenantContext) {
     return this.users.list(ctx);
+  }
+
+  /**
+   * Staff who can be given a kind of work (id and name only), for assignee pickers. Any member of
+   * the company may ask; the member directory itself (GET /users) stays behind users.read.
+   */
+  @Get('members/assignable')
+  @Authenticated()
+  assignable(@Ctx() ctx: TenantContext, @Query() q: AssignableMembersQueryDto) {
+    return this.users.assignable(ctx, q.permission, q.branchId ?? null);
   }
 
   @Post('users')

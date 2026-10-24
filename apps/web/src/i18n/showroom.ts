@@ -29,6 +29,7 @@ const ar = {
     manual: 'مكتوب يدويًا',
     ai: 'مقترح بالذكاء الاصطناعي',
     template: 'من القالب',
+    none: 'لا يوجد وصف',
   },
   tab: {
     label: 'إعلان المعرض',
@@ -439,6 +440,7 @@ const en: typeof ar = {
     manual: 'Written by staff',
     ai: 'AI suggestion',
     template: 'Template',
+    none: 'No description',
   },
   tab: {
     label: 'Showroom listing',

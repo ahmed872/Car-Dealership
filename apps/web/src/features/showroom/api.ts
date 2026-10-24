@@ -36,7 +36,8 @@ export interface ListingState {
     version: number;
   } | null;
   visibility: { public: boolean; reasons: string[] };
-  links: { url: string; whatsappUrl: string | null } | null;
+  /** whatsappUrls: the chat text (title — link) per language; whatsappUrl: in the company's document language. */
+  links: { url: string; whatsappUrl: string | null; whatsappUrls: { ar: string; en: string } | null } | null;
 }
 
 /** POST /vehicles/:id/listing/generate-description — a suggestion only, nothing is saved. */
@@ -54,6 +55,7 @@ export interface ListingRow {
   titleAr: string | null;
   titleEn: string | null;
   isPublished: boolean;
+  /** null when the listing has no description text (nothing to attribute). */
   descriptionSource: DescriptionSource | null;
   publishedAt: string | null;
   publicPhotos: number;
@@ -101,6 +103,12 @@ export interface AgingRecommendations {
   items: Array<{
     vehicleId: string;
     stockNumber: string;
+    makeEn: string;
+    makeAr: string;
+    modelEn: string;
+    modelAr: string;
+    modelYear: number;
+    trim: string | null;
     status: VehicleStatus;
     daysInStock: number;
     actions: Array<{ code: AgingActionCode | string; detail?: Record<string, unknown> }>;

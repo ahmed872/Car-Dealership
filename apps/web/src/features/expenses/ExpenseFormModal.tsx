@@ -7,6 +7,7 @@ import { Checkbox, Field, Input, Select, Textarea } from '@/components/ui/Field'
 import { Modal } from '@/components/ui/Modal';
 import { useAuth } from '@/lib/auth';
 import { fmtMoney, todayIso } from '@/lib/format';
+import { useFxRateField, withFxHint } from '@/lib/fx';
 import { useCashAccountOptions } from '@/features/cash/api';
 import {
   AmountInput,
@@ -122,6 +123,7 @@ export function ExpenseFormModal({
   const effectiveBranch = branchId || (branchList.length === 1 ? branchList[0]!.id : '');
   const foreign = currency !== base;
   const amountBase = toBase(amount, currency, foreign ? rate : '1', base, rounding);
+  const fxField = useFxRateField(foreign ? currency : null, rate, setRate);
   const baseAccounts = useMemo(
     () => (accounts.data ?? []).filter((a) => a.currency === base),
     [accounts.data, base],
@@ -305,11 +307,10 @@ export function ExpenseFormModal({
             label={t('cash.fx.rateLabel', { currency, base })}
             required
             error={err('exchangeRate')}
-            hint={
-              amountBase
-                ? t('cash.fx.equals', { value: fmtMoney(amountBase, base) })
-                : t('cash.fx.rateHint', { currency, base })
-            }
+            hint={withFxHint(
+              amountBase ? t('cash.fx.equals', { value: fmtMoney(amountBase, base) }) : t('cash.fx.rateHint', { currency, base }),
+              fxField.hint,
+            )}
             className="sm:col-span-2"
           >
             {(id, desc) => (

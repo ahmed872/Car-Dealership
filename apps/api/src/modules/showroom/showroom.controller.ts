@@ -6,6 +6,7 @@ import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 import { zListingUpdate, zPaginationQuery, zQrQuery, zShowroomInquiry, zShowroomVehicleQuery } from '@autohub/shared';
 import { Ctx, NoTransaction, Public, RequirePermissions, TenantContext } from '../../common/context';
+import { contentDisposition } from '../../common/content-disposition';
 import { InsightsService } from './insights.service';
 import { ListingsService } from './listings.service';
 import { PublicShowroomService } from './public-showroom.service';
@@ -76,8 +77,9 @@ export class ShowroomController {
   @Get('vehicles/:id/listing/qr')
   @RequirePermissions('vehicles.read')
   async qr(@Ctx() ctx: TenantContext, @Param('id', ParseUUIDPipe) id: string, @Query() q: QrQueryDto, @Res({ passthrough: true }) res: Response) {
-    const { contentType, body } = await this.listings.qr(ctx, id, q.format);
+    const { contentType, body, filename } = await this.listings.qr(ctx, id, q.format);
     res.setHeader('Content-Type', contentType);
+    res.setHeader('Content-Disposition', contentDisposition('attachment', filename));
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('Cache-Control', 'private, max-age=300');
     return new StreamableFile(body);

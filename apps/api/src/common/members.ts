@@ -1,9 +1,43 @@
-import { and, eq } from 'drizzle-orm';
+import { and, asc, eq, sql } from 'drizzle-orm';
 import type { Permission } from '@autohub/shared';
 import type { DbService } from '../db/db.service';
 import { membershipBranches, memberships, roles, users } from '../db/schema';
 import type { TenantContext } from './context';
 import { unprocessable } from './errors';
+
+/**
+ * The staff pickers' list (GET /members/assignable), by the same rule as `assertWorkingMember`:
+ * active members of THIS company (active membership and account) whose role holds `perm`, id and
+ * name only. With `branchId`: those who can access that branch. Without it, a branch-limited caller
+ * gets the members who share at least one of the caller's branches; an all-branch caller everyone
+ * eligible. The tenant filter matters (RLS also shows a user their own memberships in other
+ * companies); correlated subqueries name the outer column literally (memberships.id), see CLAUDE.md.
+ */
+export async function listWorkingMembers(dbs: DbService, ctx: TenantContext, perm: Permission, branchId: string | null): Promise<Array<{ id: string; fullName: string }>> {
+  const reach = branchId
+    ? sql`(memberships.all_branches OR EXISTS (SELECT 1 FROM membership_branches mb WHERE mb.membership_id = memberships.id AND mb.branch_id = ${branchId}::uuid))`
+    : ctx.allBranches
+      ? undefined
+      : ctx.branchIds.length
+        ? sql`(memberships.all_branches OR EXISTS (SELECT 1 FROM membership_branches mb WHERE mb.membership_id = memberships.id
+              AND mb.branch_id IN (${sql.join(ctx.branchIds.map((b) => sql`${b}::uuid`), sql`, `)})))`
+        : sql`memberships.all_branches`;
+  return dbs.db
+    .select({ id: users.id, fullName: users.fullName })
+    .from(memberships)
+    .innerJoin(users, eq(users.id, memberships.userId))
+    .innerJoin(roles, eq(roles.id, memberships.roleId))
+    .where(
+      and(
+        eq(memberships.tenantId, ctx.tenant.id),
+        eq(memberships.status, 'active'),
+        eq(users.status, 'active'),
+        sql`${perm} = ANY(${roles.permissions})`,
+        reach,
+      ),
+    )
+    .orderBy(asc(users.fullName), asc(users.id));
+}
 
 /**
  * Checks that `userId` can be given work in `branchId`: an active member of THIS company whose

@@ -3,6 +3,7 @@ import { and, desc, eq, inArray, isNull, or, sql, SQL } from 'drizzle-orm';
 import { d, todayInZone } from '@autohub/shared';
 import { assertBranchAccess, assertPermission, hasPermission, TenantContext } from '../../common/context';
 import { conflict, forbidden, notFound, registerUniqueConstraint, unprocessable } from '../../common/errors';
+import { escapeLike } from '../../common/lookup';
 import { DbService } from '../../db/db.service';
 import { customers, receiptAllocations, receipts, refunds } from '../../db/schema';
 import { AuditService } from '../audit/audit.service';
@@ -280,8 +281,16 @@ export class RefundsService {
     return after!;
   }
 
-  async list(ctx: TenantContext, f: { status?: string; customerId?: string; sourceType?: string; sourceId?: string; page: number; pageSize: number }) {
+  async list(ctx: TenantContext, f: { q?: string; status?: string; customerId?: string; sourceType?: string; sourceId?: string; page: number; pageSize: number }) {
     const conds: SQL[] = [];
+    if (f.q) {
+      // Refund number, payment reference or customer name (literal column names: the count query has no join).
+      const like = `%${escapeLike(f.q)}%`;
+      conds.push(
+        sql`(refunds.number ILIKE ${like} OR refunds.reference ILIKE ${like}
+            OR EXISTS (SELECT 1 FROM customers c WHERE c.id = refunds.customer_id AND (c.full_name ILIKE ${like} OR c.company_name ILIKE ${like})))`,
+      );
+    }
     if (f.status) conds.push(eq(refunds.status, f.status));
     if (f.customerId) conds.push(eq(refunds.customerId, f.customerId));
     if (f.sourceType) conds.push(eq(refunds.sourceType, f.sourceType));

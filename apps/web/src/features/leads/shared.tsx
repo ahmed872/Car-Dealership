@@ -56,7 +56,7 @@ export function LeadCommonFilters({ lp }: { lp: ReturnType<typeof useListParams>
   const { canAny } = useAuth();
   const branches = useBranches();
   const seesOthers = canAny('leads.assign', 'customers.read_all');
-  const assignees = useAssignees({ perm: 'leads.read' });
+  const assignees = useAssignees({ perm: 'leads.read', enabled: seesOthers });
   return (
     <>
       {(branches.data?.length ?? 0) > 1 && (
@@ -79,7 +79,7 @@ export function LeadCommonFilters({ lp }: { lp: ReturnType<typeof useListParams>
           </option>
         ))}
       </Select>
-      {seesOthers && assignees.available && (
+      {seesOthers && (
         <Select
           className="w-auto min-w-[160px]"
           value={lp.get('assignedUserId')}

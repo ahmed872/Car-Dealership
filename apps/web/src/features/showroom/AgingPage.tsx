@@ -8,7 +8,7 @@ import { DataTable } from '@/components/ui/DataTable';
 import { EmptyState, ErrorState } from '@/components/ui/Feedback';
 import { Select } from '@/components/ui/Field';
 import { PageHeader } from '@/components/ui/Layout';
-import { VehicleStatusBadge } from '@/features/vehicles/components';
+import { vehicleTitle, VehicleStatusBadge } from '@/features/vehicles/components';
 import { Can, useAuth } from '@/lib/auth';
 import { fmtMoney, fmtNumber } from '@/lib/format';
 import { useApi, useListParams } from '@/lib/hooks';
@@ -20,7 +20,7 @@ type Action = Item['actions'][number];
 
 /** /app/inventory/aging — rule-based advice for stale stock (vehicles.read + pricing.update, D-037). */
 export function AgingPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { can, currency } = useAuth();
   const lp = useListParams();
   const allowed = can('vehicles.read', 'pricing.update');
@@ -112,11 +112,12 @@ export function AgingPage() {
                   key: 'vehicle',
                   header: t('showroom.aging.stock'),
                   cell: (i) => (
-                    <div className="space-y-1">
-                      <Link to={`/app/vehicles/${i.vehicleId}`} className="num font-medium text-brand-strong hover:underline">
-                        {i.stockNumber}
+                    <div className="max-w-[260px] space-y-1">
+                      <Link to={`/app/vehicles/${i.vehicleId}`} className="block font-medium text-brand-strong hover:underline">
+                        {vehicleTitle({ modelYear: i.modelYear, makeNameEn: i.makeEn, makeNameAr: i.makeAr, modelNameEn: i.modelEn, modelNameAr: i.modelAr, trim: i.trim }, i18n.language)}
                       </Link>
-                      <div>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="num text-xs text-muted">{i.stockNumber}</span>
                         <VehicleStatusBadge status={i.status} />
                       </div>
                     </div>

@@ -16,7 +16,7 @@ import { useAuth } from '@/lib/auth';
 import { useDebounced } from '@/lib/hooks';
 import { useBranches } from '@/pages/settings/BranchesPage';
 import { Customer, crmErrorMessage, DuplicateCandidate, DuplicateResult, fieldErrorsOf, useCrmMutation, useCustomer } from './api';
-import { AssigneeSelect, AssigneeDirectoryNotice } from './components';
+import { AssigneeSelect } from './components';
 
 interface FormState {
   type: 'individual' | 'company';
@@ -512,12 +512,7 @@ export function CustomerFormPage() {
               </Field>
               {canAssign && (
                 <Field label={t('customers.fields.assignedUser')} error={errors.assignedUserId}>
-                  {(fid) => (
-                    <>
-                      <AssigneeSelect id={fid} value={f.assignedUserId} onChange={(v) => set('assignedUserId', v)} branchId={f.branchId || null} perm="customers.read" />
-                      <AssigneeDirectoryNotice />
-                    </>
-                  )}
+                  {(fid) => <AssigneeSelect id={fid} value={f.assignedUserId} onChange={(v) => set('assignedUserId', v)} branchId={f.branchId || null} perm="customers.read" />}
                 </Field>
               )}
               <Field label={t('customers.fields.tags')} error={errors.tags} hint={t('customers.hints.tags')} className="sm:col-span-2">

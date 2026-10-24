@@ -8,6 +8,7 @@ import {
   assertLedgerIntegrity,
   catalogIds,
   createAcquisition,
+  createBranch,
   createCashAccount,
   createCustomer,
   createSupplier,
@@ -268,6 +269,20 @@ describe('sales, installments, commissions and cash closing', () => {
       expect(inbox.status).toBe(200);
       const item = (inbox.body as Array<{ entityId: string; type: string; canDecide: boolean }>).find((x) => x.entityId === s2.id);
       expect(item).toMatchObject({ type: 'sale_discount', canDecide: true });
+      // Below-floor prices wait in the inbox too, with what the approver needs to see.
+      const floorItem = (inbox.body as Array<{ entityId: string }>).find((x) => x.entityId === s.id);
+      expect(floorItem).toMatchObject({
+        type: 'sale_below_floor',
+        entityType: 'sale',
+        canDecide: true,
+        branchId: t.branchId,
+        payload: { agreedPrice: '109200.00', floorPrice: '110000.00' },
+      });
+      expect(((await manager.client.get('/approvals')).body as Array<{ entityId: string; canDecide: boolean }>).find((x) => x.entityId === s.id)).toBeUndefined();
+      // A branch-limited approver of another branch does not see it.
+      const elsewhere = await createBranch(owner, 'Dammam');
+      const farApprover = await addMemberWithPermissions(app, t, ['approvals.read', 'sales.approve_below_floor', 'sales.read'], { allBranches: false, branchIds: [elsewhere.id] });
+      expect(((await farApprover.client.get('/approvals')).body as Array<{ entityId: string }>).some((x) => x.entityId === s.id)).toBe(false);
       const ok = await checker.post(`/sales/${s2.id}/approve`, { note: 'Loyal customer' });
       expect(ok.status, JSON.stringify(ok.body)).toBe(200);
       expect(ok.body).toMatchObject({ status: 'approved' });
@@ -490,11 +505,19 @@ describe('sales, installments, commissions and cash closing', () => {
       expect(await saleGl('4000', s.id)).toBe('-100000.00');
 
       const plan = (await owner.get(`/installment-plans/${planId}`)).body;
-      expect(plan).toMatchObject({ status: 'active', outstanding: '110000.00', overdueAmount: '0.00' });
+      expect(plan).toMatchObject({ status: 'active', outstanding: '110000.00', overdueAmount: '0.00', customerName: 'Installment customer', saleNumber: s.number });
+      const listed = (await owner.get(`/installment-plans?customerId=${cust}`)).body.items as Array<{ id: string; customerName: string }>;
+      expect(listed.find((p) => p.id === planId)?.customerName).toBe('Installment customer');
+      // Plan detail without sales.read still names the customer; another company gets 404.
+      const reader = await addMemberWithPermissions(app, t, ['installments.read']);
+      expect((await reader.client.get(`/installment-plans/${planId}`)).body.customerName).toBe('Installment customer');
+      const otherCo = await createTenant(app, await createPlatformAdmin(app));
+      expect((await otherCo.owner.get(`/installment-plans/${planId}`)).status).toBe(404);
       expect(plan.lines).toHaveLength(12);
       const first = plan.lines[0] as { totalDue: string; interestDue: string; principalDue: string };
       const r1 = await pay(owner, cust, planId, first.totalDue, 'installment');
       expect(r1.status, JSON.stringify(r1.body)).toBe(201);
+      expect((await owner.get(`/receipts/${r1.body.id}`)).body.allocations).toEqual([expect.objectContaining({ targetType: 'installment', targetId: planId, documentNumber: s.number })]);
       const alloc = await pool.query(`SELECT principal::text, interest::text, fees::text FROM installment_allocations WHERE receipt_id = $1`, [r1.body.id]);
       expect(alloc.rows).toEqual([{ principal: first.principalDue, interest: first.interestDue, fees: '0.00' }]);
       expect(await saleGl('4100', s.id)).toBe(`-${first.interestDue}`);
@@ -787,6 +810,14 @@ describe('sales, installments, commissions and cash closing', () => {
       expect(back.body.error.code).toBe('cash_day_closed');
       const list = await owner.get(`/cash-accounts/${box.id}/closings`);
       expect((list.body as Array<{ status: string }>).map((x) => x.status)).toEqual(['reopened', 'closed']);
+      // Who closed and who reopened each day, by name.
+      expect(list.body[0]).toMatchObject({ closedByName: 'Owner User', reopenedByName: 'Owner User', reopenReason: 'Found the missing 10 in the drawer' });
+      expect(list.body[1]).toMatchObject({ closedBy: closer.userId, closedByName: 'Custom role user', reopenedByName: null });
+      // Without cash.read the history is refused; another company gets 404.
+      const noRead = await addMemberWithPermissions(app, t, ['cash.close']);
+      expect((await noRead.client.get(`/cash-accounts/${box.id}/closings`)).status).toBe(403);
+      const otherCo = await createTenant(app, await createPlatformAdmin(app));
+      expect((await otherCo.owner.get(`/cash-accounts/${box.id}/closings`)).status).toBe(404);
     });
   });
 });

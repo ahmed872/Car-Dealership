@@ -1,10 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { and, asc, eq, inArray, ne, sql } from 'drizzle-orm';
-import { ALL_PERMISSIONS, d, Permission } from '@autohub/shared';
+import { ALL_PERMISSIONS, AssignablePermission, d, Permission } from '@autohub/shared';
 import { z } from 'zod';
 import { zCreateUser, zRoleInput, zUpdateMembership } from '@autohub/shared';
-import { TenantContext } from '../../common/context';
+import { assertBranchAccess, TenantContext } from '../../common/context';
 import { AppError, conflict, forbidden, notFound } from '../../common/errors';
+import { listWorkingMembers } from '../../common/members';
 import { DbService } from '../../db/db.service';
 import { branches, membershipBranches, memberships, roles, users } from '../../db/schema';
 import { AuditService, diff } from '../audit/audit.service';
@@ -65,6 +66,16 @@ export class UsersService {
       .from(membershipBranches)
       .where(eq(membershipBranches.membershipId, m.id));
     return { allBranches: false, branchIds: rows.map((r) => r.branchId) };
+  }
+
+  /** Assignee picker list: see `listWorkingMembers`. The branch must exist and be within the caller's scope. */
+  async assignable(ctx: TenantContext, perm: AssignablePermission, branchId: string | null) {
+    if (branchId) {
+      const [b] = await this.dbs.db.select({ id: branches.id }).from(branches).where(eq(branches.id, branchId));
+      if (!b) throw notFound('Branch');
+      assertBranchAccess(ctx, branchId);
+    }
+    return listWorkingMembers(this.dbs, ctx, perm, branchId);
   }
 
   async list(ctx: TenantContext) {

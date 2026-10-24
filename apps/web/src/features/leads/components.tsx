@@ -17,7 +17,7 @@ import { useApi, useDebounced } from '@/lib/hooks';
 import { useBranches } from '@/pages/settings/BranchesPage';
 import type { VehicleListItem } from '@/features/vehicles/api';
 import { CustomerListItem, fieldErrorsOf, fmtPhone, fromLocalInput, Paged, toLocalInput, useCrmMutation } from '@/features/customers/api';
-import { AssigneeDirectoryNotice, AssigneeSelect } from '@/features/customers/components';
+import { AssigneeSelect } from '@/features/customers/components';
 import { Lead, LEAD_KEYS, LeadCard, LeadDetail, LeadStatus, LostReason, Stage, useStageName, useStages } from './api';
 
 // ── Badges ───────────────────────────────────────────────────────────────────────────────
@@ -378,18 +378,15 @@ export function AssignLeadModal({ lead, onClose }: { lead: LeadRef; onClose: () 
       <div className="space-y-4">
         <Field label={t('leads.fields.assignee')} required error={touched && !userId ? t('leads.validation.assignee') : null}>
           {(id) => (
-            <>
-              <AssigneeSelect
-                id={id}
-                value={userId}
-                onChange={setUserId}
-                branchId={lead.branchId}
-                perm="leads.read"
-                emptyLabel={t('leads.placeholders.chooseAssignee')}
-                invalid={touched && !userId}
-              />
-              <AssigneeDirectoryNotice />
-            </>
+            <AssigneeSelect
+              id={id}
+              value={userId}
+              onChange={setUserId}
+              branchId={lead.branchId}
+              perm="leads.read"
+              emptyLabel={t('leads.placeholders.chooseAssignee')}
+              invalid={touched && !userId}
+            />
           )}
         </Field>
         <Field label={t('leads.fields.note')}>
@@ -753,10 +750,7 @@ export function LeadCreateModal({ customer, onClose, onCreated }: { customer?: P
         {can('leads.assign') ? (
           <Field label={t('leads.fields.assignee')} error={errors.assignedUserId}>
             {(id) => (
-              <>
-                <AssigneeSelect id={id} value={assignee} onChange={setAssignee} branchId={branchId || null} perm="leads.read" />
-                <AssigneeDirectoryNotice />
-              </>
+              <AssigneeSelect id={id} value={assignee} onChange={setAssignee} branchId={branchId || null} perm="leads.read" />
             )}
           </Field>
         ) : (

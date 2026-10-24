@@ -12,7 +12,7 @@ import { useAuth } from '@/lib/auth';
 import { fmtDate, fmtDateTime } from '@/lib/format';
 import { useApi } from '@/lib/hooks';
 import { ApiError } from '@/lib/api';
-import { ReceiptDetail } from './api';
+import { ReceiptDetail, targetLink } from './api';
 import { ReceiptStatusBadge, SourceLink, VoidReceiptDialog } from './components';
 import { Money, useCashAccountOptions, useTenantMoney } from './kit';
 
@@ -113,7 +113,7 @@ export function ReceiptDetailPage() {
           rowKey={(a) => a.id}
           columns={[
             { key: 'type', header: t('common.type'), cell: (a) => <SourceLink type={a.targetType} id={a.targetId} customerId={r.customerId} /> },
-            { key: 'doc', header: t('receivables.fields.number'), cell: (a) => (a.targetType === 'reservation' ? <ReservationNumber id={a.targetId} /> : '—') },
+            { key: 'doc', header: t('receivables.fields.number'), cell: (a) => <DocumentNumber allocation={a} customerId={r.customerId} /> },
             { key: 'amount', header: t('receivables.receipts.allocated'), align: 'end', cell: (a) => <Money value={a.amountBase} className="font-medium" /> },
           ]}
         />
@@ -123,14 +123,17 @@ export function ReceiptDetailPage() {
   );
 }
 
-/** The reservation number behind a deposit allocation (shown when the user may read reservations). */
-function ReservationNumber({ id }: { id: string }) {
+/** The number of the document an allocation paid, linked when the user can open that document. */
+function DocumentNumber({ allocation: a, customerId }: { allocation: ReceiptDetail['allocations'][number]; customerId: string }) {
   const { can } = useAuth();
-  const q = useApi<{ number: string }>(['reservation', id], can('reservations.read') ? `/reservations/${id}` : null);
-  if (!q.data) return <span className="text-muted">—</span>;
-  return (
-    <Link to={`/app/reservations/${id}`} className="num whitespace-nowrap text-brand-strong hover:underline">
-      {q.data.number}
+  if (!a.documentNumber) return <span className="text-muted">—</span>;
+  const readable = a.targetType === 'reservation' ? can('reservations.read') : a.targetType === 'installment' ? can('installments.read') : can('sales.read');
+  const href = readable ? targetLink(a.targetType, a.targetId, customerId) : null;
+  return href ? (
+    <Link to={href} className="num whitespace-nowrap text-brand-strong hover:underline">
+      {a.documentNumber}
     </Link>
+  ) : (
+    <span className="num whitespace-nowrap">{a.documentNumber}</span>
   );
 }

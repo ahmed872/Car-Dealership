@@ -26,7 +26,7 @@ export function CustomersListPage() {
   const debounced = useDebounced(search, 350);
   const branches = useBranches();
   const seesOthers = canAny('customers.read_all', 'leads.assign');
-  const assignees = useAssignees({ perm: 'customers.read' });
+  const assignees = useAssignees({ perm: 'customers.read', enabled: seesOthers });
   useEffect(() => {
     if (debounced !== lp.get('q')) lp.set({ q: debounced });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -101,7 +101,7 @@ export function CustomersListPage() {
               ))}
             </Select>
           )}
-          {seesOthers && assignees.available && (
+          {seesOthers && (
             <Select
               className="w-auto min-w-[170px]"
               value={lp.get('assignedUserId')}

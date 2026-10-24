@@ -15,7 +15,7 @@ import { SYSTEM_USER_ID, systemContext } from '../jobs/system-context';
 import { LeadsService } from '../leads/leads.service';
 import { NotificationsService } from '../notifications/notifications.service';
 import { SubscriptionService } from '../tenancy/subscription.service';
-import { publicLinks, visibleStatuses } from './showroom-common';
+import { companyLocale, publicLinks, visibleStatuses } from './showroom-common';
 
 type PublicRow = {
   listing_id: string;
@@ -104,9 +104,10 @@ export class PublicShowroomService {
   private card(ctx: TenantContext, slug: string, r: PublicRow) {
     const settings = ctx.tenant.settings;
     const titleEn = r.title_en ?? `${r.make_en} ${r.model_en} ${r.model_year}`;
+    const titleAr = r.title_ar ?? `${r.make_ar} ${r.model_ar} ${r.model_year}`;
     return {
       id: r.listing_id,
-      titleAr: r.title_ar ?? `${r.make_ar} ${r.model_ar} ${r.model_year}`,
+      titleAr,
       titleEn,
       make: { en: r.make_en, ar: r.make_ar },
       model: { en: r.model_en, ar: r.model_ar },
@@ -123,7 +124,7 @@ export class PublicShowroomService {
       price: r.asking_price ? { amount: r.asking_price, currency: ctx.tenant.baseCurrency } : null,
       branch: { name: r.branch_name, city: r.branch_city },
       photoUrl: r.primary_media_id ? `/api/v1/public/showroom/${encodeURIComponent(slug)}/media/${r.primary_media_id}` : null,
-      share: publicLinks(getEnv().PUBLIC_WEB_URL, slug, r.listing_id, titleEn, settings.showroom.whatsappNumber),
+      share: publicLinks(getEnv().PUBLIC_WEB_URL, slug, r.listing_id, { ar: titleAr, en: titleEn }, settings.showroom.whatsappNumber, companyLocale(settings)),
     };
   }
 

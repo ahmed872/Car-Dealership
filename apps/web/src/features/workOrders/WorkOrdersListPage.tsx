@@ -13,7 +13,7 @@ import { PageHeader, Tabs } from '@/components/ui/Layout';
 import { Can, useAuth } from '@/lib/auth';
 import { fmtDate, fmtMoney } from '@/lib/format';
 import { useApi, useDebounced, useListParams } from '@/lib/hooks';
-import { priorityTone, statusTone, useMembers, WorkOrderListItem, woVehicleTitle } from './api';
+import { priorityTone, statusTone, useWorkOrderAssignees, WorkOrderListItem, woVehicleTitle } from './api';
 import { WorkOrderFormModal } from './WorkOrderFormModal';
 
 export function WorkOrdersListPage() {
@@ -24,7 +24,7 @@ export function WorkOrdersListPage() {
   const [search, setSearch] = useState(lp.get('q'));
   const debounced = useDebounced(search, 350);
   const [creating, setCreating] = useState(false);
-  const members = useMembers();
+  const members = useWorkOrderAssignees();
   useEffect(() => {
     if (debounced !== lp.get('q')) lp.set({ q: debounced });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -110,7 +110,7 @@ export function WorkOrdersListPage() {
               </option>
             ))}
           </Select>
-          {members.allowed && (
+          {members.list.length > 0 && (
             <Select
               className="w-full sm:w-auto sm:min-w-[160px]"
               value={lp.get('assignedUserId')}
@@ -118,8 +118,8 @@ export function WorkOrdersListPage() {
               aria-label={t('workOrders.assignee')}
             >
               <option value="">{t('workOrders.filters.allAssignees')}</option>
-              {members.active.map((m) => (
-                <option key={m.userId} value={m.userId}>
+              {members.list.map((m) => (
+                <option key={m.id} value={m.id}>
                   {m.fullName}
                 </option>
               ))}

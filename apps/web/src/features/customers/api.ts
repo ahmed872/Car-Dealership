@@ -6,13 +6,13 @@ import type {
   CustomerDuplicate,
   INTERACTION_TYPES,
   LEAD_SOURCES,
-  Permission,
+  AssignablePermission,
 } from '@autohub/shared';
 import { errorMessage } from '@/components/ui/Feedback';
 import { useToast } from '@/components/ui/Toast';
 import { api, ApiError } from '@/lib/api';
-import { useAuth } from '@/lib/auth';
 import { useApi } from '@/lib/hooks';
+import { useAssignableMembers } from '@/lib/members';
 
 export type CustomerType = (typeof CUSTOMER_TYPES)[number];
 export type LeadSource = (typeof LEAD_SOURCES)[number];
@@ -207,49 +207,20 @@ export const useCustomer = (id: string | undefined) =>
 
 // ── Members (assignees) ──────────────────────────────────────────────────────────────────
 
-interface Member {
-  membershipId: string;
-  userId: string;
-  fullName: string;
-  email: string;
-  status: 'active' | 'suspended';
-  allBranches: boolean;
-  branchIds: string[];
-  role: { id: string; name: string; key: string | null };
-}
-interface RoleRow {
-  id: string;
-  name: string;
-  permissions: Permission[];
-}
-
 export interface Assignee {
   userId: string;
   fullName: string;
-  roleName: string;
 }
 
 /**
  * Staff who can be given CRM work in a branch: active members whose role holds `perm` and who can
- * reach the branch (the API re-checks the same rule). The member directory needs users.read; without
- * it the list is empty and callers offer "assign to me" only.
+ * reach the branch (GET /members/assignable, open to every member; the API re-checks the same rule
+ * when the work is assigned). Without a branch: everyone eligible within the caller's branches.
  */
-export function useAssignees(opts: { branchId?: string | null; perm?: Permission } = {}) {
-  const { can } = useAuth();
-  const enabled = can('users.read');
-  const members = useApi<Member[]>(['users'], enabled ? '/users' : null, undefined, { staleTime: 5 * 60_000 });
-  const roles = useApi<RoleRow[]>(['roles'], enabled ? '/roles' : null, undefined, { staleTime: 5 * 60_000 });
-  const { branchId, perm } = opts;
-  const list = useMemo<Assignee[]>(() => {
-    if (!members.data) return [];
-    const rolePerms = new Map((roles.data ?? []).map((r) => [r.id, r.permissions]));
-    return members.data
-      .filter((m) => m.status === 'active')
-      .filter((m) => !perm || !roles.data || (rolePerms.get(m.role.id) ?? []).includes(perm))
-      .filter((m) => !branchId || m.allBranches || m.branchIds.includes(branchId))
-      .map((m) => ({ userId: m.userId, fullName: m.fullName, roleName: m.role.name }));
-  }, [members.data, roles.data, branchId, perm]);
-  return { list, available: enabled, loading: enabled && (members.isLoading || roles.isLoading) };
+export function useAssignees(opts: { branchId?: string | null; perm?: AssignablePermission; enabled?: boolean } = {}) {
+  const q = useAssignableMembers(opts.perm ?? 'leads.read', opts.branchId, opts.enabled ?? true);
+  const list = useMemo<Assignee[]>(() => (q.data ?? []).map((m) => ({ userId: m.id, fullName: m.fullName })), [q.data]);
+  return { list, loading: q.isLoading };
 }
 
 // ── Errors ───────────────────────────────────────────────────────────────────────────────

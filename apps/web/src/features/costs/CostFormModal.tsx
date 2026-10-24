@@ -8,6 +8,7 @@ import { Modal } from '@/components/ui/Modal';
 import { ApiError, newIdempotencyKey } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { fmtMoney } from '@/lib/format';
+import { useFxRateField, withFxHint } from '@/lib/fx';
 import { useApiMutation } from '@/lib/hooks';
 import {
   categoryName,
@@ -71,6 +72,7 @@ export function CostFormModal({
 
   const foreign = currency !== base;
   const basePreview = foreign ? previewBase(amount, rate, base, rounding) : null;
+  const fxField = useFxRateField(foreign ? currency : null, rate, setRate);
 
   const m = useApiMutation<Record<string, unknown>, VehicleCostRow>({
     path: '/vehicle-costs',
@@ -256,11 +258,10 @@ export function CostFormModal({
               label={t('costs.form.exchangeRate')}
               required
               error={errors.exchangeRate}
-              hint={
-                basePreview
-                  ? t('costs.form.baseAmount', { amount: fmtMoney(basePreview, base) })
-                  : t('costs.form.exchangeRateHint', { currency, base })
-              }
+              hint={withFxHint(
+                basePreview ? t('costs.form.baseAmount', { amount: fmtMoney(basePreview, base) }) : t('costs.form.exchangeRateHint', { currency, base }),
+                fxField.hint,
+              )}
               className="sm:col-span-2"
             >
               {(id, desc) => (

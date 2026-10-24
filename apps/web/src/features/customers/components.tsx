@@ -22,13 +22,11 @@ import { Link } from 'react-router-dom';
 import { INTERACTION_TYPES } from '@autohub/shared';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
-import { Alert } from '@/components/ui/Feedback';
 import { Checkbox, Field, Input, Select, Textarea } from '@/components/ui/Field';
 import { Modal } from '@/components/ui/Modal';
 import { fmtDateTime } from '@/lib/format';
 import { useAuth } from '@/lib/auth';
 import {
-  Assignee,
   CustomerType,
   fieldErrorsOf,
   fmtPhone,
@@ -301,8 +299,8 @@ export function InteractionModal({
 }
 
 /**
- * Salesperson picker. Without the member directory (users.read) the choice is limited to the
- * current user, so the control never offers names it cannot verify.
+ * Salesperson picker: the staff who can be given this work in the branch (GET /members/assignable).
+ * The current value stays selectable even when it is outside the list (e.g. a former owner).
  */
 export function AssigneeSelect({
   id,
@@ -326,32 +324,18 @@ export function AssigneeSelect({
   const { t } = useTranslation();
   const { me } = useAuth();
   const a = useAssignees({ branchId, perm });
-  const options: Assignee[] = a.available ? a.list : me ? [{ userId: me.user.id, fullName: me.user.fullName, roleName: me.role?.name ?? '' }] : [];
-  // Keep the current value selectable even when it is outside the filtered list.
-  const missing = value && !options.some((o) => o.userId === value);
+  const missing = value && !a.list.some((o) => o.userId === value);
   return (
     <Select id={id} value={value} onChange={(e) => onChange(e.target.value)} disabled={a.loading} invalid={invalid}>
       {allowEmpty && <option value="">{emptyLabel ?? t('customers.unassigned')}</option>}
       {missing && <option value={value}>{t('customers.currentAssignee')}</option>}
-      {options.map((o) => (
+      {a.list.map((o) => (
         <option key={o.userId} value={o.userId}>
           {/* Unicode isolates keep a Latin name and an Arabic suffix (or the reverse) in order. */}
           {`\u2068${o.fullName}\u2069`}
-          {o.userId === me?.user.id ? ` · \u2068${t('customers.me')}\u2069` : o.roleName ? ` · \u2068${o.roleName}\u2069` : ''}
+          {o.userId === me?.user.id ? ` · \u2068${t('customers.me')}\u2069` : ''}
         </option>
       ))}
     </Select>
-  );
-}
-
-/** Notice shown next to an assignee picker when the member directory is not available. */
-export function AssigneeDirectoryNotice() {
-  const { t } = useTranslation();
-  const { can } = useAuth();
-  if (can('users.read')) return null;
-  return (
-    <Alert tone="info" className="mt-2">
-      {t('customers.assignOnlySelf')}
-    </Alert>
   );
 }

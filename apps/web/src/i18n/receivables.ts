@@ -108,6 +108,7 @@ const ar = {
   },
   receipts: {
     title: 'سندات القبض',
+    searchHint: 'ابحث برقم السند أو المرجع أو اسم العميل',
     subtitle: 'المبالغ المستلمة من العملاء: العرابين والدفعات المقدمة ودفعات البيع والأقساط',
     new: 'سند قبض جديد',
     newTitle: 'تسجيل سند قبض',
@@ -151,6 +152,7 @@ const ar = {
   },
   refunds: {
     title: 'المبالغ المستردة',
+    searchHint: 'ابحث برقم الاسترداد أو مرجع الصرف أو اسم العميل',
     subtitle: 'طلب ← اعتماد من مسؤول آخر ← صرف',
     new: 'طلب استرداد',
     newTitle: 'طلب استرداد مبلغ لعميل',
@@ -304,6 +306,7 @@ const en: typeof ar = {
   },
   receipts: {
     title: 'Customer receipts',
+    searchHint: 'Search by receipt number, reference or customer name',
     subtitle: 'Money received from customers: deposits, advances, sale and installment payments',
     new: 'New receipt',
     newTitle: 'Record a receipt',
@@ -347,6 +350,7 @@ const en: typeof ar = {
   },
   refunds: {
     title: 'Refunds',
+    searchHint: 'Search by refund number, payment reference or customer name',
     subtitle: 'Request → approval by someone else → payment',
     new: 'Request refund',
     newTitle: 'Request a customer refund',

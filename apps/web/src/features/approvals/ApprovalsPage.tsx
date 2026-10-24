@@ -43,7 +43,8 @@ interface ApprovalItem {
   entityType: string;
   entityId: string;
   summary: string;
-  payload: { vehicleId?: string; amountBase?: string; itemCount?: number } | null;
+  /** Sale price approvals carry agreedPrice (base currency) instead of amountBase. */
+  payload: { vehicleId?: string; amountBase?: string; agreedPrice?: string; itemCount?: number } | null;
   requestedAt: string;
   requestedBy: string | null;
   requestedById: string | null;
@@ -64,6 +65,8 @@ const DECISION_BASE: Partial<Record<ApprovalType, string>> = {
   expense: '/expenses',
   work_order: '/work-orders',
   refund: '/refunds',
+  sale_discount: '/sales',
+  sale_below_floor: '/sales',
 };
 
 /** Types whose own page can also settle the document on approval (pay now). */
@@ -111,6 +114,9 @@ function documentLink(a: ApprovalItem, paths: string[]): string | null {
       return routeFor(paths, 'expenses', a.entityId);
     case 'refund':
       return routeFor(paths, 'refunds', a.entityId);
+    case 'sale_discount':
+    case 'sale_below_floor':
+      return routeFor(paths, 'sales', a.entityId);
     default:
       return null;
   }
@@ -143,6 +149,8 @@ export function ApprovalsPage() {
     ['expense'],
     ['refunds'],
     ['cash-accounts'],
+    ['sales'],
+    ['sale'],
   ];
   const approve = useApiMutation<{ path: string; note: string | null }>({
     path: (v) => v.path,
@@ -181,8 +189,10 @@ export function ApprovalsPage() {
       <p className="mt-0.5 text-xs text-subtle">{t('approvals.noLink')}</p>
     );
   };
-  const amountOf = (a: ApprovalItem) =>
-    a.payload?.amountBase ? fmtMoney(a.payload.amountBase, currency) : '—';
+  const amountOf = (a: ApprovalItem) => {
+    const amount = a.payload?.amountBase ?? a.payload?.agreedPrice;
+    return amount ? fmtMoney(amount, currency) : '—';
+  };
 
   /** Decision buttons, or why the caller cannot decide (maker-checker / no inbox decision route). */
   const actions = (a: ApprovalItem, mobile = false) => {
@@ -375,11 +385,7 @@ export function ApprovalsPage() {
               <p className="font-medium">
                 <bdi>{approving.item.summary}</bdi>
               </p>
-              {approving.item.payload?.amountBase && (
-                <p className="num mt-1 font-semibold">
-                  {fmtMoney(approving.item.payload.amountBase, currency)}
-                </p>
-              )}
+              {amountOf(approving.item) !== '—' && <p className="num mt-1 font-semibold">{amountOf(approving.item)}</p>}
               <p className="mt-1 text-xs text-muted">
                 {approving.item.requestedBy ?? '—'} · {fmtDateTime(approving.item.requestedAt)}
               </p>

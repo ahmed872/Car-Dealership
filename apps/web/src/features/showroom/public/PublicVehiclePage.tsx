@@ -140,6 +140,8 @@ export function PublicVehiclePage() {
     ['interiorColor', v.interiorColor],
     ['specRegion', enumLabel('specRegion', v.specRegion)],
   ];
+  // The WhatsApp chat text is in the visitor's language (the API builds both).
+  const whatsappUrl = v.share.whatsappUrls?.[en ? 'en' : 'ar'] ?? v.share.whatsappUrl;
   const share = async () => {
     if (typeof navigator.share === 'function') {
       try {
@@ -210,9 +212,9 @@ export function PublicVehiclePage() {
             <Summary v={v} title={title ?? ''} />
           </div>
           <div className="card space-y-2 p-4">
-            {v.share.whatsappUrl && (
+            {whatsappUrl && (
               <a
-                href={v.share.whatsappUrl}
+                href={whatsappUrl}
                 target="_blank"
                 rel="noreferrer"
                 className="flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-[#1f9d55] text-sm font-medium text-white hover:bg-[#188a49]"

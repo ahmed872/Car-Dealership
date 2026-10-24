@@ -7,6 +7,7 @@ import { Alert, Spinner } from '@/components/ui/Feedback';
 import { Field, Input, Select, Textarea } from '@/components/ui/Field';
 import { Modal } from '@/components/ui/Modal';
 import { fmtMoney, todayIso } from '@/lib/format';
+import { useFxRateField, withFxHint } from '@/lib/fx';
 import { CashAccountListItem, CashTransfer, useCashAccounts } from './api';
 import {
   AmountInput,
@@ -97,6 +98,7 @@ export function TransferFormModal({
   const from = active.find((a) => a.id === fromId);
   const to = active.find((a) => a.id === toId);
   const fromForeign = !!from && from.currency !== base;
+  const fxField = useFxRateField(fromForeign ? from.currency : null, rate, setRate);
   const crossCurrency = !!from && !!to && from.currency !== to.currency;
   const amountToRequired = crossCurrency && to!.currency !== base;
   const txnBase = from ? toBase(amount, from.currency, fromForeign ? rate : '1', base, rounding) : null;
@@ -265,11 +267,10 @@ export function TransferFormModal({
               label={t('cash.fx.rateLabel', { currency: from!.currency, base })}
               required
               error={err('exchangeRate')}
-              hint={
-                txnBase
-                  ? t('cash.fx.equals', { value: fmtMoney(txnBase, base) })
-                  : t('cash.fx.rateHint', { currency: from!.currency, base })
-              }
+              hint={withFxHint(
+                txnBase ? t('cash.fx.equals', { value: fmtMoney(txnBase, base) }) : t('cash.fx.rateHint', { currency: from!.currency, base }),
+                fxField.hint,
+              )}
             >
               {(id, desc) => (
                 <RateInput

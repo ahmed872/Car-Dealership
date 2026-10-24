@@ -27,6 +27,7 @@ import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { fmtDate, fmtPct } from '@/lib/format';
 import { useApi, useDebounced } from '@/lib/hooks';
+import { useAssignableMembers } from '@/lib/members';
 import { InstallmentTerms, SaleDetail, SalePaymentType, SalePreview, useSale } from './api';
 import { CustomerPicker, VehiclePicker } from './pickers';
 import {
@@ -77,12 +78,8 @@ interface VehicleInfo {
   vin: string | null;
   status: VehicleStatus | null;
   askingPrice: string | null;
-}
-
-interface MemberRow {
-  userId: string;
-  fullName: string;
-  status: string;
+  /** Decides who may be the salesperson (they must reach the vehicle's branch). */
+  branchId: string | null;
 }
 
 function termsOf(s: FormState): InstallmentTerms {
@@ -187,6 +184,7 @@ function SaleForm({ sale, onReload }: { sale: SaleDetail | null; onReload: () =>
           vin: sale.vehicleSnapshot.vin,
           status: null,
           askingPrice: sale.askingPrice,
+          branchId: sale.branchId,
         }
       : null,
   );
@@ -202,6 +200,7 @@ function SaleForm({ sale, onReload }: { sale: SaleDetail | null; onReload: () =>
         vin: v.vehicle.vin,
         status: v.vehicle.status,
         askingPrice: v.vehicle.askingPrice,
+        branchId: v.vehicle.branchId,
       });
     }
   }, [prefillVehicle.data, s.vehicleId, i18n.language]);
@@ -213,10 +212,11 @@ function SaleForm({ sale, onReload }: { sale: SaleDetail | null; onReload: () =>
     if (prefillCustomer.data && prefillCustomer.data.customer.id === s.customerId) setCustomerName(prefillCustomer.data.customer.fullName);
   }, [prefillCustomer.data, s.customerId]);
 
-  // Selling on behalf of someone else needs leads.assign (and users.read to list the staff).
-  const canAssign = can('leads.assign') && can('users.read');
-  const members = useApi<MemberRow[]>(['users'], canAssign ? '/users' : null, undefined, { staleTime: 60_000 });
-  const activeMembers = (members.data ?? []).filter((m) => m.status === 'active');
+  // Selling on behalf of someone else needs leads.assign; the staff who may sell (sales.create) in
+  // the vehicle's branch come from GET /members/assignable.
+  const canAssign = can('leads.assign');
+  const members = useAssignableMembers('sales.create', vehicle?.branchId ?? sale?.branchId ?? null, canAssign);
+  const activeMembers = members.data ?? [];
 
   // ── Preview (debounced POST /sales/preview) ──
   const pendingTradeInTotal = sale
@@ -370,7 +370,7 @@ function SaleForm({ sale, onReload }: { sale: SaleDetail | null; onReload: () =>
                       selectedLabel={vehicle && vehicle.id === s.vehicleId ? `${vehicle.title} · ${vehicle.stockNumber}` : ''}
                       onSelect={(v) => {
                         set({ vehicleId: v.id });
-                        setVehicle({ id: v.id, title: vehicleTitle(v, i18n.language), stockNumber: v.stockNumber, vin: v.vin, status: v.status, askingPrice: v.askingPrice });
+                        setVehicle({ id: v.id, title: vehicleTitle(v, i18n.language), stockNumber: v.stockNumber, vin: v.vin, status: v.status, askingPrice: v.askingPrice, branchId: v.branchId });
                       }}
                       onClear={() => {
                         set({ vehicleId: '' });
@@ -437,11 +437,14 @@ function SaleForm({ sale, onReload }: { sale: SaleDetail | null; onReload: () =>
                 <Field label={t('sales.fields.salesperson')} hint={t('sales.form.salespersonHint')} error={err('salespersonId')}>
                   {(id, desc) => (
                     <Select id={id} aria-describedby={desc} value={s.salespersonId} onChange={(e) => set({ salespersonId: e.target.value })}>
-                      {activeMembers.length === 0 && <option value={s.salespersonId}>{sale?.salespersonName ?? me?.user.fullName}</option>}
+                      {/* The current salesperson stays selectable even when outside the list. */}
+                      {!activeMembers.some((m) => m.id === s.salespersonId) && (
+                        <option value={s.salespersonId}>{s.salespersonId === sale?.salespersonId ? (sale.salespersonName ?? '—') : me?.user.fullName}</option>
+                      )}
                       {activeMembers.map((m) => (
-                        <option key={m.userId} value={m.userId}>
+                        <option key={m.id} value={m.id}>
                           {m.fullName}
-                          {m.userId === me?.user.id ? ` (${t('sales.form.you')})` : ''}
+                          {m.id === me?.user.id ? ` (${t('sales.form.you')})` : ''}
                         </option>
                       ))}
                     </Select>

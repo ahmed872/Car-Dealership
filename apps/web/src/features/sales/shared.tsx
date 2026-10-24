@@ -26,6 +26,7 @@ import { useToast } from '@/components/ui/Toast';
 import { api, ApiError, newIdempotencyKey } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { fmtDate, fmtMoney } from '@/lib/format';
+import { useFxRateField } from '@/lib/fx';
 import {
   CashAccountOption,
   CommissionStatus,
@@ -412,6 +413,7 @@ export function ReceivePaymentModal({
   };
   const valid = !errors.account && !errors.amount && !errors.rate && amountBase !== null && d(amountBase).gt(0);
   const fm = useFieldMessage();
+  const fxField = useFxRateField(foreign ? currency : null, rate, setRate);
 
   const receive = useSalesMutation<Record<string, unknown>, { number: string }>({
     path: '/receipts',
@@ -486,7 +488,7 @@ export function ReceivePaymentModal({
           {(id, desc) => <AmountInput id={id} aria-describedby={desc} currency={currency} value={amount} invalid={touched && !!errors.amount} onChange={(e) => setAmount(e.target.value)} />}
         </Field>
         {foreign ? (
-          <Field label={t('sales.payment.rate', { from: currency, to: base })} required error={touched ? fm(errors.rate) : null}>
+          <Field label={t('sales.payment.rate', { from: currency, to: base })} required error={touched ? fm(errors.rate) : null} hint={fxField.hint}>
             {(id, desc) => <Input id={id} aria-describedby={desc} dir="ltr" inputMode="decimal" className="num" value={rate} invalid={touched && !!errors.rate} onChange={(e) => setRate(e.target.value)} />}
           </Field>
         ) : (

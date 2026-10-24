@@ -28,8 +28,9 @@ import type { VehicleDetail } from '@/features/vehicles/api';
 import { useAuth } from '@/lib/auth';
 import { fmtNumber } from '@/lib/format';
 import { useApi } from '@/lib/hooks';
+import { useAssignableMembers } from '@/lib/members';
 import { useBranches } from '@/pages/settings/BranchesPage';
-import { APPOINTMENT_KEYS, AppointmentStatus, AppointmentType, FullAppointment, MemberRow } from './api';
+import { APPOINTMENT_KEYS, AppointmentStatus, AppointmentType, FullAppointment } from './api';
 import { addMinutes, ISO_DATE, minutesBetween, nextQuarter, zoned, zonedToUtc } from './time';
 
 // ── Badges ───────────────────────────────────────────────────────────────────────────────
@@ -69,16 +70,17 @@ export function useBookableBranches() {
   return { list, isLoading: branches.isLoading };
 }
 
-/** Members who can be given appointments in a branch (managers with leads.assign + users.read). */
+/**
+ * Members who can be given appointments in a branch (role with appointments.manage, access to the
+ * branch). Offered to users with leads.assign, who may book for someone else; the list comes from
+ * GET /members/assignable, so no member-directory permission is needed.
+ */
 export function useAssignees(branchId: string | null) {
   const { can } = useAuth();
-  const enabled = can('leads.assign') && can('users.read');
-  const q = useApi<MemberRow[]>(['users'], enabled ? '/users' : null, undefined, { staleTime: 5 * 60_000 });
-  const list = useMemo(
-    () => (q.data ?? []).filter((m) => m.status === 'active' && (!branchId || m.allBranches || m.branchIds.includes(branchId))),
-    [q.data, branchId],
-  );
-  return { enabled, list, isLoading: q.isLoading };
+  const enabled = can('leads.assign');
+  const q = useAssignableMembers('appointments.manage', branchId, enabled);
+  const list = useMemo(() => (q.data ?? []).map((m) => ({ userId: m.id, fullName: m.fullName })), [q.data]);
+  return { enabled, list, isLoading: enabled && q.isLoading };
 }
 
 // ── Book / reschedule ────────────────────────────────────────────────────────────────────
@@ -382,6 +384,10 @@ export function AppointmentFormModal({
             {(id, desc) => (
               <Select id={id} aria-describedby={desc} value={assignee} onChange={(e) => setAssignee(e.target.value)}>
                 <option value="">{t('appointments.unassigned')}</option>
+                {/* Keep the current assignee selectable when they are outside the branch list. */}
+                {assignee && !assignees.list.some((m) => m.userId === assignee) && (
+                  <option value={assignee}>{existing?.assignedUserId === assignee ? (existing.assigneeName ?? '—') : assignee === me?.user.id ? me.user.fullName : '—'}</option>
+                )}
                 {assignees.list.map((m) => (
                   <option key={m.userId} value={m.userId}>
                     {m.fullName}
