@@ -29,6 +29,20 @@ The API never migrates itself.
 5. Roll the web: `DC up -d --no-deps web`.
 6. Check: `curl -fsS https://<host>/api/v1/health/ready`, sign in, open a sale, generate one PDF, and
    on the audit page (Settings → Audit) press verify (`POST /api/v1/audit-logs/verify` → `"ok":true`).
+7. **Release data steps** (only the releases listed here). Run them after step 4, so that anything the
+   previous release wrote during the rollout is included. They use the API image and its environment
+   (app role, `APP_ENCRYPTION_KEY`), are idempotent, and print what they did; keep the output.
+   * **Migration `0018_supplier_national_id_security` (D-047)** — encrypt the supplier national IDs
+     that older releases stored in plain text:
+     `DC run --rm --no-deps api node dist/cli.js encrypt-supplier-ids`
+     → one line per company that had values, then
+     `Supplier national IDs: <n> companies checked; encrypted <a>, encrypted as typed (not a recognisable ID) <b>, plain text removed only <c>`,
+     exit code 0. A second run prints zeros. Options: `--tenant <company uuid>` (one company) and
+     `--batch-size <1–10000>` (rows per batch, default 500); each company is one transaction under its
+     own RLS context, and one `supplier.national_ids_encrypted` audit entry records the counts. Until
+     it has run, old IDs are still shown masked and can be revealed, but the duplicate check does not
+     find them. Do not skip it: the next release drops `suppliers.national_id` (KI-030). Backups taken
+     before it ran still contain the plain-text IDs (§3).
 
 Plain `DC up -d` does the same in dependency order (postgres → migrate → api → web). Because the old
 API is still running while migrations apply, **every migration must be backward compatible with the
@@ -105,9 +119,10 @@ docker run --rm --network none -v autohub_storage:/data:ro -v /srv/autohub-backu
 * **Off-site:** copy the `.dump`, `.sha256`, `.fingerprint`, `.manifest` and the storage tar to
   another provider or region with write-once / object-lock if available. Run `sha256sum -c` after the copy.
 * **Encryption at rest:** dumps contain personal data **in clear**: customer names, phones and
-  e-mails; supplier details, including a supplier's national ID, which the application stores
-  unencrypted (`suppliers.national_id`, reported as a finding). Customer national IDs and integration
-  secrets are encrypted inside the dump with `APP_ENCRYPTION_KEY`. Encrypt dumps before they leave the
+  e-mails; supplier names and contact details. Customer and supplier national IDs and integration
+  secrets are encrypted inside the dump with `APP_ENCRYPTION_KEY` (supplier IDs since D-047, once
+  `encrypt-supplier-ids` has run, §1; dumps taken before that hold them in plain text in
+  `suppliers.national_id`). Encrypt dumps before they leave the
   host, for example `age -r <recipient> -o x.dump.age x.dump` (an example: no encryption tool was
   exercised here). Keep the decryption key and `APP_ENCRYPTION_KEY` apart from the backups.
 
@@ -179,11 +194,12 @@ scripts. Record each run in §10 and keep `drill-report.txt`.
 
 What it protects (`apps/api/src/common/crypto.ts`):
 
-* AES-256-GCM ciphertexts (`v1.<iv>.<tag>.<ct>`): `customers.national_id_enc` (customer national ID /
-  passport) and `integration_settings.secret_encrypted` (each company's integration secrets, such as
-  its AI key and webhook signing secret).
+* AES-256-GCM ciphertexts (`v1.<iv>.<tag>.<ct>`): `customers.national_id_enc` and
+  `suppliers.national_id_enc` (national ID / passport) and `integration_settings.secret_encrypted`
+  (each company's integration secrets, such as its AI key and webhook signing secret).
 * An HMAC key **derived from it** (`hmacHex`): `customers.national_id_hash` (exact search and the
-  unique "same national ID" check per company) and `showroom_inquiries.client_hash`.
+  unique "same national ID" check per company), `suppliers.national_id_hash` (supplier duplicate
+  check) and `showroom_inquiries.client_hash`.
 
 The ciphertext format has no key id, and the app reads exactly one key. Changing the key therefore
 makes every stored national ID unreadable (decryption fails), makes company integrations fail until
@@ -191,7 +207,7 @@ their secrets are re-entered, and silently breaks national-ID search and duplica
 new hashes no longer match the stored ones. **Do not change the key on a live system.**
 A safe rotation needs an application change (recommended): a key id in the ciphertext prefix, a
 `APP_ENCRYPTION_KEY_PREVIOUS` used only for decryption, and a CLI command that re-encrypts
-`national_id_enc` and `secret_encrypted` and recomputes the HMAC columns in batches. Until that
+the `national_id_enc` columns and `secret_encrypted` and recomputes the HMAC columns in batches. Until that
 exists, if the key is suspected compromised:
 
 1. Treat it as a breach of the encrypted fields only if the database (or a backup) was also exposed,
@@ -218,7 +234,7 @@ Losing the key is equally serious: back it up in a secrets manager, separately f
 | `/api/v1/health/ready` → 503 `not_ready`; api container unhealthy | PostgreSQL down or unreachable, or schema not migrated | `DC ps`, `DC logs --tail=100 postgres`, disk space (`df -h`, volume `pgdata`). After a PostgreSQL restart the API recovered by itself (`/ready` 503, then 200 about 2 s later, observed). If `migrate` failed, the API never starts: `DC logs migrate`. |
 | nginx 502 on `/api/` | API container down or restarting | `DC ps api`, `DC logs --tail=200 api`. Start-up aborts on invalid configuration ("Invalid environment configuration: …") or an unsafe DB role ("DATABASE_URL role is unsafe…"). |
 | PDFs fail with 503 `pdf_unavailable` | Chromium missing or unable to start (`CHROMIUM_PATH` unset, image built with `CHROMIUM=none`, missing libraries, memory) | API log line `chromium launch failed: …` (observed with a `CHROMIUM=none` image: "PDF rendering is not configured (CHROMIUM_PATH)"). Everything else keeps working. |
-| PDFs fail with 500 after working before | By code reading (not reproduced): the browser is started once and cached; if Chromium crashes later (for example killed for memory), the cached handle stays dead | Restart the API: `DC restart api`. App fix recommended: reset the browser on `disconnected` and map page errors to `pdf_unavailable`. |
+| A PDF fails with 503 `pdf_unavailable` after working before, then works again | Chromium crashed or was killed (for example for memory). The API drops the dead browser and starts a new one on the next render (D-045); no restart is needed (verified in `test/pdf-renderer.spec.ts` by killing it) | API log lines `chromium disconnected; the next render starts a new browser`, `chromium was gone (…); relaunching` or `chromium exited during a render`. If they repeat, check memory (`docker stats`, kernel OOM messages) and `PDF_MAX_CONCURRENT`. |
 | Uploads fail | `local`: volume full or not writable; `s3`: credentials, bucket or endpoint | API logs; `docker system df -v`; nginx answers 413 above `AUTOHUB_MAX_BODY_SIZE`. |
 | Many 429 responses | Rate limits per client address; behind an unconfigured proxy all users share one address | Set `AUTOHUB_REAL_IP_FROM` (DEPLOYMENT §6); check `remote_addr` in the web logs. |
 | Writes of one company slow or timing out while others are fine | The per-company write lock (D-025, KI-006) is held by a long transaction | Query in §8. The pool's `statement_timeout` is 30 s. |

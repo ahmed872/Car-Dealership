@@ -1,4 +1,5 @@
 import { zodResolver } from '@hookform/resolvers/zod';
+import { useQuery } from '@tanstack/react-query';
 import clsx from 'clsx';
 import { AlertTriangle, ChevronDown, Search, X } from 'lucide-react';
 import { ComponentProps, forwardRef, KeyboardEvent, ReactNode, useCallback, useEffect, useId, useMemo, useState } from 'react';
@@ -23,7 +24,7 @@ import { Button } from '@/components/ui/Button';
 import { Alert, EmptyState } from '@/components/ui/Feedback';
 import { Checkbox, Field, Input, MoneyInput, Select, Textarea } from '@/components/ui/Field';
 import { Modal } from '@/components/ui/Modal';
-import { ApiError, newIdempotencyKey } from '@/lib/api';
+import { api, ApiError, newIdempotencyKey } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { fmtMoney } from '@/lib/format';
 import { useApi, useDebounced } from '@/lib/hooks';
@@ -116,6 +117,7 @@ const KNOWN_VALIDATION = new Set([
   'invalid_rate',
   'invalid_date',
   'invalid_phone',
+  'invalid_national_id',
   'invalid_email',
   'to_before_from',
   'exchange_rate_required',
@@ -400,9 +402,15 @@ function DuplicateWarning({
     () => JSON.parse(debounced) as { name?: string; phone?: string; taxNumber?: string; nationalId?: string },
     [debounced],
   );
-  const any = q.name || q.phone || q.taxNumber || q.nationalId;
-  const dups = useApi<SupplierDuplicate[]>(['suppliers', 'duplicates'], any ? '/suppliers/check-duplicates' : null, { ...q, excludeId });
-  if (!dups.data?.length) return null;
+  const any = !!(q.name || q.phone || q.taxNumber || q.nationalId);
+  // POST: a national ID never goes into a URL (D-047).
+  const dups = useQuery({
+    queryKey: ['suppliers', 'duplicates', debounced, excludeId ?? null],
+    queryFn: () => api<SupplierDuplicate[]>('/suppliers/check-duplicates', { method: 'POST', body: { ...q, excludeId } }),
+    enabled: any,
+    staleTime: 30_000,
+  });
+  if (!any || !dups.data?.length) return null;
   return (
     <Alert tone="warning" title={t('purchasing.suppliers.duplicatesTitle')} className="sm:col-span-2">
       <p>{t('purchasing.suppliers.duplicatesHint')}</p>
@@ -455,7 +463,8 @@ export function SupplierFormModal({
       phone: supplier?.phone ?? '',
       email: supplier?.email ?? '',
       taxNumber: supplier?.taxNumber ?? '',
-      nationalId: supplier?.nationalId ?? '',
+      // Never pre-filled: the stored ID is not sent to the browser. Empty on edit keeps it.
+      nationalId: '',
       address: supplier?.address ?? '',
       city: supplier?.city ?? '',
       notes: supplier?.notes ?? '',
@@ -473,12 +482,22 @@ export function SupplierFormModal({
       onClose();
     },
   });
-  const submit = form.handleSubmit((values) => save.mutate(values, { onError: (e) => applyServerErrors(e, form.setError) }));
+  const submit = form.handleSubmit((values) => {
+    const body = { ...values };
+    // Like the customer form: an empty national ID on edit leaves the stored one unchanged.
+    if (isEdit && !body.nationalId) delete body.nationalId;
+    save.mutate(body, { onError: (e) => applyServerErrors(e, form.setError) });
+  });
   const watched = form.watch(['name', 'phone', 'taxNumber', 'nationalId']);
 
-  const text = (name: 'name' | 'phone' | 'email' | 'taxNumber' | 'nationalId' | 'city', opts: { required?: boolean; dir?: 'ltr'; type?: string } = {}) => (
-    <Field label={t(`purchasing.suppliers.fields.${name}`)} required={opts.required} error={fieldError(errors[name])}>
-      {(fid, desc) => <Input id={fid} aria-describedby={desc} dir={opts.dir} type={opts.type} invalid={!!errors[name]} {...form.register(name)} />}
+  const text = (
+    name: 'name' | 'phone' | 'email' | 'taxNumber' | 'nationalId' | 'city',
+    opts: { required?: boolean; dir?: 'ltr'; type?: string; hint?: string; autoComplete?: string } = {},
+  ) => (
+    <Field label={t(`purchasing.suppliers.fields.${name}`)} required={opts.required} hint={opts.hint} error={fieldError(errors[name])}>
+      {(fid, desc) => (
+        <Input id={fid} aria-describedby={desc} dir={opts.dir} type={opts.type} autoComplete={opts.autoComplete} invalid={!!errors[name]} {...form.register(name)} />
+      )}
     </Field>
   );
 
@@ -515,7 +534,15 @@ export function SupplierFormModal({
         {text('phone', { dir: 'ltr', type: 'tel' })}
         {text('email', { dir: 'ltr', type: 'email' })}
         {text('taxNumber', { dir: 'ltr' })}
-        {text('nationalId', { dir: 'ltr' })}
+        {text('nationalId', {
+          dir: 'ltr',
+          autoComplete: 'off',
+          hint:
+            isEdit && supplier?.nationalIdMasked
+              ? // Isolated left-to-right (LRI … PDI) so "••••1234" keeps its order inside Arabic text.
+                t('purchasing.suppliers.hints.nationalIdKeep', { masked: `\u2066${supplier.nationalIdMasked}\u2069` })
+              : t('purchasing.suppliers.hints.nationalId'),
+        })}
         {text('city')}
         <Field label={t('purchasing.suppliers.fields.address')} error={fieldError(errors.address)}>
           {(fid) => <Input id={fid} {...form.register('address')} />}

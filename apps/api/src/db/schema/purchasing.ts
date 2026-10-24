@@ -26,7 +26,16 @@ export const suppliers = pgTable(
     phone: text('phone'),
     email: text('email'),
     taxNumber: text('tax_number'),
-    nationalId: text('national_id'),
+    /**
+     * Plain-text national ID written before D-047. The application never writes it any more (only
+     * clears it): `cli.js encrypt-supplier-ids`, or the next edit of the supplier, moves an old value
+     * into the encrypted columns. The next release drops the column (after checking it is empty).
+     */
+    legacyNationalId: text('national_id'),
+    /** National ID / Iqama / passport: encrypted at rest, HMAC for exact-match duplicate checks, last 4 for display. */
+    nationalIdEnc: text('national_id_enc'),
+    nationalIdHash: text('national_id_hash'),
+    nationalIdLast4: text('national_id_last4'),
     address: text('address'),
     city: text('city'),
     notes: text('notes'),
@@ -36,7 +45,11 @@ export const suppliers = pgTable(
     createdAt: createdAt(),
     updatedAt: updatedAt(),
   },
-  (t) => [index('suppliers_tenant_name_idx').on(t.tenantId, t.name), check('suppliers_type_chk', inList('type', SUPPLIER_TYPES))],
+  (t) => [
+    index('suppliers_tenant_name_idx').on(t.tenantId, t.name),
+    index('suppliers_national_id_hash_idx').on(t.tenantId, t.nationalIdHash).where(sql`national_id_hash IS NOT NULL`),
+    check('suppliers_type_chk', inList('type', SUPPLIER_TYPES)),
+  ],
 );
 
 export const costCategories = pgTable(

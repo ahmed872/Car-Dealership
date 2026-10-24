@@ -217,8 +217,9 @@ ownership rules are enforced inside the services on top of this.
 | POST | `/api/v1/suppliers` | permissions | suppliers.manage |  |
 | GET | `/api/v1/suppliers/:id` | permissions | suppliers.read |  |
 | PATCH | `/api/v1/suppliers/:id` | permissions | suppliers.manage |  |
+| GET | `/api/v1/suppliers/:id/sensitive` | permissions | suppliers.read, suppliers.view_sensitive |  |
 | GET | `/api/v1/suppliers/:id/statement` | permissions | suppliers.read, payments.read |  |
-| GET | `/api/v1/suppliers/check-duplicates` | permissions | suppliers.read |  |
+| POST | `/api/v1/suppliers/check-duplicates` | permissions | suppliers.read |  |
 | GET | `/api/v1/users` | permissions | users.read |  |
 | POST | `/api/v1/users` | permissions | users.manage |  |
 | PATCH | `/api/v1/users/:membershipId` | permissions | users.manage |  |

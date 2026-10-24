@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { parseIsoDate } from '../finance/dates';
 import { zIsoDate, zOptText, zPaginationQuery, zUuid } from './common';
+import { normalizeNationalId } from './customers';
 import { SUPPLIER_TYPES, zSupplierInput } from './purchasing';
 
 // Inputs and response shapes owned by the suppliers / accounts-payable module.
@@ -21,8 +22,14 @@ const zSupplierPhone = zOptText(30).refine(
   'invalid_phone',
 );
 const zSupplierEmail = zOptText(120).refine((v) => v == null || z.email().safeParse(v).success, 'invalid_email');
+/**
+ * National ID / Iqama / passport number, checked like a customer's (normalizeNationalId: letters and
+ * digits, 4–40 after separators are removed). Stored only encrypted, with a keyed hash and the last 4
+ * characters (D-047). On PATCH: absent = unchanged, null = remove.
+ */
+const zSupplierNationalId = zOptText(40).refine((v) => v == null || normalizeNationalId(v) !== null, 'invalid_national_id');
 
-export const zSupplierCreate = zSupplierInput.extend({ phone: zSupplierPhone, email: zSupplierEmail });
+export const zSupplierCreate = zSupplierInput.extend({ phone: zSupplierPhone, email: zSupplierEmail, nationalId: zSupplierNationalId });
 export type SupplierCreateInput = z.infer<typeof zSupplierCreate>;
 
 /**
@@ -41,15 +48,16 @@ export const zSupplierListQuery = zPaginationQuery.extend({
   active: z.enum(['true', 'false']).optional(),
 });
 
-export const zSupplierDuplicateQuery = z.object({
-  phone: z.string().trim().max(30).optional(),
-  taxNumber: z.string().trim().max(40).optional(),
-  nationalId: z.string().trim().max(40).optional(),
-  name: z.string().trim().max(200).optional(),
+/** Body of POST /suppliers/check-duplicates (POST so national IDs never appear in URLs or logs). */
+export const zSupplierDuplicateCheck = z.object({
+  phone: z.string().trim().max(30).optional().nullable(),
+  taxNumber: z.string().trim().max(40).optional().nullable(),
+  nationalId: z.string().trim().max(40).optional().nullable(),
+  name: z.string().trim().max(200).optional().nullable(),
   /** Ignore this supplier (the one being edited). */
-  excludeId: zUuid.optional(),
+  excludeId: zUuid.optional().nullable(),
 });
-export type SupplierDuplicateQuery = z.infer<typeof zSupplierDuplicateQuery>;
+export type SupplierDuplicateCheckInput = z.infer<typeof zSupplierDuplicateCheck>;
 
 export const zSupplierStatementQuery = z
   .object({ from: zCalendarDate.optional(), to: zCalendarDate.optional() })
@@ -70,6 +78,13 @@ export const zPayablesSummaryQuery = z.object({ asOf: zCalendarDate.optional() }
 export type PayablesSummaryQuery = z.infer<typeof zPayablesSummaryQuery>;
 
 // ── Response shapes (amounts are base-currency decimal strings) ────────────────────────────
+
+/** Full national ID of a supplier (GET /suppliers/:id/sensitive, suppliers.view_sensitive, audited). */
+export interface SupplierSensitive {
+  id: string;
+  nationalId: string | null;
+  nationalIdMasked: string | null;
+}
 
 export interface SupplierDuplicate {
   id: string;

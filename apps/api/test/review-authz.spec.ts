@@ -39,9 +39,10 @@ const r = (method: Route['method'], path: string, perms: Perms): Route => ({ met
 
 const ROUTES: Route[] = [
   r('GET', '/suppliers', ['suppliers.read']),
-  r('GET', '/suppliers/check-duplicates', ['suppliers.read']),
+  r('POST', '/suppliers/check-duplicates', ['suppliers.read']),
   r('POST', '/suppliers', ['suppliers.manage']),
   r('GET', '/suppliers/:id', ['suppliers.read']),
+  r('GET', '/suppliers/:id/sensitive', ['suppliers.read', 'suppliers.view_sensitive']),
   r('GET', '/suppliers/:id/statement', ['suppliers.read', 'payments.read']),
   r('PATCH', '/suppliers/:id', ['suppliers.manage']),
   r('GET', '/payables/open', 'payables'),
@@ -689,7 +690,12 @@ describe('review: authorization, isolation, branch scope and data exposure (Phas
       const res = await reader.get(`/acquisitions/${acq.id}`);
       expect(res.status).toBe(200);
       expect(res.body.supplier?.name).toBe(supplier.name);
-      expect({ nationalId: res.body.supplier?.nationalId ?? null, taxNumber: res.body.supplier?.taxNumber ?? null }).toEqual({ nationalId: null, taxNumber: null });
+      expect({ nationalIdMasked: res.body.supplier?.nationalIdMasked, taxNumber: res.body.supplier?.taxNumber }).toEqual({ nationalIdMasked: null, taxNumber: null });
+      expect(res.body.supplier).not.toHaveProperty('nationalId');
+      // A supplier reader sees only the masked last 4 (D-047).
+      const full = await owner.get(`/acquisitions/${acq.id}`);
+      expect(full.body.supplier).toMatchObject({ nationalIdMasked: '••••5678', hasNationalId: true, taxNumber: '300012345600003' });
+      for (const k of ['nationalId', 'nationalIdEnc', 'nationalIdHash', 'nationalIdLast4', 'legacyNationalId']) expect(full.body.supplier).not.toHaveProperty(k);
     });
 
     it('supplier money summaries and statements are withheld from members without payments.read', async () => {

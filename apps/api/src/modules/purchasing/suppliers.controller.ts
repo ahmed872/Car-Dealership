@@ -1,11 +1,11 @@
-import { Body, Controller, Get, Param, ParseUUIDPipe, Patch, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Param, ParseUUIDPipe, Patch, Post, Query } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { createZodDto } from 'nestjs-zod';
 import {
   zPayablesOpenQuery,
   zPayablesSummaryQuery,
   zSupplierCreate,
-  zSupplierDuplicateQuery,
+  zSupplierDuplicateCheck,
   zSupplierListQuery,
   zSupplierStatementQuery,
   zSupplierUpdate,
@@ -18,7 +18,7 @@ import { SuppliersService } from './suppliers.service';
 class SupplierDto extends createZodDto(zSupplierCreate) {}
 class SupplierUpdateDto extends createZodDto(zSupplierUpdate) {}
 class SupplierListQueryDto extends createZodDto(zSupplierListQuery) {}
-class SupplierDuplicateQueryDto extends createZodDto(zSupplierDuplicateQuery) {}
+class SupplierDuplicateCheckDto extends createZodDto(zSupplierDuplicateCheck) {}
 class SupplierStatementQueryDto extends createZodDto(zSupplierStatementQuery) {}
 class PayablesOpenQueryDto extends createZodDto(zPayablesOpenQuery) {}
 class PayablesSummaryQueryDto extends createZodDto(zPayablesSummaryQuery) {}
@@ -37,11 +37,15 @@ export class SuppliersController {
     return this.suppliers.list(q);
   }
 
-  /** Possible duplicates while filling the create/edit form. Declared before :id. */
-  @Get('check-duplicates')
+  /**
+   * Possible duplicates while filling the create/edit form. POST so a national ID never appears in
+   * a URL (access logs, browser history).
+   */
+  @Post('check-duplicates')
+  @HttpCode(200)
   @RequirePermissions('suppliers.read')
-  duplicates(@Query() q: SupplierDuplicateQueryDto) {
-    return this.suppliers.findDuplicates(q);
+  duplicates(@Body() body: SupplierDuplicateCheckDto) {
+    return this.suppliers.findDuplicates(body);
   }
 
   @Post()
@@ -60,6 +64,13 @@ export class SuppliersController {
     const supplier = await this.suppliers.get(id);
     const summary = hasPermission(ctx, 'payments.read') ? await this.reports.supplierSummary(ctx, id) : null;
     return { ...supplier, summary };
+  }
+
+  /** Full national ID (D-047): suppliers.view_sensitive on top of suppliers.read; every read is audited. */
+  @Get(':id/sensitive')
+  @RequirePermissions('suppliers.read', 'suppliers.view_sensitive')
+  sensitive(@Ctx() ctx: TenantContext, @Param('id', ParseUUIDPipe) id: string) {
+    return this.suppliers.sensitive(ctx, id);
   }
 
   @Get(':id/statement')

@@ -129,7 +129,7 @@ describe('suppliers 360, statements and accounts payable', () => {
       // Sales reps have no supplier permissions at all.
       expect((await rep.get('/suppliers')).status).toBe(403);
       expect((await rep.get(`/suppliers/${id}`)).status).toBe(403);
-      expect((await rep.get('/suppliers/check-duplicates?name=x')).status).toBe(403);
+      expect((await rep.post('/suppliers/check-duplicates', { name: 'x' })).status).toBe(403);
       expect((await rep.get(`/suppliers/${id}/statement`)).status).toBe(403);
       const denied = await rep.post('/suppliers', { type: 'company', name: 'Sneaky Supplier' });
       expect(denied.status).toBe(403);
@@ -158,7 +158,7 @@ describe('suppliers 360, statements and accounts payable', () => {
       expect((await other.owner.get(`/suppliers/${s.id}`)).status).toBe(404);
       expect((await other.owner.patch(`/suppliers/${s.id}`, { name: 'Taken over' })).status).toBe(404);
       expect((await other.owner.get(`/suppliers/${s.id}/statement`)).status).toBe(404);
-      const dup = await other.owner.get('/suppliers/check-duplicates?taxNumber=XT-998877');
+      const dup = await other.owner.post('/suppliers/check-duplicates', { taxNumber: 'XT-998877' });
       expect(dup.status).toBe(200);
       expect(dup.body).toEqual([]);
       const open = await other.owner.get(`/payables/open?supplierId=${s.id}`);
@@ -171,36 +171,37 @@ describe('suppliers 360, statements and accounts payable', () => {
       const c = t.owner;
       const s = await createSupplier(c, { type: 'individual', name: 'Al Noor  Motors', phone: '+966 50 123 4567', taxNumber: '300123456700003', nationalId: '1012345678' });
       const other1 = await createSupplier(c, { name: 'Unrelated Trading' });
+      const check = (body: Record<string, unknown>) => c.post('/suppliers/check-duplicates', body);
 
-      const byPhone = await c.get(`/suppliers/check-duplicates?phone=${encodeURIComponent('+966501234567')}`);
+      const byPhone = await check({ phone: '+966501234567' });
       expect(byPhone.status).toBe(200);
       expect(byPhone.body).toEqual([{ id: s.id, name: 'Al Noor  Motors', type: 'individual', phone: '+966 50 123 4567', isActive: true, matchedOn: ['phone'] }]);
       // Arabic-Indic digits are the same number.
-      const arabic = await c.get(`/suppliers/check-duplicates?phone=${encodeURIComponent('+٩٦٦٥٠١٢٣٤٥٦٧')}`);
+      const arabic = await check({ phone: '+٩٦٦٥٠١٢٣٤٥٦٧' });
       expect(arabic.body.map((x: { id: string }) => x.id)).toEqual([s.id]);
 
-      const byTax = await c.get('/suppliers/check-duplicates?taxNumber=%20300123456700003%20');
+      const byTax = await check({ taxNumber: ' 300123456700003 ' });
       expect(byTax.body).toHaveLength(1);
       expect(byTax.body[0].matchedOn).toEqual(['taxNumber']);
       // Identifier values are never echoed back.
       expect(byTax.body[0]).not.toHaveProperty('taxNumber');
       expect(byTax.body[0]).not.toHaveProperty('nationalId');
 
-      const byNid = await c.get('/suppliers/check-duplicates?nationalId=1012345678');
+      const byNid = await check({ nationalId: '1012345678' });
       expect(byNid.body[0].matchedOn).toEqual(['nationalId']);
 
-      const byName = await c.get(`/suppliers/check-duplicates?name=${encodeURIComponent('  al noor motors ')}`);
+      const byName = await check({ name: '  al noor motors ' });
       expect(byName.body.map((x: { id: string }) => x.id)).toEqual([s.id]);
 
-      const all = await c.get(`/suppliers/check-duplicates?name=${encodeURIComponent('AL NOOR MOTORS')}&taxNumber=300123456700003&phone=0000000`);
+      const all = await check({ name: 'AL NOOR MOTORS', taxNumber: '300123456700003', phone: '0000000' });
       expect(all.body[0].matchedOn).toEqual(['taxNumber', 'name']);
 
       // Editing the supplier itself is not a duplicate; near misses are not reported.
-      expect((await c.get(`/suppliers/check-duplicates?taxNumber=300123456700003&excludeId=${s.id}`)).body).toEqual([]);
-      expect((await c.get('/suppliers/check-duplicates?name=Al%20Noor')).body).toEqual([]);
-      expect((await c.get('/suppliers/check-duplicates')).body).toEqual([]);
-      expect((await c.get(`/suppliers/check-duplicates?excludeId=${other1.id}&name=Unrelated%20Trading`)).body).toEqual([]);
-      expect((await c.get('/suppliers/check-duplicates?excludeId=nope')).status).toBe(422);
+      expect((await check({ taxNumber: '300123456700003', excludeId: s.id })).body).toEqual([]);
+      expect((await check({ name: 'Al Noor' })).body).toEqual([]);
+      expect((await check({})).body).toEqual([]);
+      expect((await check({ excludeId: other1.id, name: 'Unrelated Trading' })).body).toEqual([]);
+      expect((await check({ excludeId: 'nope' })).status).toBe(422);
     });
   });
 

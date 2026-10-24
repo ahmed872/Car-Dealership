@@ -9,6 +9,7 @@ import type {
   SUPPLIER_TYPES,
   SupplierDuplicate,
   SupplierFinancialSummary,
+  SupplierSensitive,
   SupplierStatement,
 } from '@autohub/shared';
 import { useAuth } from '@/lib/auth';
@@ -39,7 +40,9 @@ export interface Supplier {
   phone: string | null;
   email: string | null;
   taxNumber: string | null;
-  nationalId: string | null;
+  /** "••••1234": the national ID itself is revealed only by GET /suppliers/:id/sensitive (D-047). */
+  nationalIdMasked: string | null;
+  hasNationalId: boolean;
   address: string | null;
   city: string | null;
   notes: string | null;
@@ -55,7 +58,7 @@ export interface SupplierDetail extends Supplier {
   summary: SupplierFinancialSummary | null;
 }
 
-export type { OpenPayable, PayablesSummary, SupplierDuplicate, SupplierStatement };
+export type { OpenPayable, PayablesSummary, SupplierDuplicate, SupplierSensitive, SupplierStatement };
 
 /** GET /acquisitions items. */
 export interface AcquisitionListItem {
