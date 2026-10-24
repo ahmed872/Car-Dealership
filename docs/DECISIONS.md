@@ -404,6 +404,12 @@ value. The application never writes `suppliers.national_id` again. No CHECK cons
 because the previous release writes that column while migrations run (expand/contract, OPERATIONS
 §1); the next release drops the column after verifying it is empty (KI-030).
 
+### D-048 Destructive resets need the database's name
+`src/db/reset.ts` (used by `db:reset`, the API test setup, dev sandboxes and the E2E start script)
+drops the schema. It refuses in production, and resets only `autohub_dev` and `autohub_test*`
+without confirmation; any other name — including the deployment default `autohub` — needs
+`AUTOHUB_CONFIRM_RESET=<that name>`. `test/db-reset-guard.spec.ts` covers it.
+
 ## Business assumptions
 
 ### B-001 Revenue recognition default = on delivery **[PO-CONFIRM]**
