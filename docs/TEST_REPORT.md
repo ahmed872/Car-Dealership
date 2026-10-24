@@ -239,3 +239,19 @@ PostgreSQL 16, 4 CPUs); 15 runs per list route, 10 for the dashboard, 5 per repo
 
 These are smoke numbers for one busy showroom on one machine, not a load test: no concurrency,
 no network, no browser rendering. Load testing at production volumes remains open (KI-023).
+
+### Phase 8 part 3 — security fixes, FX band, error messages (2026-10-24)
+| Command | Result |
+|---|---|
+| `security-review.spec.ts` against the code before the fixes (sources stashed) | 13 of 14 failed (the 14th guards new behaviour) — the spec reproduces F1–F5, F7–F11 |
+| Full API suite, security fixes merged with the branch (DB r) | 33 files, **333 passed**, 2 skipped (perf smoke, opt-in) |
+| Full API suite, security + F6 FX band (DB s) | 34 files, **345 passed**, 2 skipped |
+| Same, after bounding percentages to 0–100 (e92cb7d) | 34 files, **345 passed**, 2 skipped |
+| `pnpm --filter @autohub/shared test` | **49 passed** |
+| `apps/web: vitest run src/i18n/` (every API error code has ar+en text) | **5 passed**; deleting two codes from en.ts made it fail naming both with file:line |
+| `tsc --noEmit` api + web, eslint on changed files, `vite build` | clean |
+| Chromium, company settings (sandbox from the fx-band worktree) | reference rates saved, reloaded and cleared (map replaced whole); tolerance 150 → 422 with the field marked; VAT 150% → 422 (was accepted before e92cb7d); AR/EN desktop and 390px without horizontal scroll |
+| Chromium, appointments/reservations/receipts/refunds (agent sandbox h) | booking, test drive start/finish, reschedule/cancel/no-show, reservation with deposit, extend, cancel with refund preview, receipt split and void, refund request/approve/pay; both maker-checker refusals shown; no page or console errors besides the deliberate 4xx |
+
+Failures found and fixed: 150% VAT accepted (no bound on jsonb settings); a partial settings PATCH
+reset that section's other values; Arabic rate labels reordered by the bidi algorithm.
