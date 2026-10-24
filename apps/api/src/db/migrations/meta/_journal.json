@@ -120,6 +120,20 @@
       "when": 1792341517281,
       "tag": "0016_membership_invitations_security",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1792842401065,
+      "tag": "0017_supplier_national_id_encryption",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1792842406131,
+      "tag": "0018_supplier_national_id_security",
+      "breakpoints": true
     }
   ]
 }

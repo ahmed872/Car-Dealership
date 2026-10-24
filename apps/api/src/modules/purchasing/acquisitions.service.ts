@@ -24,6 +24,7 @@ import { SupplierPaymentsService } from '../finance/supplier-payments.service';
 import { NumberingService } from '../numbering/numbering.service';
 import { VehiclesService } from '../vehicles/vehicles.service';
 import { CostsService } from './costs.service';
+import { presentSupplier } from './suppliers.service';
 
 registerUniqueConstraint('acquisitions_vehicle_live_uq', 'acquisition_exists', 'This vehicle already has an active purchase record');
 registerUniqueConstraint('vehicle_costs_source_uq', 'already_posted', 'This document has already been posted as a cost');
@@ -399,10 +400,13 @@ export class AcquisitionsService {
     const payments = await this.payments.forTargets('acquisition', [a.id]);
     // Supplier identity (national ID, tax number) and contact details need suppliers.read; an
     // individual seller's ID number is a private person's data.
-    const supplierOut =
-      supplier && !hasPermission(ctx, 'suppliers.read')
-        ? { id: supplier.id, name: supplier.name, type: supplier.type, isActive: supplier.isActive, nationalId: null, taxNumber: null, phone: null, email: null, address: null, notes: null }
-        : supplier;
+    // The national ID itself is never part of it (D-047): readers get the masked last 4 like the
+    // supplier page, and the full value only through GET /suppliers/:id/sensitive.
+    const supplierOut = !supplier
+      ? supplier
+      : hasPermission(ctx, 'suppliers.read')
+        ? presentSupplier(supplier)
+        : { id: supplier.id, name: supplier.name, type: supplier.type, isActive: supplier.isActive, nationalIdMasked: null, hasNationalId: false, taxNumber: null, phone: null, email: null, address: null, notes: null };
     return { ...a, supplier: supplierOut, vehicle, paidBase: payable.paidBase, outstandingBase: payable.outstandingBase, payments };
   }
 }

@@ -52,6 +52,11 @@ export const PERMISSIONS = {
 
   'suppliers.read': { group: 'purchasing', en: 'View suppliers', ar: 'عرض الموردين' },
   'suppliers.manage': { group: 'purchasing', en: 'Manage suppliers', ar: 'إدارة الموردين' },
+  'suppliers.view_sensitive': {
+    group: 'purchasing',
+    en: 'View supplier national IDs',
+    ar: 'عرض أرقام هوية الموردين',
+  },
   'acquisitions.read': { group: 'purchasing', en: 'View acquisitions', ar: 'عرض عمليات الشراء' },
   'acquisitions.create': { group: 'purchasing', en: 'Create acquisitions', ar: 'إنشاء عمليات شراء' },
   'acquisitions.approve': { group: 'purchasing', en: 'Approve acquisitions', ar: 'اعتماد عمليات الشراء' },

@@ -218,7 +218,7 @@ Detailed column definitions live in `apps/api/src/db/schema/*.ts` and the SQL mi
 * Audit log: append-only, SHA-256 hash chain per tenant, verification endpoint. This detects
   tampering by anyone without database-owner rights. It does not prevent a DB superuser from
   rewriting the chain; see `docs/SECURITY.md`.
-* Secrets come only from environment variables. Integration secrets are encrypted at rest with
-  AES-256-GCM using `APP_ENCRYPTION_KEY`.
+* Secrets come only from environment variables. Integration secrets and customer and supplier
+  national IDs are encrypted at rest with AES-256-GCM using `APP_ENCRYPTION_KEY` (B-023, D-047).
 * Logs are structured JSON with redaction of authorization, cookie, password, token, and national
   id fields.

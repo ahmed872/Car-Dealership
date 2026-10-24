@@ -88,7 +88,7 @@ with a list of problems). "Compose" is the value or default `docker-compose.yml`
 | `COOKIE_SECURE` | true in production | `${COOKIE_SECURE:-true}` | Secure cookies use the `__Host-` prefix, which needs HTTPS (browsers allow `http://localhost`). |
 | `SESSION_IDLE_MINUTES` / `SESSION_ABSOLUTE_HOURS` | 720 / 168 | (override) | |
 | `LOGIN_MAX_FAILURES` / `LOGIN_LOCKOUT_MINUTES` | 5 / 15 | (override) | |
-| `APP_ENCRYPTION_KEY` | — (required) | required | 32 bytes, base64. Encrypts company integration secrets and customer national IDs (AES-256-GCM) and keys the HMAC used for national-ID lookups. No rotation tool exists — read OPERATIONS.md "Key rotation" first. |
+| `APP_ENCRYPTION_KEY` | — (required) | required | 32 bytes, base64. Encrypts company integration secrets and customer and supplier national IDs (AES-256-GCM) and keys the HMAC used for national-ID lookups. No rotation tool exists — read OPERATIONS.md "Key rotation" first. |
 | `STORAGE_DRIVER` | local | `${STORAGE_DRIVER:-local}` | `local` → volume `storage` at `/data/storage`; `s3` → §7. |
 | `STORAGE_LOCAL_DIR` | ./storage | `/data/storage` | Set by the image. |
 | `S3_BUCKET`, `S3_REGION`, `S3_ENDPOINT`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY` | — | (override) | `S3_BUCKET` is required when `STORAGE_DRIVER=s3`. `S3_ENDPOINT` only for R2/MinIO (must be a URL; do not pass an empty value). |
@@ -245,6 +245,9 @@ The same pieces apply:
    `pg_trgm` and `btree_gist` (migrations 0003 and 0008).
 2. Run `node dist/db/migrate.js` from the API image as a one-shot job with only
    `DATABASE_MIGRATION_URL` (owner role).
+   After an upgrade, run the release's data steps (OPERATIONS.md §1, step 7) once the new API is up, as
+   one-shot jobs from the API image with the API's environment, e.g. for migration 0018:
+   `node dist/cli.js encrypt-supplier-ids`.
 3. Run the API image with `DATABASE_URL` set to the app role, behind a proxy that sets
    `X-Forwarded-For` and is the only hop the API trusts (`TRUST_PROXY=true`).
 4. Serve the web image, or `apps/web/dist` with an equivalent of `apps/web/nginx.conf`, on the same
