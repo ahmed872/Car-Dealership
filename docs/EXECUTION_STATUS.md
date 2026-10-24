@@ -174,7 +174,8 @@
 ## Local environment notes (for resumption)
 - PostgreSQL 16 local cluster: `service postgresql start`.
 - Roles/DBs bootstrapped with `infra/db/bootstrap-roles.sql` (dev passwords in `apps/api/.env`, not committed).
-- Dev reset: `cd apps/api && set -a && . ./.env && set +a && node -r @swc-node/register src/db/reset.ts`.
+- Dev reset: `cd apps/api && set -a && . ./.env && set +a && AUTOHUB_CONFIRM_RESET=autohub node -r @swc-node/register src/db/reset.ts`
+  (only `autohub_dev`/`autohub_test*` reset without `AUTOHUB_CONFIRM_RESET=<db name>`; never in production).
 - Platform admin (dev DB): admin@autohub.local / see session notes; tenant `elite-motors` owner owner@elite.test.
 
 ## External credentials required
