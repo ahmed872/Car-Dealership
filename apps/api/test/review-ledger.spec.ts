@@ -20,6 +20,7 @@ import {
   createVehicle,
   glBalance,
   secondApprover,
+  setFxReferences,
 } from './fixtures';
 import { Client, closeApp, createPlatformAdmin, createTenant, getApp, idem, ownerPool, TestTenant, uniq } from './helpers';
 
@@ -476,6 +477,7 @@ describe('review: ledger, sub-ledgers, reversals', () => {
     it('USD opening balance, USD payment and its void, SAR↔USD transfers and their reversals keep each leg exact', async () => {
       const t = await createTenant(app, admin);
       const c = t.owner;
+      await setFxReferences(c, { USD: '3.75' });
       const usd = await account(c, { type: 'bank', currency: 'USD', openingBalance: '1000.00', exchangeRate: '3.75' });
       expect([usd.balance, usd.balanceBase]).toEqual(['1000.00', '3750.00']);
       const sar = await account(c, { type: 'bank', openingBalance: '20000.00' });
@@ -537,6 +539,7 @@ describe('review: ledger, sub-ledgers, reversals', () => {
     it('an equal split of a USD invoice books exactly the invoice in base currency, so paying it in full settles it', async () => {
       const t = await createTenant(app, admin);
       const c = t.owner;
+      await setFxReferences(c, { USD: '3.75' });
       const S = await createSupplier(c);
       const shipping = await costCategory(c, 'shipping');
       const vs = [await createVehicle(c, t.branchId), await createVehicle(c, t.branchId), await createVehicle(c, t.branchId)];
@@ -589,6 +592,7 @@ describe('review: ledger, sub-ledgers, reversals', () => {
     it('emptying a USD account at a new rate leaves no base-currency balance on it', async () => {
       const t = await createTenant(app, admin);
       const c = t.owner;
+      await setFxReferences(c, { USD: '3.75' });
       const usd = await account(c, { type: 'bank', currency: 'USD', openingBalance: '1000.00', exchangeRate: '3.75' });
       const sar = await account(c, { type: 'bank' });
       const tr = await c.post('/cash/transfers', { fromAccountId: usd.id, toAccountId: sar.id, amount: '1000.00', exchangeRate: '3.80', date: '2026-03-01' }, idem());
@@ -606,6 +610,7 @@ describe('review: ledger, sub-ledgers, reversals', () => {
     it('a 10,000 USD purchase can be settled in full with 10,000 USD paid at a later rate', async () => {
       const t = await createTenant(app, admin);
       const c = t.owner;
+      await setFxReferences(c, { USD: '3.75' });
       const S = await createSupplier(c);
       const usd = await account(c, { type: 'bank', currency: 'USD', openingBalance: '10000.00', exchangeRate: '3.75' });
       const A = await createAcquisition(c, t.branchId, S.id, { price: '10000.00', currency: 'USD', exchangeRate: '3.75', vehicle: {} });
@@ -640,6 +645,7 @@ describe('review: ledger, sub-ledgers, reversals', () => {
     it('the posted purchase cost always equals the acquisition purchase_price_base', async () => {
       const t = await createTenant(app, admin);
       const c = t.owner;
+      await setFxReferences(c, { USD: '3.75' });
       const S = await createSupplier(c);
       // Pending purchase recorded while rounding is half_up: 33.33 × 3.75 = 124.9875 → 124.99.
       const A = await createAcquisition(c, t.branchId, S.id, { price: '33.33', currency: 'USD', exchangeRate: '3.75', approve: false });

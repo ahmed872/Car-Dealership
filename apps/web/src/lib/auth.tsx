@@ -32,9 +32,14 @@ interface AuthValue {
 
 const AuthCtx = createContext<AuthValue | null>(null);
 
+// Public pages (the showroom) never use the session; asking for it there only produces a 401 for
+// every anonymous visitor. They link to nothing inside the app, so checking once at start is enough.
+const startedOnPublicPage = /^\/showroom\//.test(window.location.pathname);
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const qc = useQueryClient();
   const meQuery = useQuery({
+    enabled: !startedOnPublicPage,
     queryKey: ['me'],
     queryFn: async () => {
       try {

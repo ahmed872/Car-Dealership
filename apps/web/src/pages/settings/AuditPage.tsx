@@ -4,10 +4,11 @@ import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { DataTable, Pagination } from '@/components/ui/DataTable';
-import { Alert } from '@/components/ui/Feedback';
+import { Alert, EmptyState } from '@/components/ui/Feedback';
 import { Input } from '@/components/ui/Field';
 import { PageHeader, Toolbar } from '@/components/ui/Layout';
 import { Modal } from '@/components/ui/Modal';
+import { useAuth } from '@/lib/auth';
 import { fmtDateTime } from '@/lib/format';
 import { useApi, useApiMutation, useListParams } from '@/lib/hooks';
 
@@ -26,7 +27,28 @@ interface AuditRow {
   hash: string;
 }
 
+/** The audit log is company-wide: the API answers 403 company_scope_required without access to all branches. */
 export function AuditPage() {
+  const { t } = useTranslation();
+  const { me } = useAuth();
+  if (!me?.allBranches) {
+    return (
+      <>
+        <PageHeader title={t('audit.title')} subtitle={t('audit.subtitle')} />
+        <Card>
+          <EmptyState
+            icon={<ShieldAlert className="h-5 w-5" />}
+            title={t('audit.companyScopeTitle')}
+            description={t('audit.companyScopeHint')}
+          />
+        </Card>
+      </>
+    );
+  }
+  return <AuditLog />;
+}
+
+function AuditLog() {
   const { t } = useTranslation();
   const lp = useListParams();
   const q = useApi<{ items: AuditRow[]; total: number }>(['audit'], '/audit-logs', {

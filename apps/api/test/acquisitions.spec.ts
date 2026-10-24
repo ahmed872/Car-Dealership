@@ -14,6 +14,7 @@ import {
   createSupplier,
   glBalance,
   secondApprover,
+  setFxReferences,
 } from './fixtures';
 import { addMember, Client, closeApp, createPlatformAdmin, createTenant, getApp, idem, ownerPool, TestTenant } from './helpers';
 
@@ -67,6 +68,8 @@ describe('acquisitions', () => {
     t2 = await createTenant(app, admin);
     pool = ownerPool();
     owner = t.owner;
+    // The FX specs use 3.6725 against a 3.75 reference (2.07% apart) on purpose: a 3% band.
+    await setFxReferences(owner, { USD: '3.75', EUR: '3.7' }, '3');
     inventory = (await addMember(app, t, 'inventory_manager')).client;
     accountant = (await addMember(app, t, 'accountant')).client;
     checker = await secondApprover(owner);
@@ -312,6 +315,7 @@ describe('acquisitions', () => {
 
     it('uses the tenant rounding mode (half_even: 370.185 → 370.18)', async () => {
       const te = await createTenant(app, admin);
+      await setFxReferences(te.owner, { EUR: '3.7' });
       const set = await te.owner.patch('/company', { settings: { rounding: 'half_even' } });
       expect(set.status).toBe(200);
       const sup = await createSupplier(te.owner);

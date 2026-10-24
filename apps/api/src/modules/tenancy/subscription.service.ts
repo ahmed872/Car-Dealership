@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { eq, inArray, sql } from 'drizzle-orm';
+import { and, eq, inArray, sql } from 'drizzle-orm';
 import { AppError } from '../../common/errors';
 import { DbService } from '../../db/db.service';
 import { branches, memberships, subscriptionPlans, tenantSubscriptions } from '../../db/schema';
@@ -42,7 +42,9 @@ export class SubscriptionService {
       this.dbs.db
         .select({ n: sql<number>`count(*)::int` })
         .from(memberships)
-        .where(eq(memberships.status, 'active')),
+        // A pending invitation holds a seat (it becomes active without the company acting again).
+        // The tenant filter matters: RLS also shows the signed-in user's memberships elsewhere.
+        .where(and(inArray(memberships.status, ['active', 'invited']), sql`${memberships.tenantId} = app_current_tenant()`)),
       this.dbs.db
         .select({ n: sql<number>`count(*)::int` })
         .from(branches)

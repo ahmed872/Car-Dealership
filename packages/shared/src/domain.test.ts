@@ -4,7 +4,7 @@ import { computeVinCheckDigit, validateVin } from './vin';
 import { ALL_PERMISSIONS, SYSTEM_ROLES } from './permissions';
 import { normalizePhone } from './markets';
 import { defaultTenantSettings } from './schemas/admin';
-import { zTenantSettings, zMoneyPos, zMoney } from './schemas/common';
+import { zTenantSettings, zTenantSettingsPatch, zMoneyPos, zMoney } from './schemas/common';
 
 describe('vehicle lifecycle', () => {
   it('allows workflow transitions only for the system', () => {
@@ -83,6 +83,35 @@ describe('markets & settings', () => {
     for (const m of ['EG', 'SA', 'AE'] as const)
       expect(zTenantSettings.safeParse(defaultTenantSettings(m)).success).toBe(true);
     expect(defaultTenantSettings('SA').tax.ratePct).toBe('15');
+  });
+  it('fx settings: stored settings without fx still parse, reference rates are validated', () => {
+    const { fx: _fx, ...legacy } = defaultTenantSettings('SA');
+    const parsed = zTenantSettings.parse(legacy);
+    expect(parsed.fx).toEqual({ referenceRates: {}, maxDeviationPct: '2' });
+    const withFx = (fx: unknown) => zTenantSettings.safeParse({ ...legacy, fx });
+    expect(withFx({ referenceRates: { USD: '3.75' } }).success).toBe(true);
+    expect(withFx({ referenceRates: { USD: '0' } }).success).toBe(false);
+    expect(withFx({ referenceRates: { GBP: '4.7' } }).success).toBe(false);
+    expect(withFx({ referenceRates: { USD: '3.75' }, maxDeviationPct: '-1' }).success).toBe(false);
+    expect(withFx({ referenceRates: { USD: '3.75' }, maxDeviationPct: '100.5' }).success).toBe(false);
+  });
+  it('shares of a whole stay within 0–100 (tax rate, refundable deposit share)', () => {
+    const base = defaultTenantSettings('SA');
+    const tax = (ratePct: string) => zTenantSettings.safeParse({ ...base, tax: { ...base.tax, ratePct } }).success;
+    expect(tax('15')).toBe(true);
+    expect(tax('100')).toBe(true);
+    expect(tax('150')).toBe(false);
+    expect(tax('-1')).toBe(false);
+    const refundable = (defaultRefundablePct: string) =>
+      zTenantSettings.safeParse({ ...base, reservation: { ...base.reservation, defaultRefundablePct } }).success;
+    expect(refundable('50')).toBe(true);
+    expect(refundable('120')).toBe(false);
+    expect(zTenantSettingsPatch.safeParse({ tax: { ratePct: '150' } }).success).toBe(false);
+  });
+  it('settings PATCH schema never re-applies defaults inside a section', () => {
+    expect(zTenantSettingsPatch.parse({ fx: { maxDeviationPct: '5' } })).toEqual({ fx: { maxDeviationPct: '5' } });
+    expect(zTenantSettingsPatch.parse({ reservation: { defaultDays: 10 } })).toEqual({ reservation: { defaultDays: 10 } });
+    expect(zTenantSettingsPatch.parse({})).toEqual({});
   });
   it('money schema rejects floats-as-strings beyond 2 decimals and negatives where required', () => {
     expect(zMoney.safeParse('10.123').success).toBe(false);

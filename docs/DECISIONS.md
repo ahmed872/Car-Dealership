@@ -326,6 +326,58 @@ Work orders carry a `version` moved by triggers on every change to the order or 
 because items change through their own routes. Approve accepts the version the approver reviewed
 and refuses a stale one with 409 `version_conflict`; the web approve dialog sends it.
 
+### D-041 Adding an existing account to a company is an invitation (security review F1/F4)
+When a company adds an email that already has an account, the membership is created with status
+`invited`: name, phone and password from the form are ignored and the company gets no say over the
+account. Only the invitee accepts (`POST /me/invitations/:id/accept` → `active`) or declines (the
+row is deleted, so the company may invite again). Sessions, login, tenant RLS and every member
+lookup (assignees, inquiry routing, owner counts) require `active`, so an invitation grants
+nothing. A pending invitation holds a plan seat. Only accepted memberships make an account
+"shared".
+
+### D-042 Who may change an account
+A company may reset the password of, or edit the name/phone of, only an active member whose
+account it alone owns (`assertAccountManageable`), and never a platform administrator. Branch
+scope is authority in user management, like permissions and discount limits: a caller without
+all-branch access cannot grant all branches or a branch outside their own, nor manage a member
+whose access is not inside their branches (403 `branch_scope_exceeded`). Commission policies are
+assigned only by holders of `commissions.manage_policies`, never to oneself. Changing a
+document's sensitivity needs `documents.read_sensitive`.
+
+### D-043 Login attempts are reserved before the password check (F5)
+One `UPDATE … FOR UPDATE` counts the attempt and, at `LOGIN_MAX_FAILURES`, locks the account;
+while locked no attempt is counted and the password is not checked. Parallel guesses therefore
+cannot exceed the limit per lockout window. Unknown emails, locked and disabled accounts and wrong
+passwords all answer 401 `invalid_credentials` after one Argon2 verification; `account_locked` is no
+longer returned, so the endpoint reveals neither which accounts exist nor which are locked.
+
+### D-044 Company-wide data and file access (F3/F7)
+Audit rows carry no branch, so the audit log (list and verify) is company-wide only (403
+`company_scope_required`), like the GL reports. File downloads resolve the owning vehicle through
+media, documents or inspection media and apply its branch scope; company logos are exempt and a
+file with no resolvable owner is refused to branch-scoped users.
+
+### D-045 PDF limits (F11)
+Report PDFs are capped at 2,000 rows (422 `pdf_too_many_rows`, pointing to xlsx/csv), report exports
+are rate limited per client (`EXPORT_RATE_LIMIT_PER_MIN`, default 20/min), and all Chromium renders
+(reports and sale documents) share one process-wide gate: `PDF_MAX_CONCURRENT` (2) running,
+`PDF_MAX_QUEUE` (4) waiting, then 503 `pdf_busy`.
+
+### D-046 Foreign-currency rates are bounded by company reference rates (F6)
+A stated exchange rate is accepted only for a currency with a company reference rate
+(`settings.fx.referenceRates`, base-currency units per unit; the base currency cannot have one) and
+only if |rate − reference| / reference × 100 ≤ `settings.fx.maxDeviationPct` (default 2, 0–100);
+otherwise 422 `fx_reference_missing` / `fx_rate_out_of_band`. The check is in `resolveFx`, so it
+covers receipts, deposits, supplier payments, opening balances, transfers (including the rate
+implied by `amountTo` into a foreign account in another currency), expenses, vehicle costs and
+acquisitions. A missing rate is still `exchange_rate_required`: the reference is never used
+silently, and no market rates are fetched. A rate checked when its document was recorded is not
+re-checked on approval; a new conversion (re-pricing) is. Reference rates and the tolerance are
+company settings (`settings.manage`, audited by `company.updated`). PATCH /company patches field by
+field inside each settings section (`sectionPatchOf`), so a partial section no longer resets that
+section's other values. Refund detail and the refund approval show the currency, amount and rate
+of the receipts behind the refund.
+
 ## Business assumptions
 
 ### B-001 Revenue recognition default = on delivery **[PO-CONFIRM]**

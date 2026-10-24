@@ -123,8 +123,9 @@ describe('authentication & sessions', () => {
     const locked = await request(app.getHttpServer())
       .post('/api/v1/auth/login')
       .send({ email: t.ownerEmail, password: PASSWORD });
-    expect(locked.status).toBe(429);
-    expect(locked.body.error.code).toBe('account_locked');
+    // A locked account answers exactly like a wrong password or an unknown email (no oracle).
+    expect(locked.status).toBe(401);
+    expect(locked.body.error.code).toBe('invalid_credentials');
   });
 
   it('change password revokes other sessions but keeps the current one', async () => {
@@ -178,7 +179,8 @@ describe('authentication & sessions', () => {
 
   it('user with multiple companies must choose, and can switch tenant', async () => {
     const t2 = await createTenant(app, admin);
-    // Add tenant.owner's email as member of t2 (existing account → no password change).
+    // Add tenant.owner's email as member of t2: an existing account is only invited (no password
+    // change, no access) until the person accepts the invitation themselves.
     const roles = await t2.owner.get('/roles');
     const accountant = roles.body.find((r: { key: string }) => r.key === 'accountant');
     const add = await t2.owner.post('/users', {
@@ -189,7 +191,13 @@ describe('authentication & sessions', () => {
       allBranches: true,
     });
     expect(add.status).toBe(201);
-    expect(add.body.accountCreated).toBe(false);
+    expect(add.body.status).toBe('invited');
+    const pending = await request(app.getHttpServer())
+      .post('/api/v1/auth/login')
+      .set('Origin', ORIGIN)
+      .send({ email: tenant.ownerEmail, password: PASSWORD });
+    expect(pending.body.tenants).toHaveLength(1);
+    expect((await tenant.owner.post(`/me/invitations/${add.body.membershipId}/accept`)).status).toBe(200);
     const login = await request(app.getHttpServer())
       .post('/api/v1/auth/login')
       .set('Origin', ORIGIN)

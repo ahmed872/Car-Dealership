@@ -120,6 +120,10 @@ export const memberships = pgTable(
       .notNull()
       .references(() => roles.id),
     allBranches: boolean('all_branches').notNull().default(false),
+    /**
+     * active | suspended | invited. An EXISTING account added by a company starts as `invited`: it
+     * grants no access until the person accepts it themselves (security review F1/F4).
+     */
     status: text('status').notNull().default('active'),
     createdAt: createdAt(),
     updatedAt: updatedAt(),
@@ -127,7 +131,7 @@ export const memberships = pgTable(
   (t) => [
     uniqueIndex('memberships_tenant_user_uq').on(t.tenantId, t.userId),
     index('memberships_user_idx').on(t.userId),
-    check('memberships_status_chk', inList('status', ['active', 'suspended'])),
+    check('memberships_status_chk', inList('status', ['active', 'suspended', 'invited'])),
   ],
 );
 

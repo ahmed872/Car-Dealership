@@ -13,6 +13,7 @@ import {
   createSupplier,
   createVehicle,
   glBalance,
+  setFxReferences,
 } from './fixtures';
 import { addMember, Client, closeApp, createPlatformAdmin, createTenant, getApp, idem, ORIGIN, ownerPool, TestTenant, uniq } from './helpers';
 
@@ -45,6 +46,7 @@ describe('cash accounts', () => {
     t2 = await createTenant(app, admin);
     pool = ownerPool();
     owner = t.owner;
+    await setFxReferences(owner, { USD: '3.75' });
     accountant = (await addMember(app, t, 'accountant')).client;
     main = await createCashAccount(owner, { name: 'Main safe', openingBalance: '100000.00' });
   });

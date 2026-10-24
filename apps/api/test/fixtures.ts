@@ -1,5 +1,9 @@
 import { randomUUID } from 'node:crypto';
 import type { INestApplication } from '@nestjs/common';
+import { RequestMethod } from '@nestjs/common';
+import { METHOD_METADATA, PATH_METADATA } from '@nestjs/common/constants';
+import { DiscoveryService, MetadataScanner, ModulesContainer, Reflector } from '@nestjs/core';
+import { ALLOW_NO_TENANT, AUTHENTICATED_ONLY, IDEMPOTENT, IS_PUBLIC, PERMISSIONS_KEY, PLATFORM_ADMIN } from '../src/common/context';
 import type { Pool } from 'pg';
 import { expect } from 'vitest';
 import { Client, getApp, idem, PASSWORD, TestTenant, uniq } from './helpers';
@@ -77,6 +81,17 @@ export async function createCashAccount(
   );
   if (res.status !== 201) throw new Error(`create cash account failed ${res.status} ${JSON.stringify(res.body)}`);
   return res.body as { id: string; name: string; balance: string; balanceBase: string; currency: string };
+}
+
+/**
+ * Sets the company's FX reference rates (and optionally the tolerance, in percent) through the
+ * real PATCH /company route. Foreign-currency amounts are refused without a reference rate, and a
+ * stated rate must lie within the tolerance around it (F6).
+ */
+export async function setFxReferences(c: Client, referenceRates: Record<string, string>, maxDeviationPct?: string) {
+  const res = await c.patch('/company', { settings: { fx: { referenceRates, ...(maxDeviationPct !== undefined ? { maxDeviationPct } : {}) } } });
+  if (res.status !== 200) throw new Error(`set fx references failed ${res.status} ${JSON.stringify(res.body)}`);
+  return res.body.settings.fx as { referenceRates: Record<string, string>; maxDeviationPct: string };
 }
 
 export async function costCategory(c: Client, code: string) {
@@ -317,4 +332,59 @@ export async function sellVehicle(
   const del = await c.post(`/sales/${id}/deliver`, { version: cur.body.version }, idem());
   if (del.status !== 200) throw new Error(`deliver failed ${del.status} ${JSON.stringify(del.body)}`);
   return del.body as { id: string; number: string; netAmount: string; grossAmount: string; installmentPlan: { id: string } | null };
+}
+
+export interface RouteInfo {
+  method: string;
+  path: string;
+  policy: 'public' | 'platform_admin' | 'permissions' | 'authenticated' | 'signed_in' | 'NONE';
+  permissions: string[];
+  idempotent: boolean;
+}
+
+/** Every HTTP route of the app with its access policy, read from the controller metadata. */
+export function listRoutes(app: INestApplication): RouteInfo[] {
+  const discovery = new DiscoveryService(app.get(ModulesContainer));
+  const scanner = new MetadataScanner();
+  const reflector = new Reflector();
+  const routes: RouteInfo[] = [];
+  for (const wrapper of discovery.getControllers()) {
+    const { instance, metatype } = wrapper;
+    if (!instance || !metatype) continue;
+    const base = String(reflector.get<string | string[]>(PATH_METADATA, metatype) ?? '');
+    const proto = Object.getPrototypeOf(instance) as Record<string, unknown>;
+    for (const name of scanner.getAllMethodNames(proto)) {
+      const handler = proto[name] as (...args: unknown[]) => unknown;
+      const sub = reflector.get<string | string[]>(PATH_METADATA, handler);
+      if (sub === undefined) continue;
+      const method = RequestMethod[reflector.get<RequestMethod>(METHOD_METADATA, handler)] ?? '?';
+      const pick = <T>(key: string) => reflector.getAllAndOverride<T>(key, [handler, metatype]);
+      const perms = pick<string[]>(PERMISSIONS_KEY) ?? [];
+      const policy: RouteInfo['policy'] = pick<boolean>(IS_PUBLIC)
+        ? 'public'
+        : pick<boolean>(PLATFORM_ADMIN)
+          ? 'platform_admin'
+          : perms.length
+            ? 'permissions'
+            : pick<boolean>(AUTHENTICATED_ONLY)
+              ? 'authenticated'
+              : pick<boolean>(ALLOW_NO_TENANT)
+                ? 'signed_in'
+                : 'NONE';
+      const path = ['/api/v1', base, String(sub)].join('/').replace(/\/+/g, '/').replace(/\/$/, '');
+      routes.push({ method, path, policy, permissions: perms, idempotent: !!pick<boolean>(IDEMPOTENT) });
+    }
+  }
+  return routes.sort((a, b) => a.path.localeCompare(b.path) || a.method.localeCompare(b.method));
+}
+
+/**
+ * Any record id of a company, through the owner pool: "table", "table.column", optionally followed by
+ * " where <condition>" to pick rows (test-authored constants only, never user input).
+ */
+export async function idOf(pool: Pool, tenantId: string, ref: string): Promise<string | null> {
+  const [target, where] = ref.split(' where ');
+  const [name, col = 'id'] = target!.split('.');
+  const r = await pool.query<{ id: string }>(`SELECT ${col} AS id FROM ${name} WHERE tenant_id = $1${where ? ` AND ${where}` : ''} LIMIT 1`, [tenantId]);
+  return r.rows[0]?.id ?? null;
 }

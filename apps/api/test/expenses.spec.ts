@@ -2,7 +2,7 @@ import type { INestApplication } from '@nestjs/common';
 import { Pool } from 'pg';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { d, todayInZone } from '@autohub/shared';
-import { costCategory, createCashAccount, createSupplier } from './fixtures';
+import { costCategory, createCashAccount, createSupplier, setFxReferences } from './fixtures';
 import { addMember, Client, closeApp, createPlatformAdmin, createTenant, getApp, idem, ownerPool, PASSWORD, TestTenant, uniq } from './helpers';
 
 /** GL balance (debit − credit) for one account, optionally filtered by a dimension column. */
@@ -91,6 +91,7 @@ describe('operating expenses', () => {
     app = await getApp();
     admin = await createPlatformAdmin(app);
     t = await createTenant(app, admin);
+    await setFxReferences(t.owner, { USD: '3.75' });
     pool = ownerPool();
     accountant = (await addMember(app, t, 'accountant')).client;
     // No system role has expenses.create without expenses.approve, so the maker path uses a custom role.
@@ -500,6 +501,7 @@ describe('operating expenses', () => {
 
   it('summarises posted expenses by category and month (pending and reversed excluded)', async () => {
     const t3 = await createTenant(app, admin);
+    await setFxReferences(t3.owner, { USD: '3.75' });
     const acc = (await addMember(app, t3, 'accountant')).client;
     const maker = (await addCustomMember(app, t3, ['expenses.read', 'expenses.create'])).client;
     const r = await expenseCategory(acc, 'rent');

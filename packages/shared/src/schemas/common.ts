@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { ISO_DATE_REGEX } from '../finance/dates';
-import { CURRENCY_CODES, MONEY_REGEX, PERCENT_REGEX, RATE_REGEX, ROUNDING_MODES } from '../money';
+import { CURRENCY_CODES, d, MONEY_REGEX, PERCENT_REGEX, RATE_REGEX, ROUNDING_MODES } from '../money';
 import { MARKET_CODES, TAX_MODES } from '../markets';
 import { FUTURE_INTEREST_POLICIES, INSTALLMENT_METHODS } from '../finance/installments';
 import { ALLOCATION_COMPONENTS } from '../finance/installments';
@@ -14,6 +14,8 @@ export const zMoneyPos = zMoney.refine(
 );
 export const zRate = z.string().trim().regex(RATE_REGEX, 'invalid_rate');
 export const zPercent = z.string().trim().regex(PERCENT_REGEX, 'invalid_percent');
+/** A share of a whole: 0–100 (tax rates, refundable deposit shares, discount limits, tolerances). */
+export const zPercent100 = zPercent.refine((v) => d(v).gte(0) && d(v).lte(100), 'must_be_between_0_and_100');
 export const zIsoDate = z.string().regex(ISO_DATE_REGEX, 'invalid_date');
 export const zDateTime = z.iso.datetime({ offset: true });
 export const zCurrency = z.enum(CURRENCY_CODES);
@@ -54,13 +56,33 @@ export const zFxFields = z.object({
   exchangeRate: zRate.optional(),
 });
 
+/** Default tolerance (percent) between a stated exchange rate and the company reference rate. */
+export const DEFAULT_FX_MAX_DEVIATION_PCT = '2';
+
+/**
+ * Company reference exchange rates (base-currency units per one unit of the currency) and how far
+ * a rate stated on a transaction may deviate from them. A foreign-currency amount can only be
+ * recorded for a currency that has a reference rate. The base currency must not be a key (the
+ * API refuses it: it knows the base currency, this schema does not).
+ */
+export const zFxSettings = z.object({
+  referenceRates: z
+    .partialRecord(
+      zCurrency,
+      zRate.refine((v) => d(v).gt(0), 'must_be_positive'),
+    )
+    .default({}),
+  maxDeviationPct: zPercent100.default(DEFAULT_FX_MAX_DEVIATION_PCT),
+});
+export type FxSettings = z.infer<typeof zFxSettings>;
+
 export const zTenantSettings = z.object({
   locale: zLocale.default('ar'),
   timezone: z.string().min(3).max(64),
   rounding: z.enum(ROUNDING_MODES).default('half_up'),
   tax: z.object({
     mode: z.enum(TAX_MODES),
-    ratePct: zPercent,
+    ratePct: zPercent100,
     pricesIncludeTax: z.boolean(),
     labelEn: zText(40),
     labelAr: zText(40),
@@ -70,7 +92,7 @@ export const zTenantSettings = z.object({
   reservation: z.object({
     defaultDays: z.number().int().min(1).max(90).default(7),
     defaultRefundPolicy: z.enum(['refundable', 'non_refundable', 'partial']).default('refundable'),
-    defaultRefundablePct: zPercent.default('100'),
+    defaultRefundablePct: zPercent100.default('100'),
   }),
   inventory: z.object({
     staleDaysWarning: z.number().int().min(1).max(3650).default(60),
@@ -115,6 +137,7 @@ export const zTenantSettings = z.object({
     headlineEn: zOptText(200),
   }),
   statusLabels: z.record(z.string(), z.object({ ar: zText(40), en: zText(40) })).default({}),
+  fx: zFxSettings.default({ referenceRates: {}, maxDeviationPct: DEFAULT_FX_MAX_DEVIATION_PCT }),
 });
 export type TenantSettings = z.infer<typeof zTenantSettings>;
 
@@ -139,3 +162,23 @@ export function patchOf<T extends z.ZodRawShape>(schema: z.ZodObject<T>) {
   for (const [k, f] of Object.entries(schema.shape)) shape[k] = stripDefault(f as z.ZodType).optional();
   return z.object(shape) as unknown as z.ZodObject<{ [K in keyof T]: z.ZodOptional<StripDefault<T[K]>> }>;
 }
+
+/**
+ * PATCH schema for an object made of sections (company settings): `patchOf` at the top level AND
+ * inside every nested object section, so `{ fx: { maxDeviationPct: '5' } }` parses to exactly
+ * that and never re-applies the section's other defaults. The schema only makes fields optional;
+ * PATCH /company merges the result one level deep, so a value inside a section
+ * (`fx.referenceRates`, `installments.allocationOrder`) replaces the stored one whole.
+ */
+export function sectionPatchOf<T extends z.ZodRawShape>(schema: z.ZodObject<T>) {
+  const shape: Record<string, z.ZodType> = {};
+  for (const [k, f] of Object.entries(schema.shape)) {
+    const inner = stripDefault(f as z.ZodType);
+    shape[k] = (inner instanceof z.ZodObject ? patchOf(inner) : inner).optional();
+  }
+  return z.object(shape) as unknown as z.ZodObject<{ [K in keyof T]: z.ZodOptional<z.ZodType<Partial<z.output<StripDefault<T[K]>>>>> }>;
+}
+
+/** Company settings PATCH body (`PATCH /company` → `settings`). */
+export const zTenantSettingsPatch = sectionPatchOf(zTenantSettings);
+export type TenantSettingsPatch = z.infer<typeof zTenantSettingsPatch>;

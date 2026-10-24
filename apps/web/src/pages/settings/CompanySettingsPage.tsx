@@ -1,7 +1,8 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
-import type { TenantSettings } from '@autohub/shared';
+import { Link } from 'react-router-dom';
+import { CURRENCY_CODES, type TenantSettings } from '@autohub/shared';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Card, CardBody, CardHeader } from '@/components/ui/Card';
@@ -9,6 +10,7 @@ import { Alert, ErrorState, PageLoader } from '@/components/ui/Feedback';
 import { Checkbox, Field, Input, Select, Textarea } from '@/components/ui/Field';
 import { FormSection, PageHeader } from '@/components/ui/Layout';
 import { fmtDate } from '@/lib/format';
+import { ApiError } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { useApi, useApiMutation } from '@/lib/hooks';
 
@@ -64,9 +66,27 @@ export function CompanySettingsPage() {
           ...v.settings.installments,
           reminderDaysBefore: Number(v.settings.installments.reminderDaysBefore),
         },
+        // The rate map is replaced whole: an emptied field removes that currency's reference rate.
+        fx: {
+          maxDeviationPct: String(v.settings.fx.maxDeviationPct).trim(),
+          referenceRates: Object.fromEntries(
+            Object.entries(v.settings.fx.referenceRates ?? {})
+              .map(([cur, rate]) => [cur, String(rate ?? '').trim()] as const)
+              .filter(([cur, rate]) => cur !== q.data?.baseCurrency && rate !== ''),
+          ),
+        },
       },
     }),
   });
+
+  // validation_failed issues carry the same dotted paths as the form fields.
+  const invalid = useMemo(() => {
+    const e = save.error;
+    if (!(e instanceof ApiError) || e.code !== 'validation_failed') return new Set<string>();
+    const issues = (e.details as { issues?: Array<{ path: string }> } | undefined)?.issues ?? [];
+    return new Set(issues.map((i) => i.path));
+  }, [save.error]);
+  const pctError = (path: string) => (invalid.has(path) ? t('settings.errPct100') : undefined);
 
   if (q.isLoading) return <PageLoader />;
   if (q.error || !q.data) return <ErrorState error={q.error} onRetry={() => q.refetch()} />;
@@ -144,7 +164,7 @@ export function CompanySettingsPage() {
                       </Select>
                     )}
                   </Field>
-                  <Field label={t('settings.taxRate')}>
+                  <Field label={t('settings.taxRate')} error={pctError('settings.tax.ratePct')}>
                     {(id) => (
                       <Input
                         id={id}
@@ -180,6 +200,43 @@ export function CompanySettingsPage() {
                   </Field>
                 </FormSection>
 
+                <FormSection title={t('settings.fxSection')} description={t('settings.fxSectionHint')}>
+                  {CURRENCY_CODES.filter((cur) => cur !== c.baseCurrency).map((cur) => (
+                    <Field
+                      key={cur}
+                      label={t('settings.fxReferenceRate', { currency: cur, base: c.baseCurrency })}
+                      error={invalid.has(`settings.fx.referenceRates.${cur}`) ? t('settings.errRate') : undefined}
+                    >
+                      {(id) => (
+                        <Input
+                          id={id}
+                          dir="ltr"
+                          inputMode="decimal"
+                          className="num"
+                          placeholder={t('settings.fxNotSet')}
+                          {...reg(`settings.fx.referenceRates.${cur}`)}
+                        />
+                      )}
+                    </Field>
+                  ))}
+                  <Field
+                    label={t('settings.fxMaxDeviation')}
+                    hint={t('settings.fxMaxDeviationHint')}
+                    error={pctError('settings.fx.maxDeviationPct')}
+                  >
+                    {(id, d) => (
+                      <Input
+                        id={id}
+                        aria-describedby={d}
+                        dir="ltr"
+                        inputMode="decimal"
+                        className="num"
+                        {...reg('settings.fx.maxDeviationPct', { required: true })}
+                      />
+                    )}
+                  </Field>
+                </FormSection>
+
                 <FormSection title={t('settings.reservationSection')}>
                   <Field label={t('settings.reservationDays')}>
                     {(id) => (
@@ -201,7 +258,10 @@ export function CompanySettingsPage() {
                       </Select>
                     )}
                   </Field>
-                  <Field label={t('settings.refundablePct')}>
+                  <Field
+                    label={t('settings.refundablePct')}
+                    error={pctError('settings.reservation.defaultRefundablePct')}
+                  >
                     {(id) => (
                       <Input
                         id={id}
@@ -310,18 +370,61 @@ export function CompanySettingsPage() {
                       />
                     )}
                   />
-                  <Checkbox label={t('settings.showReserved')} {...reg('settings.showroom.showReserved')} />
-                  <Checkbox label={t('settings.showPrices')} {...reg('settings.showroom.showPrices')} />
-                  <Field label={t('settings.whatsapp')}>
-                    {(id) => (
+                  <Checkbox
+                    label={t('settings.showReserved')}
+                    description={t('showroom.settings.showReservedHint')}
+                    {...reg('settings.showroom.showReserved')}
+                  />
+                  <Checkbox
+                    label={t('settings.showPrices')}
+                    description={t('showroom.settings.showPricesHint')}
+                    {...reg('settings.showroom.showPrices')}
+                  />
+                  <Checkbox
+                    className="sm:col-span-2"
+                    label={t('showroom.settings.acknowledge')}
+                    description={t('showroom.settings.acknowledgeHint')}
+                    {...reg('settings.showroom.acknowledgeInquiries')}
+                  />
+                  <Field label={t('settings.whatsapp')} hint={t('showroom.settings.whatsappHint')}>
+                    {(id, d) => (
                       <Input
                         id={id}
+                        aria-describedby={d}
                         dir="ltr"
+                        inputMode="tel"
+                        maxLength={20}
                         placeholder="+9665…"
                         {...reg('settings.showroom.whatsappNumber')}
                       />
                     )}
                   </Field>
+                  <span />
+                  <Field label={t('showroom.settings.headlineAr')}>
+                    {(id) => <Input id={id} dir="rtl" maxLength={200} {...reg('settings.showroom.headlineAr')} />}
+                  </Field>
+                  <Field label={t('showroom.settings.headlineEn')}>
+                    {(id) => <Input id={id} dir="ltr" maxLength={200} {...reg('settings.showroom.headlineEn')} />}
+                  </Field>
+                  {c.settings.showroom.enabled && (
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] sm:col-span-2">
+                      <span className="text-muted">{t('showroom.settings.publicLink')}:</span>
+                      <a
+                        href={`/showroom/${encodeURIComponent(c.slug)}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        dir="ltr"
+                        className="num font-medium break-all text-brand-strong hover:underline"
+                      >
+                        {`${window.location.origin}/showroom/${c.slug}`}
+                      </a>
+                      {can('showroom.manage') && (
+                        <Link to="/app/showroom" className="font-medium text-brand-strong hover:underline">
+                          {t('showroom.settings.manageListings')}
+                        </Link>
+                      )}
+                    </div>
+                  )}
                 </FormSection>
               </fieldset>
             </form>

@@ -28,8 +28,8 @@ export class UsersController {
 
   @Get('users')
   @RequirePermissions('users.read')
-  list() {
-    return this.users.list();
+  list(@Ctx() ctx: TenantContext) {
+    return this.users.list(ctx);
   }
 
   @Post('users')

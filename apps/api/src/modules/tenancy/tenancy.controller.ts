@@ -3,12 +3,13 @@ import { ApiTags } from '@nestjs/swagger';
 import { and, asc, eq, sql } from 'drizzle-orm';
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
-import { patchOf, zBranchInput, zTenantSettings, TenantSettings } from '@autohub/shared';
+import { patchOf, zBranchInput, zTenantSettings, zTenantSettingsPatch, TenantSettings } from '@autohub/shared';
 import { Ctx, RequirePermissions, TenantContext, Authenticated } from '../../common/context';
-import { AppError, notFound } from '../../common/errors';
+import { AppError, notFound, unprocessable } from '../../common/errors';
 import { DbService } from '../../db/db.service';
 import { branches, journalEntries, tenants } from '../../db/schema';
 import { AuditService, diff } from '../audit/audit.service';
+import { fxSettings } from '../finance/fx';
 import { SubscriptionService } from './subscription.service';
 
 class BranchDto extends createZodDto(zBranchInput) {}
@@ -16,9 +17,18 @@ class BranchUpdateDto extends createZodDto(patchOf(zBranchInput)) {}
 
 const zSettingsUpdate = z.object({
   name: z.string().trim().min(2).max(200).optional(),
-  settings: patchOf(zTenantSettings).optional(),
+  // Field-by-field inside each section too (never `.partial()`): a PATCH of `fx` keeps the other
+  // sections, and a PATCH of one fx field keeps the other.
+  settings: zTenantSettingsPatch.optional(),
 });
 class SettingsUpdateDto extends createZodDto(zSettingsUpdate) {}
+
+/** JSON with object keys sorted (jsonb does not keep key order), for change detection. */
+function canonicalJson(v: unknown): string | undefined {
+  return JSON.stringify(v, (_k, x: unknown) =>
+    x && typeof x === 'object' && !Array.isArray(x) ? Object.fromEntries(Object.entries(x).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))) : x,
+  );
+}
 
 /** Settings whose change would rewrite how existing financial history is interpreted. */
 const LOCKED_AFTER_POSTING: Array<keyof TenantSettings> = ['revenueRecognition', 'rounding'];
@@ -43,7 +53,8 @@ export class TenancyController {
       slug: t.slug,
       market: t.market,
       baseCurrency: t.baseCurrency,
-      settings: t.settings,
+      // Settings stored before the fx section existed read with its defaults.
+      settings: { ...t.settings, fx: fxSettings(t.settings) },
       subscription: await this.subscriptions.current(),
       usage: await this.subscriptions.usage(),
     };
@@ -72,6 +83,11 @@ export class TenancyController {
       }
     }
     const validated = zTenantSettings.parse(merged);
+    if (validated.fx.referenceRates[current.baseCurrency as keyof typeof validated.fx.referenceRates] !== undefined) {
+      throw unprocessable('fx_reference_base_currency', `${current.baseCurrency} is the base currency; it always converts at 1 and takes no reference rate`, {
+        currency: current.baseCurrency,
+      });
+    }
     const changedLocked = LOCKED_AFTER_POSTING.filter(
       (k) => JSON.stringify(validated[k]) !== JSON.stringify(current.settings[k]),
     );
@@ -103,10 +119,16 @@ export class TenancyController {
       { name: current.name, settings: current.settings },
       { name: updated!.name, settings: updated!.settings },
     );
+    // Reference rates and the FX tolerance decide which rates money can be booked at: the audit
+    // keeps the full before/after of every changed section (diff of name + settings).
+    const changedSettings = Object.keys(validated).filter(
+      (k) => canonicalJson(validated[k as keyof TenantSettings]) !== canonicalJson(current.settings[k as keyof TenantSettings]),
+    );
     await this.audit.record({
       action: 'company.updated',
       entityType: 'tenant',
       entityId: ctx.tenant.id,
+      summary: changedSettings.length ? `Settings changed: ${changedSettings.join(', ')}` : undefined,
       ...changes,
     });
     return { id: updated!.id, name: updated!.name, settings: updated!.settings };
