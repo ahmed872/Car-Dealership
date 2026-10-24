@@ -4,7 +4,7 @@ import { ComponentProps, forwardRef, ReactNode, useCallback, useRef } from 'reac
 import { useTranslation } from 'react-i18next';
 import { convert, CurrencyCode, d, isValidMoney, money, RATE_REGEX, RoundingMode } from '@autohub/shared';
 import { errorMessage } from '@/components/ui/Feedback';
-import { Input, MoneyInput } from '@/components/ui/Field';
+import { Input } from '@/components/ui/Field';
 import { useToast } from '@/components/ui/Toast';
 import { api, ApiError, newIdempotencyKey } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
@@ -218,18 +218,6 @@ export function Money({
     </span>
   );
 }
-
-/**
- * MoneyInput whose currency tag never covers the digits in Arabic: the kit's input is dir="ltr" but
- * places the tag at the page's inline end (the left in RTL), so the padding must follow it there.
- */
-export const AmountInput = forwardRef<HTMLInputElement, ComponentProps<typeof MoneyInput>>(
-  function AmountInput({ className, ...rest }, ref) {
-    return (
-      <MoneyInput ref={ref} className={clsx(rest.currency && 'rtl:ps-14 rtl:pe-3', className)} {...rest} />
-    );
-  },
-);
 
 /** Exchange-rate entry (base units per one foreign unit), LTR digits. */
 export const RateInput = forwardRef<HTMLInputElement, ComponentProps<typeof Input>>(function RateInput(

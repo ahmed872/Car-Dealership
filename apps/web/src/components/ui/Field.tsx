@@ -6,6 +6,9 @@ import {
   SelectHTMLAttributes,
   TextareaHTMLAttributes,
   useId,
+  useLayoutEffect,
+  useRef,
+  useState,
 } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -114,28 +117,80 @@ export const Checkbox = forwardRef<
   );
 });
 
-/** Decimal money entry: keeps the raw string (never a float) and shows the currency. */
-export const MoneyInput = forwardRef<
-  HTMLInputElement,
-  InputHTMLAttributes<HTMLInputElement> & { currency?: string; invalid?: boolean }
->(function MoneyInput({ currency, className, invalid, ...rest }, ref) {
-  return (
-    <div className="relative">
-      <input
-        ref={ref}
-        inputMode="decimal"
-        autoComplete="off"
-        dir="ltr"
-        aria-invalid={invalid || undefined}
-        className={clsx('input num text-start', currency && 'pe-14', className)}
-        placeholder="0.00"
-        {...rest}
-      />
-      {currency && (
-        <span className="pointer-events-none absolute inset-y-0 end-3 flex items-center text-xs font-medium text-muted">
-          {currency}
-        </span>
-      )}
-    </div>
-  );
+type AffixInputProps = InputHTMLAttributes<HTMLInputElement> & { invalid?: boolean };
+
+/**
+ * Width of an affix tag, measured once it renders (and again if fonts load later). Until then a
+ * per-character estimate keeps the first paint close to the final layout.
+ */
+function useAffixWidth(text: string | undefined) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const [width, setWidth] = useState<number | null>(null);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const update = () => setWidth(el.offsetWidth || null);
+    update();
+    if (typeof ResizeObserver === 'undefined') return;
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [text]);
+  const estimate = `${(text?.length ?? 0) * 0.5 + 0.75}rem`;
+  return { ref, width: width ? `${width}px` : estimate };
+}
+
+/**
+ * A decimal field with a non-editable tag inside its frame. The box is laid out left-to-right in
+ * both languages (digits are always LTR), so `start` is the left edge and `end` the right edge
+ * whatever the page direction; the padding on the tag's side follows the tag's measured width,
+ * so the tag can never cover the digits.
+ */
+const AffixInput = forwardRef<HTMLInputElement, AffixInputProps & { affix?: string; side: 'start' | 'end' }>(
+  function AffixInput({ affix, side, className, invalid, style, ...rest }, ref) {
+    const tag = useAffixWidth(affix);
+    // 0.75rem from the frame edge to the tag, 0.5rem from the tag to the digits.
+    const pad = `calc(${tag.width} + 1.25rem)`;
+    return (
+      <div className="relative" dir="ltr">
+        <input
+          ref={ref}
+          inputMode="decimal"
+          autoComplete="off"
+          dir="ltr"
+          aria-invalid={invalid || undefined}
+          className={clsx('input num text-start', className)}
+          style={affix ? { [side === 'start' ? 'paddingInlineStart' : 'paddingInlineEnd']: pad, ...style } : style}
+          {...rest}
+        />
+        {affix && (
+          <span
+            ref={tag.ref}
+            className={clsx(
+              'pointer-events-none absolute inset-y-0 flex items-center text-xs font-medium whitespace-nowrap text-muted',
+              side === 'start' ? 'start-3' : 'end-3',
+            )}
+          >
+            {affix}
+          </span>
+        )}
+      </div>
+    );
+  },
+);
+
+/**
+ * Decimal money entry: keeps the raw string (never a float) and shows the currency code as a
+ * prefix on the left in both languages, matching how amounts read on screen (`SAR 1,500.00` in
+ * English; `1,500.00 ر.س` in Arabic, whose symbol also ends up on the left of the figure).
+ */
+export const MoneyInput = forwardRef<HTMLInputElement, AffixInputProps & { currency?: string }>(
+  function MoneyInput({ currency, ...rest }, ref) {
+    return <AffixInput ref={ref} affix={currency} side="start" placeholder="0.00" {...rest} />;
+  },
+);
+
+/** Percentage entry: raw decimal string with a `%` suffix on the right, as `fmtPct` shows it. */
+export const PercentInput = forwardRef<HTMLInputElement, AffixInputProps>(function PercentInput(props, ref) {
+  return <AffixInput ref={ref} affix="%" side="end" placeholder="0" {...props} />;
 });

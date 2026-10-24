@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import clsx from 'clsx';
 import { ChevronDown, Search, X } from 'lucide-react';
-import { ComponentProps, forwardRef, KeyboardEvent, ReactNode, useCallback, useEffect, useId, useState } from 'react';
+import { KeyboardEvent, ReactNode, useCallback, useEffect, useId, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   convert,
@@ -227,14 +227,6 @@ export function Money({ value, currency, className }: { value: string | null | u
   return <span className={clsx('num whitespace-nowrap', className)}>{fmtMoney(value, currency ?? base)}</span>;
 }
 
-/**
- * MoneyInput whose currency tag never covers the digits in Arabic: the kit's input is dir="ltr" but
- * places the tag at the page's inline end (the left in RTL), so the padding must follow it there.
- */
-export const AmountInput = forwardRef<HTMLInputElement, ComponentProps<typeof MoneyInput>>(function AmountInput({ className, ...rest }, ref) {
-  return <MoneyInput ref={ref} className={clsx(rest.currency && 'rtl:ps-14 rtl:pe-3', className)} {...rest} />;
-});
-
 /** Label / value row for breakdown panels. */
 export function Row({ label, children, strong, tone }: { label: ReactNode; children: ReactNode; strong?: boolean; tone?: 'success' | 'warning' | 'danger' | 'muted' }) {
   return (
@@ -405,7 +397,7 @@ export function MoneyInFields({
         hint={foreign ? t('receivables.kit.amountInAccountCurrency', { currency }) : undefined}
       >
         {(id, desc) => (
-          <AmountInput id={id} aria-describedby={desc} currency={currency} value={value.amount} invalid={touched && !!amountErr} onChange={(e) => set({ amount: e.target.value })} />
+          <MoneyInput id={id} aria-describedby={desc} currency={currency} value={value.amount} invalid={touched && !!amountErr} onChange={(e) => set({ amount: e.target.value })} />
         )}
       </Field>
       {foreign && (

@@ -587,19 +587,6 @@ export function VehiclePicker({ value, onChange, id }: { value: PickedVehicle | 
 
 // ── Create / edit ────────────────────────────────────────────────────────────────────────
 
-/**
- * MoneyInput is an LTR field whose currency tag is placed at the container's inline end; under
- * RTL that end is the left edge while the field reserves room on the right, so the tag would sit
- * on the digits. An LTR container keeps the tag and its reserved space on the same side.
- */
-function Money(props: Parameters<typeof MoneyInput>[0]) {
-  return (
-    <div dir="ltr">
-      <MoneyInput {...props} />
-    </div>
-  );
-}
-
 const validMoney = (v: string) => !v.trim() || (MONEY_REGEX.test(v.trim()) && !v.trim().startsWith('-'));
 
 function budgetErrors(min: string, max: string, t: (k: string) => string): Record<string, string> {
@@ -764,10 +751,10 @@ export function LeadCreateModal({ customer, onClose, onCreated }: { customer?: P
           </Field>
         )}
         <Field label={t('leads.fields.budgetMin')} error={errors.budgetMin}>
-          {(id) => <Money id={id} currency={currency} value={budgetMin} onChange={(e) => setBudgetMin(e.target.value)} invalid={!!errors.budgetMin} />}
+          {(id) => <MoneyInput id={id} currency={currency} value={budgetMin} onChange={(e) => setBudgetMin(e.target.value)} invalid={!!errors.budgetMin} />}
         </Field>
         <Field label={t('leads.fields.budgetMax')} error={errors.budgetMax}>
-          {(id) => <Money id={id} currency={currency} value={budgetMax} onChange={(e) => setBudgetMax(e.target.value)} invalid={!!errors.budgetMax} />}
+          {(id) => <MoneyInput id={id} currency={currency} value={budgetMax} onChange={(e) => setBudgetMax(e.target.value)} invalid={!!errors.budgetMax} />}
         </Field>
         <Field label={t('leads.fields.paymentPreference')}>
           {(id) => (
@@ -860,10 +847,10 @@ export function LeadEditModal({ lead, onClose }: { lead: LeadDetail; onClose: ()
           </Field>
         )}
         <Field label={t('leads.fields.budgetMin')} error={errors.budgetMin}>
-          {(id) => <Money id={id} currency={currency} value={budgetMin} onChange={(e) => setBudgetMin(e.target.value)} invalid={!!errors.budgetMin} />}
+          {(id) => <MoneyInput id={id} currency={currency} value={budgetMin} onChange={(e) => setBudgetMin(e.target.value)} invalid={!!errors.budgetMin} />}
         </Field>
         <Field label={t('leads.fields.budgetMax')} error={errors.budgetMax}>
-          {(id) => <Money id={id} currency={currency} value={budgetMax} onChange={(e) => setBudgetMax(e.target.value)} invalid={!!errors.budgetMax} />}
+          {(id) => <MoneyInput id={id} currency={currency} value={budgetMax} onChange={(e) => setBudgetMax(e.target.value)} invalid={!!errors.budgetMax} />}
         </Field>
         <Field label={t('leads.fields.paymentPreference')}>
           {(id) => (

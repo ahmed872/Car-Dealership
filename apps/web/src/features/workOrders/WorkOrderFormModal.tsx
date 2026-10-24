@@ -4,10 +4,10 @@ import { useNavigate } from 'react-router-dom';
 import { WORK_ORDER_PRIORITIES, WORK_ORDER_TYPES } from '@autohub/shared';
 import { Button } from '@/components/ui/Button';
 import { Alert, errorMessage } from '@/components/ui/Feedback';
-import { Field, Input, Select, Textarea } from '@/components/ui/Field';
+import { Field, Input, MoneyInput, Select, Textarea } from '@/components/ui/Field';
 import { Modal } from '@/components/ui/Modal';
 import { isMoney, SupplierLite, useServerFieldErrors } from '@/features/costs/api';
-import { PickedVehicle, SupplierPicker, VehiclePicker, MoneyBox } from '@/features/costs/components';
+import { PickedVehicle, SupplierPicker, VehiclePicker } from '@/features/costs/components';
 import { ApiError } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { useApiMutation } from '@/lib/hooks';
@@ -217,7 +217,7 @@ export function WorkOrderFormModal({
           </Field>
           <Field label={t('workOrders.estimate')} error={errors.estimatedCost}>
             {(id, desc) => (
-              <MoneyBox
+              <MoneyInput
                 id={id}
                 aria-describedby={desc}
                 invalid={!!errors.estimatedCost}

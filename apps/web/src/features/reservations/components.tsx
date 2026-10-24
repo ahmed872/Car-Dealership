@@ -6,10 +6,9 @@ import { d, money, PERCENT_REGEX } from '@autohub/shared';
 import { Badge, Tone } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Alert } from '@/components/ui/Feedback';
-import { Checkbox, Field, Input, Select, Textarea } from '@/components/ui/Field';
+import { Checkbox, Field, Input, MoneyInput, Select, Textarea } from '@/components/ui/Field';
 import { Modal } from '@/components/ui/Modal';
 import {
-  AmountInput,
   CustomerPicker,
   emptyMoneyIn,
   isMoney,
@@ -239,7 +238,7 @@ export function ReservationFormModal({
         <Field label={t('reservations.fields.agreedPrice')} error={touched ? fm(errors.agreedPrice) : null} hint={vehicle?.askingPrice ? t('reservations.askingHint') : t('common.optional')}>
           {(id, desc) => (
             <div>
-              <AmountInput id={id} aria-describedby={desc} currency={base} value={agreedPrice} invalid={touched && !!errors.agreedPrice} onChange={(e) => setAgreedPrice(e.target.value)} />
+              <MoneyInput id={id} aria-describedby={desc} currency={base} value={agreedPrice} invalid={touched && !!errors.agreedPrice} onChange={(e) => setAgreedPrice(e.target.value)} />
               {vehicle?.askingPrice && (
                 <button type="button" className="mt-1 text-xs text-brand-strong hover:underline" onClick={() => setAgreedPrice(vehicle.askingPrice!)}>
                   <Money value={vehicle.askingPrice} currency={base} />
@@ -250,7 +249,7 @@ export function ReservationFormModal({
         </Field>
         <Field label={t('reservations.fields.depositAmount')} error={touched ? fm(errors.depositAmount) : null} hint={t('reservations.depositAmountHint')}>
           {(id, desc) => (
-            <AmountInput
+            <MoneyInput
               id={id}
               aria-describedby={desc}
               currency={base}

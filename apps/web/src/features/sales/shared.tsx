@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import clsx from 'clsx';
-import { ComponentProps, forwardRef, ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
+import { ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   convert,
@@ -204,14 +204,6 @@ export function Money({ value, currency, className }: { value: string | null | u
   const { currency: base } = useAuth();
   return <span className={clsx('num whitespace-nowrap', className)}>{fmtMoney(value, currency ?? base)}</span>;
 }
-
-/**
- * MoneyInput whose currency tag never covers the digits in Arabic: the kit's input is dir="ltr" but
- * places the tag at the page's inline end (the left in RTL), so the padding must follow it there.
- */
-export const AmountInput = forwardRef<HTMLInputElement, ComponentProps<typeof MoneyInput>>(function AmountInput({ className, ...rest }, ref) {
-  return <MoneyInput ref={ref} className={clsx(rest.currency && 'rtl:ps-14 rtl:pe-3', className)} {...rest} />;
-});
 
 export function Stat({ label, children, className }: { label: ReactNode; children: ReactNode; className?: string }) {
   return (
@@ -485,7 +477,7 @@ export function ReceivePaymentModal({
           </Alert>
         )}
         <Field label={t('sales.payment.amount')} required error={touched ? fm(errors.amount) : null} hint={foreign ? t('sales.payment.amountInAccountCurrency', { currency }) : undefined}>
-          {(id, desc) => <AmountInput id={id} aria-describedby={desc} currency={currency} value={amount} invalid={touched && !!errors.amount} onChange={(e) => setAmount(e.target.value)} />}
+          {(id, desc) => <MoneyInput id={id} aria-describedby={desc} currency={currency} value={amount} invalid={touched && !!errors.amount} onChange={(e) => setAmount(e.target.value)} />}
         </Field>
         {foreign ? (
           <Field label={t('sales.payment.rate', { from: currency, to: base })} required error={touched ? fm(errors.rate) : null} hint={fxField.hint}>
