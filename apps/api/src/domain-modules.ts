@@ -17,6 +17,7 @@ import { CashClosingModule } from './modules/cash-closing/cash-closing.module';
 import { ReportsModule } from './modules/reports/reports.module';
 import { IntegrationsModule } from './modules/integrations/integrations.module';
 import { ShowroomModule } from './modules/showroom/showroom.module';
+import { PrivacyModule } from './modules/privacy/privacy.module';
 
 /** Domain feature modules, registered as phases are delivered. */
-export const DOMAIN_MODULES: Type[] = [JobsModule, FinanceModule, VehiclesModule, PurchasingModule, ExpensesModule, WorkOrdersModule, AccountingModule, ReservationsModule, CustomersModule, LeadsModule, AppointmentsModule, WishesModule, EmployeesModule, SalesModule, CashClosingModule, ReportsModule, IntegrationsModule, ShowroomModule];
+export const DOMAIN_MODULES: Type[] = [JobsModule, FinanceModule, VehiclesModule, PurchasingModule, ExpensesModule, WorkOrdersModule, AccountingModule, ReservationsModule, CustomersModule, LeadsModule, AppointmentsModule, WishesModule, EmployeesModule, SalesModule, CashClosingModule, ReportsModule, IntegrationsModule, ShowroomModule, PrivacyModule];

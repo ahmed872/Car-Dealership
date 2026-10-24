@@ -25,3 +25,4 @@ export * from './schemas/employees';
 export * from './schemas/sales';
 export * from './schemas/reports';
 export * from './schemas/showroom';
+export * from './schemas/privacy';

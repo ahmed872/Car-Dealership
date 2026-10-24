@@ -134,6 +134,20 @@
       "when": 1792842406131,
       "tag": "0018_supplier_national_id_security",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1792877866035,
+      "tag": "0019_privacy_redaction",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1792877867797,
+      "tag": "0020_privacy_redaction_security",
+      "breakpoints": true
     }
   ]
 }

@@ -10,6 +10,7 @@ import { PlatformPage } from '@/pages/PlatformPage';
 import { AuditPage } from '@/pages/settings/AuditPage';
 import { BranchesPage } from '@/pages/settings/BranchesPage';
 import { CompanySettingsPage } from '@/pages/settings/CompanySettingsPage';
+import { PrivacyPage } from '@/pages/settings/PrivacyPage';
 import { RolesPage } from '@/pages/settings/RolesPage';
 import { UsersPage } from '@/pages/settings/UsersPage';
 import { AppShell } from './AppShell';
@@ -90,6 +91,14 @@ export const router = createBrowserRouter([
             element: (
               <Guard anyOf={['audit.read']}>
                 <AuditPage />
+              </Guard>
+            ),
+          },
+          {
+            path: 'settings/privacy',
+            element: (
+              <Guard anyOf={['privacy.manage']}>
+                <PrivacyPage />
               </Guard>
             ),
           },

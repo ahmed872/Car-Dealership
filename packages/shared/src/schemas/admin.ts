@@ -158,5 +158,6 @@ export function defaultTenantSettings(market: MarketCode, locale?: 'ar' | 'en'):
     statusLabels: {},
     // No reference rates: foreign-currency amounts are refused until an administrator sets them.
     fx: { referenceRates: {}, maxDeviationPct: DEFAULT_FX_MAX_DEVIATION_PCT },
+    privacy: { inquiryRetentionDays: null },
   };
 }

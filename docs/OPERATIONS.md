@@ -276,20 +276,58 @@ Losing the key is equally serious: back it up in a secrets manager, separately f
 
 ## 9. Data-protection requests (KSA PDPL, UAE PDPL, Egypt Law 151/2020)
 
-There is **no erasure or retention tooling yet** — see `docs/KNOWN_ISSUES.md` **KI-021**.
-`showroom_inquiries`, `message_log` and `audit_logs` are append-only: the app role cannot update or
-delete them, and triggers block even the owner. Customers, sales and other business documents cannot
-be deleted by the app role either; they are cancelled or voided. The audit log redacts national IDs,
-but it keeps names and changed values. Therefore:
+Visitors of the online showroom are not customers: their inquiries (`showroom_inquiries`) and the
+messages sent to them (`message_log`) are append-only evidence, but their **personal fields can be
+erased** (D-053). Everything else follows the normal screens or stays, as listed below.
 
-* Log every request (who, what, date, deadline) outside the application.
-* Access/export requests: there is no per-person export. Use the record screens and the report
-  exports (`GET /api/v1/reports/:key/export`) and assemble the answer by hand.
-* Erasure/correction: corrections go through the normal edit screens. Erasure of append-only data
-  needs the SECURITY DEFINER redaction function planned in KI-021, reviewed with counsel. **Do not
-  disable triggers or edit rows by hand as superuser**: it breaks the audit hash chain (detected by
-  the verifier) and the ledger guarantees.
-* Backups keep the data until they expire under the retention policy (§3). Say so in the privacy notice.
+**Log every request outside the application** (who asked, what, date received, legal deadline,
+identity check done, answer sent). Use that log's reference as the reason when erasing.
+
+### Erasure ("delete my data") — showroom visitors
+
+1. Sign in as a user with `privacy.manage` (company owner role by default) **and access to all
+   branches**. Open *Settings → Data protection* (`/app/settings/privacy`).
+2. Search by the phone and/or email given in the request. The phone matches in any format (`05…`,
+   `+9665…`, Arabic digits). Results show only masked contacts (`•••• 4567`, `a•••@g•••.com`) and
+   initials, never the full data.
+3. Select the inquiries (their messages are included) and any other messages, press *Erase personal
+   data*, and give the request reference as the reason — **not the person's name or contact**: the
+   reason is stored in the audit log.
+4. The name, phone, email, message text and client-address hash of the inquiry, and the recipient,
+   body and error of the messages, become `[redacted]` / empty; `redacted_at` and `redacted_by` are
+   set. The rows stay (date, type, vehicle, consent time, links). Manager notifications about the
+   inquiry lose the visitor's name. One audit entry `privacy.redacted` records the counts, row ids
+   and reason. This cannot be undone.
+5. If the search shows *Linked to a customer*, the inquiry also created or matched a customer and a
+   lead. Those are CRM records: correct them or deactivate the customer in the Customers screens
+   (customers cannot be deleted, see below).
+
+API equivalent: `GET /api/v1/privacy/search?phone=&email=`, then
+`POST /api/v1/privacy/redactions {kind: "showroom_inquiry" | "message_log", ids: [...], reason}`.
+
+### Retention (automatic erasure)
+
+*Settings → Company → Data protection*: `privacy.inquiryRetentionDays` (30–3650 days; empty = keep).
+The `privacy.inquiry_retention` job (every 6 hours, per company) erases inquiries older than that,
+with their messages, up to 5,000 per run, in one audited call per run. A run with nothing to do
+changes and audits nothing. State the period in the privacy notice.
+
+### What is still not erasable, and why
+
+| Data | Why it stays | What to do |
+|---|---|---|
+| `audit_logs` | Hash-chained and append-only (tamper evidence; `audit_verify_chain`). Entries keep names and changed values of customers/leads created from an inquiry (national IDs are redacted). | Keep for the legal retention period; mention it in the privacy notice. |
+| Ledger, cash book, receipts, sales, contracts, invoices | Financial and tax records with statutory retention; journal and cash rows are immutable. | Not erasable while the retention period runs. |
+| Customers, leads, interactions | Business records; the app role cannot delete customers or leads. An inquiry's text is also copied into the customer's interaction note. | Correct or anonymise fields in the customer and lead screens; deactivate the customer. |
+| Backups | Dumps are immutable files. | Data erased in the database disappears from backups when they expire (§3). Do not restore an old backup without re-applying erasures (keep the request log). |
+
+**Do not disable triggers or edit rows by hand as superuser**: it bypasses the narrow redaction
+path, leaves no audit entry, and an edit of `audit_logs` breaks the hash chain.
+
+### Access / export requests
+
+There is no per-person export. Use the record screens and the report exports
+(`GET /api/v1/reports/:key/export`) and assemble the answer by hand.
 
 ---
 

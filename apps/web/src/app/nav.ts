@@ -1,5 +1,5 @@
 import type { LucideIcon } from 'lucide-react';
-import { ArrowLeftRight, Building2, CarFront, ClipboardCheck, History, KeyRound, LayoutDashboard, Settings2, Users } from 'lucide-react';
+import { ArrowLeftRight, Building2, CarFront, ClipboardCheck, History, KeyRound, LayoutDashboard, Settings2, ShieldCheck, Users } from 'lucide-react';
 import type { Permission } from '@autohub/shared';
 import { FEATURE_MODULES } from '@/features/modules';
 import type { NavGroupKey } from '@/features/registry';
@@ -38,6 +38,7 @@ const BASE: Record<NavGroupKey, NavItem[]> = {
     { to: '/app/settings/users', labelKey: 'nav.users', icon: Users, anyOf: ['users.read'] },
     { to: '/app/settings/roles', labelKey: 'nav.roles', icon: KeyRound, anyOf: ['users.read', 'roles.manage'] },
     { to: '/app/settings/audit', labelKey: 'nav.audit', icon: History, anyOf: ['audit.read'], companyWide: true },
+    { to: '/app/settings/privacy', labelKey: 'privacy.nav', icon: ShieldCheck, anyOf: ['privacy.manage'], companyWide: true },
   ],
 };
 

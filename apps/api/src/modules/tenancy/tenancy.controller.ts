@@ -3,7 +3,7 @@ import { ApiTags } from '@nestjs/swagger';
 import { and, asc, eq, sql } from 'drizzle-orm';
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
-import { patchOf, zBranchInput, zTenantSettings, zTenantSettingsPatch, TenantSettings } from '@autohub/shared';
+import { patchOf, privacySettings, zBranchInput, zTenantSettings, zTenantSettingsPatch, TenantSettings } from '@autohub/shared';
 import { Ctx, RequirePermissions, TenantContext, Authenticated } from '../../common/context';
 import { AppError, notFound, unprocessable } from '../../common/errors';
 import { DbService } from '../../db/db.service';
@@ -53,8 +53,8 @@ export class TenancyController {
       slug: t.slug,
       market: t.market,
       baseCurrency: t.baseCurrency,
-      // Settings stored before the fx section existed read with its defaults.
-      settings: { ...t.settings, fx: fxSettings(t.settings) },
+      // Settings stored before the fx and privacy sections existed read with their defaults.
+      settings: { ...t.settings, fx: fxSettings(t.settings), privacy: privacySettings(t.settings) },
       subscription: await this.subscriptions.current(),
       usage: await this.subscriptions.usage(),
     };

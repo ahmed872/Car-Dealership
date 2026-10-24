@@ -83,21 +83,24 @@ export function InquiriesPage() {
             {
               key: 'contact',
               header: t('showroom.inquiries.contact'),
-              cell: (r) => (
-                <div className="min-w-0 space-y-0.5">
-                  <p className="max-w-[200px] truncate font-medium">{r.name}</p>
-                  <a href={`tel:${r.phone}`} dir="ltr" className="num inline-flex items-center gap-1 text-xs text-muted hover:text-ink">
-                    <Phone className="h-3 w-3" aria-hidden />
-                    {r.phone}
-                  </a>
-                  {r.email && (
-                    <a href={`mailto:${r.email}`} dir="ltr" className="flex max-w-[200px] items-center gap-1 truncate text-xs text-muted hover:text-ink">
-                      <Mail className="h-3 w-3 shrink-0" aria-hidden />
-                      <span className="truncate">{r.email}</span>
+              cell: (r) =>
+                r.redactedAt ? (
+                  <Badge tone="neutral">{t('privacy.redactedBadge')}</Badge>
+                ) : (
+                  <div className="min-w-0 space-y-0.5">
+                    <p className="max-w-[200px] truncate font-medium">{r.name}</p>
+                    <a href={`tel:${r.phone}`} dir="ltr" className="num inline-flex items-center gap-1 text-xs text-muted hover:text-ink">
+                      <Phone className="h-3 w-3" aria-hidden />
+                      {r.phone}
                     </a>
-                  )}
-                </div>
-              ),
+                    {r.email && (
+                      <a href={`mailto:${r.email}`} dir="ltr" className="flex max-w-[200px] items-center gap-1 truncate text-xs text-muted hover:text-ink">
+                        <Mail className="h-3 w-3 shrink-0" aria-hidden />
+                        <span className="truncate">{r.email}</span>
+                      </a>
+                    )}
+                  </div>
+                ),
             },
             {
               key: 'vehicle',
@@ -115,7 +118,7 @@ export function InquiriesPage() {
               key: 'message',
               header: t('showroom.inquiries.message'),
               hideOnMobile: true,
-              cell: (r) => <p className="line-clamp-3 max-w-[280px] text-[13px] break-words whitespace-pre-line">{r.message ?? '—'}</p>,
+              cell: (r) => <p className="line-clamp-3 max-w-[280px] text-[13px] break-words whitespace-pre-line">{r.redactedAt ? '—' : (r.message ?? '—')}</p>,
             },
             {
               key: 'outcome',
@@ -136,7 +139,7 @@ export function InquiriesPage() {
                         {t('showroom.inquiries.openCustomer')}
                       </Link>
                     )}
-                    {!r.leadId && !r.customerId && can('customers.read') && (
+                    {!r.leadId && !r.customerId && !r.redactedAt && can('customers.read') && (
                       <Link to={`/app/customers?q=${encodeURIComponent(r.phone)}`} className="font-medium text-brand-strong hover:underline">
                         {t('showroom.inquiries.findCustomer')}
                       </Link>

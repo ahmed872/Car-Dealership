@@ -66,6 +66,13 @@ export function CompanySettingsPage() {
           ...v.settings.installments,
           reminderDaysBefore: Number(v.settings.installments.reminderDaysBefore),
         },
+        // Empty keeps inquiries without a limit (null).
+        privacy: {
+          inquiryRetentionDays:
+            String(v.settings.privacy?.inquiryRetentionDays ?? '').trim() === ''
+              ? null
+              : Number(v.settings.privacy?.inquiryRetentionDays),
+        },
         // The rate map is replaced whole: an emptied field removes that currency's reference rate.
         fx: {
           maxDeviationPct: String(v.settings.fx.maxDeviationPct).trim(),
@@ -423,6 +430,34 @@ export function CompanySettingsPage() {
                           {t('showroom.settings.manageListings')}
                         </Link>
                       )}
+                    </div>
+                  )}
+                </FormSection>
+
+                <FormSection title={t('privacy.retention.section')} description={t('privacy.retention.sectionHint')}>
+                  <Field
+                    label={t('privacy.retention.days')}
+                    hint={t('privacy.retention.daysHint')}
+                    error={invalid.has('settings.privacy.inquiryRetentionDays') ? t('privacy.retention.error') : undefined}
+                  >
+                    {(id, d) => (
+                      <Input
+                        id={id}
+                        aria-describedby={d}
+                        type="number"
+                        min={30}
+                        max={3650}
+                        dir="ltr"
+                        className="num"
+                        {...reg('settings.privacy.inquiryRetentionDays')}
+                      />
+                    )}
+                  </Field>
+                  {can('privacy.manage') && (
+                    <div className="flex items-end pb-2 text-[13px]">
+                      <Link to="/app/settings/privacy" className="font-medium text-brand-strong hover:underline">
+                        {t('privacy.retention.openPage')}
+                      </Link>
                     </div>
                   )}
                 </FormSection>

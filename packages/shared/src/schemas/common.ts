@@ -76,6 +76,21 @@ export const zFxSettings = z.object({
 });
 export type FxSettings = z.infer<typeof zFxSettings>;
 
+/**
+ * Data protection (D-053). `inquiryRetentionDays`: online showroom inquiries (and the messages sent
+ * about them) older than this many days have their personal fields redacted by a scheduled job;
+ * null keeps them until someone redacts them by hand.
+ */
+export const zPrivacySettings = z.object({
+  inquiryRetentionDays: z.number().int().min(30).max(3650).nullable().default(null),
+});
+export type PrivacySettings = z.infer<typeof zPrivacySettings>;
+
+/** The privacy section of stored company settings; settings saved before it existed read as defaults. */
+export function privacySettings(settings: { privacy?: Partial<PrivacySettings> | null }): PrivacySettings {
+  return { inquiryRetentionDays: settings.privacy?.inquiryRetentionDays ?? null };
+}
+
 export const zTenantSettings = z.object({
   locale: zLocale.default('ar'),
   timezone: z.string().min(3).max(64),
@@ -138,6 +153,7 @@ export const zTenantSettings = z.object({
   }),
   statusLabels: z.record(z.string(), z.object({ ar: zText(40), en: zText(40) })).default({}),
   fx: zFxSettings.default({ referenceRates: {}, maxDeviationPct: DEFAULT_FX_MAX_DEVIATION_PCT }),
+  privacy: zPrivacySettings.default({ inquiryRetentionDays: null }),
 });
 export type TenantSettings = z.infer<typeof zTenantSettings>;
 

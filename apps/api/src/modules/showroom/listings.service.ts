@@ -218,7 +218,7 @@ export class ListingsService {
     const items = await this.dbs.query(
       `SELECT i.id, i.kind, i.name, i.phone, i.email, i.message, i.preferred_date AS "preferredDate", i.customer_id AS "customerId",
               i.lead_id AS "leadId", i.unlinked_reason AS "unlinkedReason", i.created_at AS "createdAt",
-              i.vehicle_id AS "vehicleId", v.stock_number AS "stockNumber"
+              i.vehicle_id AS "vehicleId", v.stock_number AS "stockNumber", i.redacted_at AS "redactedAt"
          ${from} ORDER BY i.created_at DESC LIMIT ${q.pageSize} OFFSET ${(q.page - 1) * q.pageSize}`,
       params,
     );
