@@ -64,8 +64,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [qc]);
   const signOut = useCallback(async () => {
     await api('/auth/logout', { method: 'POST' }).catch(() => undefined);
-    qc.clear();
+    // Sign the UI out on the live 'me' query first: its mounted observer drives every guard.
+    // qc.clear() would remove that query from under the observer (which then keeps the old user,
+    // so /login bounced straight back into the app); drop only the rest of the cache.
     qc.setQueryData(['me'], null);
+    qc.removeQueries({ predicate: (q) => q.queryKey[0] !== 'me' });
   }, [qc]);
 
   const value = useMemo<AuthValue>(
