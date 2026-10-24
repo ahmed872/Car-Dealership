@@ -279,3 +279,12 @@ sales rep and a cash-only role, cross-company 404s, and company invitation + swi
 covered in the browser: wishes, employees/commission policies, refunds, appointment workflows.
 The CI `e2e` job is defined in `.github/workflows/ci.yml` but has not yet been observed running on
 GitHub.
+
+### Phase 8 part 5 — web integration pass (2026-10-24)
+| Command | Result |
+|---|---|
+| New/extended specs: `members` 5, `leads` + `sales` 25, `showroom` 15, `reservations` + `sales` 25, `route-policies` 4 (agent) | all passed |
+| Full API suite, integration pass merged with the branch head (DB n) | 38 files, **372 passed**, 2 skipped (perf smoke, opt-in) |
+| `pnpm --filter @autohub/e2e test`, same head | **48 passed** (3.7 min) |
+| `tsc --noEmit` api/web/e2e, web vitest, `vite build`, permission matrix regenerated (unchanged after merge) | clean / 5 passed / built / consistent |
+| Chromium (agent sandbox j, a "Team lead" role without users.read) | pickers list the right staff per branch and permission; sale approvals decided from the inbox; QR download `listing-STK-…-qr.png`; WhatsApp text in the viewer's language; receipts/refunds search; FX rate prefilled (3.75) with the band; AR/EN and 390px without page overflow, no console errors |

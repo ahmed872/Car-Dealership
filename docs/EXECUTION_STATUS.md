@@ -13,18 +13,18 @@
 - Reset guard (D-048): only autohub_dev/autohub_test* reset without confirmation.
 - Full API suite on the pushed head: 37 files / 363 passed, 2 skipped (perf smoke, opt-in).
 
-**In progress (background agent; partial work is saved on disk):**
-- Web integration pass (task 14) in worktree `scratchpad/wt-int` (branch `web-integration`, DB n,
-  sandbox j): assignable-staff endpoint, lead customer filter, installment-plan customer names,
-  cash-closing actor names, sale approvals in the inbox, showroom aging titles, QR filename,
-  WhatsApp text locale, receipt/refund search and allocation labels, FX rate prefill.
+- Web integration pass (D-049–D-052): assignable-staff endpoint and pickers, lead customer filter,
+  installment-plan customer names, cash-closing actors, sale approvals from the inbox, showroom
+  aging titles, QR download filename, WhatsApp text language, receipt/refund search and
+  allocation numbers, FX rate prefill. API 372 passed; E2E 48 passed.
+
+**In progress:** nothing running.
 
 **Exact next tasks:**
-1. Review, full-suite (API + E2E) and merge the web integration pass.
-2. Shared MoneyInput: currency tag overlaps digits in Arabic (features work around it locally) —
+1. Shared MoneyInput: currency tag overlaps digits in Arabic (features work around it locally) —
    fix in components/ui and remove the local wrappers.
-3. Extend E2E to wishes, employees/commission policies, refunds and appointments.
-4. Readiness report; final E2E audit; final report; then delete the hourly continuation task.
+2. Extend E2E to wishes, employees/commission policies, refunds and appointments.
+3. Readiness report; final E2E audit; final report; then delete the hourly continuation task.
 
 | Phase | Status |
 |---|---|
@@ -36,7 +36,7 @@
 | 5 Sales & Financial | Complete (backend + web) |
 | 6 Dashboard & Reports | Complete (backend + web) |
 | 7 Showroom & Integrations | Complete (backend + web) |
-| 8 Hardening | In progress: tenant FKs, matrix, isolation sweep, security fixes F1–F11, infra/backup drill, E2E suite, sensitive-data encryption done; integration pass, readiness report, final audit open |
+| 8 Hardening | In progress: tenant FKs, matrix, isolation sweep, security fixes F1–F11, infra/backup drill, E2E suite, sensitive-data encryption done; integration pass done; readiness report, final audit open |
 
 ## Phase 1 — delivered
 - pnpm workspace: `packages/shared`, `apps/api`, `apps/web`, `e2e`.

@@ -410,6 +410,29 @@ drops the schema. It refuses in production, and resets only `autohub_dev` and `a
 without confirmation; any other name — including the deployment default `autohub` — needs
 `AUTOHUB_CONFIRM_RESET=<that name>`. `test/db-reset-guard.spec.ts` covers it.
 
+### D-049 Staff pickers list names only, by assignment permission
+`GET /members/assignable?permission=&branchId=` is open to every member of the company and returns
+only `{id, fullName}` of active members whose role holds one of the assignment permissions
+(`customers.read`, `leads.read`, `appointments.manage`, `sales.create`, `work_orders.manage`) and who
+can reach the branch; other permissions are refused. The member directory (`GET /users`, with
+emails, roles and status) stays behind `users.read`. The server-side assignee checks
+(`assertWorkingMember`) are unchanged; the work-order picker is stricter than the server rule.
+
+### D-050 Customer 360 follows the reps' own-leads rule
+Lead counts, recent leads and the leads tab on a customer use `GET /leads?customerId=`, so a sales
+rep sees only their own leads there too (before, the counts included other reps' leads).
+
+### D-051 Shared links and downloads
+WhatsApp share text is built in both languages by the API (`whatsappUrls {ar,en}`); staff and
+public pages use the viewer's language, and `whatsappUrl` keeps the company's document language.
+File downloads send `attachment; filename="<ASCII>"; filename*=UTF-8''<exact>` with path and
+control characters removed (`common/content-disposition.ts`).
+
+### D-052 Exchange-rate fields suggest, the server decides
+Foreign-currency forms prefill the company reference rate and show the accepted band from
+`GET /company` (`settings.fx`), never overwriting a typed rate. The client always sends the rate
+explicitly; the band is enforced only by the server (D-046).
+
 ## Business assumptions
 
 ### B-001 Revenue recognition default = on delivery **[PO-CONFIRM]**
