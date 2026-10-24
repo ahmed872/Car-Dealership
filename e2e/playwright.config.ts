@@ -33,10 +33,7 @@ export default defineConfig<TestOptions>({
   forbidOnly: CI,
   timeout: 60_000,
   expect: { timeout: 10_000 },
-  reporter: [
-    ['list'],
-    ['html', { outputFolder: 'playwright-report', open: 'never' }],
-  ],
+  reporter: [['list'], ['html', { outputFolder: 'playwright-report', open: 'never' }]],
   use: {
     baseURL: WEB_URL,
     trace: 'retain-on-failure',
@@ -108,6 +105,7 @@ export default defineConfig<TestOptions>({
         // Every spec signs in through the UI; the production limits would throttle a full run.
         AUTH_RATE_LIMIT_PER_MIN: '10000',
         RATE_LIMIT_PER_MIN: '100000',
+        EXPORT_RATE_LIMIT_PER_MIN: '1000',
         // Sale documents are rendered to PDF with the same Chromium Playwright drives.
         CHROMIUM_PATH: process.env.CHROMIUM_PATH ?? chromium.executablePath(),
         AUTOHUB_ADMIN_PASSWORD: PASSWORD,

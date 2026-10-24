@@ -47,4 +47,3 @@ export const test = base.extend<TestOptions & Fixtures>({
 
 export { expect };
 export * from './ui';
-

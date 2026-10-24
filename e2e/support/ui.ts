@@ -20,11 +20,14 @@ export async function signInOnPage(page: Page, tr: Translate, email: string, pas
  */
 export async function mainNav(page: Page): Promise<Locator> {
   const menu = page.getByRole('button', { name: 'menu' });
+  const sidebar = page.getByRole('navigation', { name: 'main' });
+  // Wait for the app shell (one of the two is visible once it has rendered).
+  await expect(menu.or(sidebar).first()).toBeVisible();
   if (await menu.isVisible()) {
     await menu.click();
     return page.getByRole('dialog').getByRole('navigation', { name: 'main' });
   }
-  return page.getByRole('navigation', { name: 'main' });
+  return sidebar;
 }
 
 /** The value cell (<dd>) of a label/value row (<dt>/<dd>) inside `scope`. */
@@ -36,11 +39,37 @@ export function rowValue(scope: Locator | Page, label: string): Locator {
 }
 
 /** Waits for the API response of a UI action and returns it (fails on an unexpected status). */
-export async function apiCall(page: Page, method: string, path: RegExp, action: () => Promise<unknown>, status = [200, 201]) {
+export async function apiCall(
+  page: Page,
+  method: string,
+  path: RegExp,
+  action: () => Promise<unknown>,
+  status = [200, 201],
+) {
   const [res] = await Promise.all([
     page.waitForResponse((r) => r.request().method() === method && path.test(new URL(r.url()).pathname)),
     action(),
   ]);
-  expect(status, `${method} ${res.url()} → ${res.status()} ${await res.text().catch(() => '')}`).toContain(res.status());
+  expect(status, `${method} ${res.url()} → ${res.status()} ${await res.text().catch(() => '')}`).toContain(
+    res.status(),
+  );
   return res;
+}
+
+/**
+ * A form control by the exact text of its label. Required fields append an aria-hidden "*", and
+ * some labels are prefixes of others ("Model" / "Model year"), so a plain substring match is ambiguous.
+ */
+export function byLabel(scope: Locator | Page, text: string): Locator {
+  return scope.getByLabel(new RegExp(`^\\s*${reEscape(text)}\\s*\\*?\\s*$`));
+}
+
+/** Picks an option of a searchable combobox (supplier / customer / vehicle pickers) by typing. */
+export async function pickFromCombobox(combobox: Locator, search: string, option: string | RegExp) {
+  await combobox.click();
+  await combobox.fill(search);
+  const page = combobox.page();
+  const listbox = page.getByRole('listbox');
+  await listbox.getByRole('option', { name: option }).first().click();
+  await expect(listbox).toBeHidden();
 }

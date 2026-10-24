@@ -15,8 +15,14 @@ export class ApiClient {
   ) {}
 
   /** Re-uses a signed-in browser session (a storageState file or object). */
-  static async fromStorageState(storageState: string | Awaited<ReturnType<APIRequestContext['storageState']>>) {
-    const ctx = await request.newContext({ baseURL: WEB_URL, storageState, extraHTTPHeaders: { Origin: WEB_URL } });
+  static async fromStorageState(
+    storageState: string | Awaited<ReturnType<APIRequestContext['storageState']>>,
+  ) {
+    const ctx = await request.newContext({
+      baseURL: WEB_URL,
+      storageState,
+      extraHTTPHeaders: { Origin: WEB_URL },
+    });
     return new ApiClient(ctx, await csrfOf(ctx));
   }
 
@@ -24,7 +30,8 @@ export class ApiClient {
   static async login(email: string, password: string): Promise<ApiClient> {
     const ctx = await request.newContext({ baseURL: WEB_URL, extraHTTPHeaders: { Origin: WEB_URL } });
     const res = await ctx.post('/api/v1/auth/login', { data: { email, password } });
-    if (res.status() !== 200) throw new Error(`login failed for ${email}: ${res.status()} ${await res.text()}`);
+    if (res.status() !== 200)
+      throw new Error(`login failed for ${email}: ${res.status()} ${await res.text()}`);
     return new ApiClient(ctx, await csrfOf(ctx));
   }
 
@@ -32,7 +39,10 @@ export class ApiClient {
     return this.ctx.get(`/api/v1${path}`, { params });
   }
   post(path: string, body?: unknown, headers: Record<string, string> = {}) {
-    return this.ctx.post(`/api/v1${path}`, { data: body ?? {}, headers: { 'X-CSRF-Token': this.csrf, ...headers } });
+    return this.ctx.post(`/api/v1${path}`, {
+      data: body ?? {},
+      headers: { 'X-CSRF-Token': this.csrf, ...headers },
+    });
   }
   put(path: string, body?: unknown) {
     return this.ctx.put(`/api/v1${path}`, { data: body ?? {}, headers: { 'X-CSRF-Token': this.csrf } });

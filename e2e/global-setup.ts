@@ -27,7 +27,9 @@ export default async function globalSetup(_config: FullConfig) {
       }
       await signInOnPage(page, tr, OWNER_EMAIL, PASSWORD);
       await expect(page).toHaveURL(/\/app$/);
-      await expect(page.getByRole('heading', { name: tr('dashboard.welcome', { name: 'Owner E2E' }) })).toBeVisible();
+      await expect(
+        page.getByRole('heading', { name: tr('dashboard.welcome', { name: 'Owner E2E' }) }),
+      ).toBeVisible();
       await context.storageState({ path: ownerState(lang) });
       await context.close();
     }
