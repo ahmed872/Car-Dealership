@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { zIsoDate, zMoneyNonNeg, zMoneyPos, zOptText, zPaginationQuery, zPercent, zRate, zText, zUuid } from './common';
+import { zIsoDate, zMoneyNonNeg, zMoneyPos, zOptText, zPaginationQuery, zPercent100, zRate, zText, zUuid } from './common';
 import { PAYMENT_METHODS } from './purchasing';
 
 export const CUSTOMER_TYPES = ['individual', 'company'] as const;
@@ -189,7 +189,7 @@ export const zReservationCreate = z.object({
   agreedPrice: zMoneyPos.optional().nullable(),
   depositAmount: zMoneyNonNeg.default('0'),
   refundPolicy: z.enum(['refundable', 'non_refundable', 'partial']).optional(),
-  refundablePct: zPercent.optional(),
+  refundablePct: zPercent100.optional(),
   notes: zOptText(1000),
   /** Deposit received now (optional; can be recorded later). */
   deposit: zDepositInput.optional().nullable(),

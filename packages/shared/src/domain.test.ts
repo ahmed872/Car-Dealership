@@ -95,6 +95,19 @@ describe('markets & settings', () => {
     expect(withFx({ referenceRates: { USD: '3.75' }, maxDeviationPct: '-1' }).success).toBe(false);
     expect(withFx({ referenceRates: { USD: '3.75' }, maxDeviationPct: '100.5' }).success).toBe(false);
   });
+  it('shares of a whole stay within 0–100 (tax rate, refundable deposit share)', () => {
+    const base = defaultTenantSettings('SA');
+    const tax = (ratePct: string) => zTenantSettings.safeParse({ ...base, tax: { ...base.tax, ratePct } }).success;
+    expect(tax('15')).toBe(true);
+    expect(tax('100')).toBe(true);
+    expect(tax('150')).toBe(false);
+    expect(tax('-1')).toBe(false);
+    const refundable = (defaultRefundablePct: string) =>
+      zTenantSettings.safeParse({ ...base, reservation: { ...base.reservation, defaultRefundablePct } }).success;
+    expect(refundable('50')).toBe(true);
+    expect(refundable('120')).toBe(false);
+    expect(zTenantSettingsPatch.safeParse({ tax: { ratePct: '150' } }).success).toBe(false);
+  });
   it('settings PATCH schema never re-applies defaults inside a section', () => {
     expect(zTenantSettingsPatch.parse({ fx: { maxDeviationPct: '5' } })).toEqual({ fx: { maxDeviationPct: '5' } });
     expect(zTenantSettingsPatch.parse({ reservation: { defaultDays: 10 } })).toEqual({ reservation: { defaultDays: 10 } });

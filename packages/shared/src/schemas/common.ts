@@ -14,6 +14,8 @@ export const zMoneyPos = zMoney.refine(
 );
 export const zRate = z.string().trim().regex(RATE_REGEX, 'invalid_rate');
 export const zPercent = z.string().trim().regex(PERCENT_REGEX, 'invalid_percent');
+/** A share of a whole: 0–100 (tax rates, refundable deposit shares, discount limits, tolerances). */
+export const zPercent100 = zPercent.refine((v) => d(v).gte(0) && d(v).lte(100), 'must_be_between_0_and_100');
 export const zIsoDate = z.string().regex(ISO_DATE_REGEX, 'invalid_date');
 export const zDateTime = z.iso.datetime({ offset: true });
 export const zCurrency = z.enum(CURRENCY_CODES);
@@ -70,9 +72,7 @@ export const zFxSettings = z.object({
       zRate.refine((v) => d(v).gt(0), 'must_be_positive'),
     )
     .default({}),
-  maxDeviationPct: zPercent
-    .refine((v) => d(v).gte(0) && d(v).lte(100), 'must_be_between_0_and_100')
-    .default(DEFAULT_FX_MAX_DEVIATION_PCT),
+  maxDeviationPct: zPercent100.default(DEFAULT_FX_MAX_DEVIATION_PCT),
 });
 export type FxSettings = z.infer<typeof zFxSettings>;
 
@@ -82,7 +82,7 @@ export const zTenantSettings = z.object({
   rounding: z.enum(ROUNDING_MODES).default('half_up'),
   tax: z.object({
     mode: z.enum(TAX_MODES),
-    ratePct: zPercent,
+    ratePct: zPercent100,
     pricesIncludeTax: z.boolean(),
     labelEn: zText(40),
     labelAr: zText(40),
@@ -92,7 +92,7 @@ export const zTenantSettings = z.object({
   reservation: z.object({
     defaultDays: z.number().int().min(1).max(90).default(7),
     defaultRefundPolicy: z.enum(['refundable', 'non_refundable', 'partial']).default('refundable'),
-    defaultRefundablePct: zPercent.default('100'),
+    defaultRefundablePct: zPercent100.default('100'),
   }),
   inventory: z.object({
     staleDaysWarning: z.number().int().min(1).max(3650).default(60),
