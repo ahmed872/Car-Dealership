@@ -20,7 +20,7 @@ import { Button } from '@/components/ui/Button';
 import { Card, CardBody, CardHeader, DescriptionList } from '@/components/ui/Card';
 import { DataTable } from '@/components/ui/DataTable';
 import { Alert, EmptyState, ErrorState, PageLoader, Skeleton } from '@/components/ui/Feedback';
-import { Checkbox, Field, Input, Select, Textarea } from '@/components/ui/Field';
+import { Checkbox, Field, Input, MoneyInput, Select, Textarea } from '@/components/ui/Field';
 import { PageHeader } from '@/components/ui/Layout';
 import { ConfirmDialog, Modal } from '@/components/ui/Modal';
 import { VehicleStatusBadge } from '@/features/vehicles/components';
@@ -57,7 +57,6 @@ import {
   useFieldError,
   useIdempotencyKey,
   useTenantMoney,
-  AmountInput,
 } from './components';
 
 type Dialog = 'edit' | 'approve' | 'reject' | 'cancel' | 'submit' | null;
@@ -159,7 +158,7 @@ function EditModal({ a, onClose }: { a: AcquisitionDetail; onClose: () => void }
           {(fid) => <Input id={fid} type="date" {...form.register('purchaseDate')} />}
         </Field>
         <Field label={t('purchasing.acquisitions.price')} required error={fieldError(errors.purchasePrice)}>
-          {(fid, desc) => <AmountInput id={fid} aria-describedby={desc} currency={cur} invalid={!!errors.purchasePrice} {...form.register('purchasePrice')} />}
+          {(fid, desc) => <MoneyInput id={fid} aria-describedby={desc} currency={cur} invalid={!!errors.purchasePrice} {...form.register('purchasePrice')} />}
         </Field>
         <Field label={t('common.currency')}>
           {(fid) => (

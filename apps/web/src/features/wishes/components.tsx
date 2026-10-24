@@ -1,6 +1,6 @@
 import clsx from 'clsx';
 import { Search, UserRound, X } from 'lucide-react';
-import { ComponentProps, forwardRef, useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { BODY_TYPES, FUEL_TYPES, TRANSMISSIONS, WISH_CRITERIA, zWishCreate, zWishUpdate } from '@autohub/shared';
 import { Badge, Tone } from '@/components/ui/Badge';
@@ -14,14 +14,6 @@ import { fmtMoney, fmtNumber, fmtPhone, todayIso } from '@/lib/format';
 import { useApi, useDebounced } from '@/lib/hooks';
 import type { CustomerOption, Paged, Wish, WishStatus } from './api';
 import { issuesToFields, useWishFieldMessage } from './kit';
-
-/**
- * MoneyInput whose currency tag never covers the digits in Arabic: the kit's input is dir="ltr" but
- * places the tag at the page's inline end (the left in RTL), so the padding must follow it there.
- */
-export const AmountInput = forwardRef<HTMLInputElement, ComponentProps<typeof MoneyInput>>(function AmountInput({ className, ...rest }, ref) {
-  return <MoneyInput ref={ref} className={clsx(rest.currency && 'rtl:ps-14 rtl:pe-3', className)} {...rest} />;
-});
 
 const STATUS_TONE: Record<WishStatus, Tone> = { active: 'info', fulfilled: 'success', cancelled: 'neutral', expired: 'warning' };
 
@@ -359,7 +351,7 @@ export function WishFields({
   const budget = (
     <>
       <Field label={t('wishes.fields.maxPrice')} error={err('maxPrice')}>
-        {(id, d) => <AmountInput id={id} aria-describedby={d} invalid={!!errors.maxPrice} currency={currency} value={form.maxPrice} onChange={(e) => setForm({ maxPrice: e.target.value })} />}
+        {(id, d) => <MoneyInput id={id} aria-describedby={d} invalid={!!errors.maxPrice} currency={currency} value={form.maxPrice} onChange={(e) => setForm({ maxPrice: e.target.value })} />}
       </Field>
       {intInput('maxOdometerKm', { min: 0, max: 2_000_000 })}
     </>

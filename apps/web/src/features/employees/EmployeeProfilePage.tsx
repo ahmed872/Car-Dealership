@@ -7,14 +7,14 @@ import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Card, CardBody, CardHeader, DescriptionList, StatCard } from '@/components/ui/Card';
 import { Alert, ErrorState, PageLoader } from '@/components/ui/Feedback';
-import { Field, Input, Select, Textarea } from '@/components/ui/Field';
+import { Field, Input, MoneyInput, Select, Textarea } from '@/components/ui/Field';
 import { PageHeader } from '@/components/ui/Layout';
 import { Modal } from '@/components/ui/Modal';
 import { useAuth } from '@/lib/auth';
 import { fmtDate, fmtMoney, fmtNumber, fmtPhone } from '@/lib/format';
 import { assignableVersion, EmployeeDetail, EmployeeProfile, useEmployee, usePolicies, useRoleLabel } from './api';
 import { issuesToFields, serverFieldErrors, useEmpError, useEmpFieldMessage, useEmpMutation } from './kit';
-import { AmountInput, RuleSummary } from './rules';
+import { RuleSummary } from './rules';
 
 interface ProfileForm {
   employeeCode: string;
@@ -156,7 +156,7 @@ function EditProfileModal({ employee, open, onClose }: { employee: EmployeeDetai
           )}
         </Field>
         <Field label={t('employees.fields.monthlyTargetAmount')} error={msg(errors.monthlyTargetAmount)}>
-          {(id, d) => <AmountInput id={id} aria-describedby={d} invalid={!!errors.monthlyTargetAmount} currency={currency} value={form.monthlyTargetAmount} onChange={(e) => set({ monthlyTargetAmount: e.target.value })} />}
+          {(id, d) => <MoneyInput id={id} aria-describedby={d} invalid={!!errors.monthlyTargetAmount} currency={currency} value={form.monthlyTargetAmount} onChange={(e) => set({ monthlyTargetAmount: e.target.value })} />}
         </Field>
         <Field label={t('employees.fields.commissionPolicyId')} error={msg(errors.commissionPolicyId)} hint={!canPolicies ? t('employees.fields.policyNoAccess') : undefined} className="sm:col-span-2">
           {(id, d) => (

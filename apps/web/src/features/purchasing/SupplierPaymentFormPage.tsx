@@ -8,13 +8,13 @@ import type { z } from 'zod';
 import { Button } from '@/components/ui/Button';
 import { Card, CardBody, CardHeader } from '@/components/ui/Card';
 import { Alert, EmptyState, ErrorState, Skeleton } from '@/components/ui/Feedback';
-import { Field, Input, Select, Textarea } from '@/components/ui/Field';
+import { Field, Input, MoneyInput, Select, Textarea } from '@/components/ui/Field';
 import { FormSection, PageHeader } from '@/components/ui/Layout';
 import { useAuth } from '@/lib/auth';
 import { fmtDate, fmtMoney, todayIso } from '@/lib/format';
 import { useApi } from '@/lib/hooks';
 import { OpenPayable, OpenPayablesResponse, PAYABLE_KEYS, PaymentMethod, SupplierPaymentCreated, useApAccess, useCashAccountOptions, useDocInfo } from './api';
-import { AmountInput, docEquivalent, isMoney, isPositiveMoney, isRate, Money, SupplierPicker, TargetTypeBadge, toBase, useIdempotencyKey, useTenantMoney } from './components';
+import { docEquivalent, isMoney, isPositiveMoney, isRate, Money, SupplierPicker, TargetTypeBadge, toBase, useIdempotencyKey, useTenantMoney } from './components';
 import { errorTarget, usePurchasingError, usePurchasingMutation } from './mutation';
 
 type Body = z.input<typeof zSupplierPaymentCreate>;
@@ -112,7 +112,7 @@ function AllocationRow({
               error={baseInvalid ? 'invalid_amount' : overBase ? t('purchasing.paymentForm.overOutstanding') : null}
             >
               {(id, desc) => (
-                <AmountInput
+                <MoneyInput
                   id={id}
                   aria-describedby={desc}
                   currency={base}
@@ -129,7 +129,7 @@ function AllocationRow({
                 error={docInvalid ? 'invalid_amount' : overDoc ? t('purchasing.paymentForm.overOutstanding') : null}
               >
                 {(id, desc) => (
-                  <AmountInput
+                  <MoneyInput
                     id={id}
                     aria-describedby={desc}
                     currency={foreign.currency}
@@ -339,7 +339,7 @@ export function SupplierPaymentFormPage() {
           </FormSection>
           <FormSection title={t('purchasing.paymentForm.amountSection')} description={t('purchasing.paymentForm.amountHint', { currency: base })}>
             <Field label={t('purchasing.paymentForm.amount', { currency: accCur })} required error={amountInvalid ? (amount ? 'invalid_amount' : 'required') : null}>
-              {(id, desc) => <AmountInput id={id} aria-describedby={desc} currency={accCur} invalid={amountInvalid} value={amount} onChange={(e) => setAmount(e.target.value)} />}
+              {(id, desc) => <MoneyInput id={id} aria-describedby={desc} currency={accCur} invalid={amountInvalid} value={amount} onChange={(e) => setAmount(e.target.value)} />}
             </Field>
             {foreign && (
               <Field

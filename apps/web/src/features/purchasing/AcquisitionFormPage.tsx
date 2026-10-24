@@ -18,7 +18,7 @@ import {
 import { Button } from '@/components/ui/Button';
 import { Card, CardBody } from '@/components/ui/Card';
 import { Alert } from '@/components/ui/Feedback';
-import { Checkbox, Field, Input, Select, Textarea } from '@/components/ui/Field';
+import { Checkbox, Field, Input, MoneyInput, Select, Textarea } from '@/components/ui/Field';
 import { FormSection, PageHeader } from '@/components/ui/Layout';
 import { useToast } from '@/components/ui/Toast';
 import { ApiError } from '@/lib/api';
@@ -39,7 +39,6 @@ import {
   useFieldError,
   useIdempotencyKey,
   useTenantMoney,
-  AmountInput,
 } from './components';
 
 type FormIn = z.input<typeof zAcquisitionCreate>;
@@ -246,7 +245,7 @@ export function AcquisitionFormPage() {
               </Field>
               <Field label={t('purchasing.acquisitions.price')} required error={fieldError(errors.purchasePrice)}>
                 {(fid, desc) => (
-                  <AmountInput id={fid} aria-describedby={desc} currency={currency} invalid={!!errors.purchasePrice} {...form.register('purchasePrice', { setValueAs: emptyToUndefined })} />
+                  <MoneyInput id={fid} aria-describedby={desc} currency={currency} invalid={!!errors.purchasePrice} {...form.register('purchasePrice', { setValueAs: emptyToUndefined })} />
                 )}
               </Field>
               <Field label={t('common.currency')}>

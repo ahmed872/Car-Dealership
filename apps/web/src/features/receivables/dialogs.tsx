@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { d, min } from '@autohub/shared';
 import { Button } from '@/components/ui/Button';
 import { Alert } from '@/components/ui/Feedback';
-import { Field, Select, Textarea } from '@/components/ui/Field';
+import { Field, MoneyInput, Select, Textarea } from '@/components/ui/Field';
 import { Modal } from '@/components/ui/Modal';
 import type { ReservationDetail, ReservationListItem } from '@/features/reservations/api';
 import { useAuth } from '@/lib/auth';
@@ -12,7 +12,6 @@ import { fmtDate, fmtMoney } from '@/lib/format';
 import { useApi } from '@/lib/hooks';
 import type { Refund, RefundSourceType } from './api';
 import {
-  AmountInput,
   CustomerOption,
   CustomerPicker,
   emptyMoneyIn,
@@ -408,7 +407,7 @@ export function RequestRefundModal({
           </>
         )}
         <Field label={t('receivables.refunds.amount')} required error={touched ? fm(errors.amount) : null} className="sm:col-span-2">
-          {(id, desc) => <AmountInput id={id} aria-describedby={desc} currency={base} value={amount} invalid={touched && !!errors.amount} onChange={(e) => setAmount(e.target.value)} />}
+          {(id, desc) => <MoneyInput id={id} aria-describedby={desc} currency={base} value={amount} invalid={touched && !!errors.amount} onChange={(e) => setAmount(e.target.value)} />}
         </Field>
         <Field label={t('common.reason')} required error={touched ? fm(errors.reason) : null} className="sm:col-span-2">
           {(id, desc) => <Textarea id={id} aria-describedby={desc} rows={3} maxLength={500} value={reason} invalid={touched && !!errors.reason} onChange={(e) => setReason(e.target.value)} />}
