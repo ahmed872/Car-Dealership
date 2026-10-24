@@ -19,14 +19,52 @@ function fontFaces(): string {
 }
 
 /**
+ * Bounds concurrent work: up to `limit` tasks run, up to `queue` more wait in order, and anything
+ * beyond is refused at once (the caller answers 503 rather than piling requests onto the process).
+ */
+export class ConcurrencyGate {
+  private active = 0;
+  private readonly waiting: Array<() => void> = [];
+
+  constructor(
+    private readonly limit: () => number,
+    private readonly queue: () => number,
+  ) {}
+
+  /** Runs `fn` when a slot is free; returns null (without running it) when the gate is saturated. */
+  async run<T>(fn: () => Promise<T>): Promise<{ value: T } | null> {
+    if (this.active >= this.limit()) {
+      if (this.waiting.length >= this.queue()) return null;
+      await new Promise<void>((resolve) => this.waiting.push(resolve));
+    } else {
+      this.active++;
+    }
+    try {
+      return { value: await fn() };
+    } finally {
+      // Hand the slot straight to the next waiter (active stays the same) or release it.
+      const next = this.waiting.shift();
+      if (next) next();
+      else this.active--;
+    }
+  }
+}
+
+/**
  * Renders HTML to PDF with headless Chromium (CHROMIUM_PATH). One browser is started lazily and
  * reused; each document gets its own page. Rendering failures surface as 503 pdf_unavailable.
+ * Renders share one process-wide ConcurrencyGate (reports and sale documents alike); when it is full
+ * the request gets 503 `pdf_busy` instead of another Chromium page.
  */
 @Injectable()
 export class PdfService implements OnModuleDestroy {
   private readonly logger = new Logger(PdfService.name);
   private browser: Promise<Browser> | null = null;
   private fonts: string | null = null;
+  readonly gate = new ConcurrencyGate(
+    () => getEnv().PDF_MAX_CONCURRENT,
+    () => getEnv().PDF_MAX_QUEUE,
+  );
 
   get fontCss(): string {
     this.fonts ??= fontFaces();
@@ -44,6 +82,12 @@ export class PdfService implements OnModuleDestroy {
   }
 
   async render(html: string, opts: { landscape?: boolean } = {}): Promise<Buffer> {
+    const done = await this.gate.run(() => this.renderNow(html, opts));
+    if (!done) throw new AppError('pdf_busy', 503, 'PDF rendering is busy right now. Please try again in a moment.');
+    return done.value;
+  }
+
+  private async renderNow(html: string, opts: { landscape?: boolean }): Promise<Buffer> {
     let browser: Browser;
     try {
       browser = await this.launch();

@@ -6,7 +6,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { eq } from 'drizzle-orm';
 import type { Permission } from '@autohub/shared';
 import { getEnv } from '../../config/env';
-import { AuthContext } from '../../common/context';
+import { assertBranchAccess, AuthContext } from '../../common/context';
 import { AppError, forbidden, notFound } from '../../common/errors';
 import { DbService } from '../../db/db.service';
 import { files } from '../../db/schema';
@@ -110,13 +110,33 @@ export class FilesService {
     await Promise.all(paths.filter(Boolean).map((p) => rm(p!, { force: true }).catch(() => undefined)));
   }
 
-  /** Loads file metadata and enforces its read permission for the caller. */
+  /**
+   * Loads file metadata and enforces, for the caller, the file's read permission AND the branch scope
+   * of the record that owns it (a vehicle photo or document, or an inspection's evidence, belongs to
+   * the vehicle's branch). Company-level files (the logo) have no branch. A file whose owning record
+   * cannot be resolved is refused to branch-scoped users (fail closed).
+   */
   async authorize(auth: AuthContext, fileId: string) {
     const [f] = await this.dbs.db.select().from(files).where(eq(files.id, fileId)).limit(1);
     if (!f) throw notFound('File');
-    const perm = f.purpose.split(':')[1];
+    const [kind, perm] = f.purpose.split(':');
     if (perm && perm !== 'authenticated' && !auth.permissions.has(perm as Permission)) {
       throw forbidden('You do not have access to this file');
+    }
+    if (!auth.allBranches && kind !== 'company_logo') {
+      const owners = await this.dbs.query<{ branch_id: string }>(
+        `SELECT v.branch_id FROM vehicle_media vm JOIN vehicles v ON v.id = vm.vehicle_id WHERE vm.file_id = $1
+         UNION ALL
+         SELECT v.branch_id FROM vehicle_documents vd JOIN vehicles v ON v.id = vd.vehicle_id WHERE vd.file_id = $1
+         UNION ALL
+         SELECT v.branch_id FROM inspection_media im
+           JOIN vehicle_inspections i ON i.id = im.inspection_id
+           JOIN vehicles v ON v.id = i.vehicle_id
+          WHERE im.file_id = $1`,
+        [f.id],
+      );
+      if (!owners.length) throw forbidden('You do not have access to this file');
+      for (const o of owners) assertBranchAccess(auth, o.branch_id);
     }
     return f;
   }

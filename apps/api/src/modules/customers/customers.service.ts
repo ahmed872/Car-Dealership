@@ -21,6 +21,7 @@ import {
 import { assertBranchAccess, assertPermission, hasPermission, TenantContext } from '../../common/context';
 import { decryptSecret, encryptSecret, hmacHex } from '../../common/crypto';
 import { conflict, forbidden, notFound, registerUniqueConstraint, unprocessable } from '../../common/errors';
+import { ownEntry } from '../../common/lookup';
 import { DbService } from '../../db/db.service';
 import {
   appointments,
@@ -369,8 +370,7 @@ export class CustomersService {
     const where = and(...conds);
     let order: SQL[] = [desc(customers.createdAt), desc(customers.id)];
     if (q.sort) {
-      const key = q.sort.replace(/^-/, '') as keyof typeof SORTS;
-      const col = SORTS[key];
+      const col = ownEntry(SORTS, q.sort.replace(/^-/, ''));
       if (col) order = [q.sort.startsWith('-') ? desc(col) : asc(col), asc(customers.id)];
     }
     const items = await this.dbs.db

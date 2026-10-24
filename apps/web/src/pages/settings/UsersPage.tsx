@@ -20,9 +20,10 @@ interface Member {
   membershipId: string;
   userId: string;
   email: string;
-  fullName: string;
+  /** Null for a pending invitation: the company does not see the invited account's profile. */
+  fullName: string | null;
   phone: string | null;
-  status: 'active' | 'suspended';
+  status: 'active' | 'suspended' | 'invited';
   allBranches: boolean;
   branchIds: string[];
   lastLoginAt: string | null;
@@ -59,10 +60,13 @@ function UserForm({ member, roles, onDone }: { member: Member | null; roles: Rol
       status: member?.status ?? 'active',
     },
   });
-  const save = useApiMutation<Record<string, unknown>>({
+  const invited = member?.status === 'invited';
+  const save = useApiMutation<Record<string, unknown>, { status?: string }>({
     path: member ? `/users/${member.membershipId}` : '/users',
     method: member ? 'PATCH' : 'POST',
     invalidate: [['users']],
+    // An existing account is only invited; say so instead of a plain "saved".
+    success: (res) => (!member && res.status === 'invited' ? t('users.invitationSent') : t('common.savedSuccessfully')),
     onSuccess: onDone,
   });
   const allBranches = form.watch('allBranches');
@@ -72,7 +76,8 @@ function UserForm({ member, roles, onDone }: { member: Member | null; roles: Rol
           roleId: v.roleId,
           allBranches: v.allBranches,
           branchIds: v.allBranches ? [] : v.branchIds,
-          status: v.status,
+          // A pending invitation's status is the invitee's decision, not the company's.
+          ...(invited ? {} : { status: v.status }),
         }
       : { ...v, phone: v.phone || null, branchIds: v.allBranches ? [] : v.branchIds };
     if (!member) delete payload.status;
@@ -127,7 +132,7 @@ function UserForm({ member, roles, onDone }: { member: Member | null; roles: Rol
           </Select>
         )}
       </Field>
-      {member && (
+      {member && !invited && (
         <Field label={t('common.status')}>
           {(id) => (
             <Select id={id} {...form.register('status')}>
@@ -237,7 +242,7 @@ export function UsersPage() {
               cell: (m) => (
                 <div className="min-w-0">
                   <p className="truncate font-medium">
-                    {m.fullName}{' '}
+                    {m.fullName ?? m.email}{' '}
                     {m.userId === me?.user.id && (
                       <span className="text-xs text-muted">({t('users.you')})</span>
                     )}
@@ -263,11 +268,16 @@ export function UsersPage() {
             {
               key: 'status',
               header: t('common.status'),
-              cell: (m) => (
-                <Badge tone={m.status === 'active' ? 'success' : 'danger'}>
-                  {m.status === 'active' ? t('common.active') : t('common.suspended')}
-                </Badge>
-              ),
+              cell: (m) =>
+                m.status === 'invited' ? (
+                  <Badge tone="warning">
+                    <span title={t('users.invitedHint')}>{t('users.invited')}</span>
+                  </Badge>
+                ) : (
+                  <Badge tone={m.status === 'active' ? 'success' : 'danger'}>
+                    {m.status === 'active' ? t('common.active') : t('common.suspended')}
+                  </Badge>
+                ),
             },
             {
               key: 'actions',
@@ -285,13 +295,15 @@ export function UsersPage() {
                       >
                         {t('common.edit')}
                       </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        icon={<KeyRound className="h-3.5 w-3.5" />}
-                        onClick={() => setResetting(m)}
-                        aria-label={t('users.resetPassword')}
-                      />
+                      {m.status === 'active' && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          icon={<KeyRound className="h-3.5 w-3.5" />}
+                          onClick={() => setResetting(m)}
+                          aria-label={t('users.resetPassword')}
+                        />
+                      )}
                     </div>
                   </Can>
                 ),

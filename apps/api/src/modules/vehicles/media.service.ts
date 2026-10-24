@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { and, eq, isNull, max } from 'drizzle-orm';
 import { z } from 'zod';
 import { zDocumentInput, zMediaUpdate } from '@autohub/shared';
-import { assertBranchAccess, TenantContext } from '../../common/context';
+import { assertBranchAccess, assertPermission, hasPermission, TenantContext } from '../../common/context';
 import { notFound, unprocessable } from '../../common/errors';
 import { DbService } from '../../db/db.service';
 import { files, vehicleDocuments, vehicleMedia } from '../../db/schema';
@@ -171,6 +171,11 @@ export class VehicleMediaService {
       .from(vehicleDocuments)
       .where(and(eq(vehicleDocuments.id, docId), eq(vehicleDocuments.vehicleId, vehicleId), isNull(vehicleDocuments.deletedAt)));
     if (!before) throw notFound('Document');
+    // Sensitivity decides who can read the document and its file: only someone allowed to read
+    // sensitive documents may change it, in either direction (security review F10).
+    if (input.isSensitive !== undefined && input.isSensitive !== before.isSensitive) {
+      assertPermission(ctx, 'documents.read_sensitive');
+    }
     const [after] = await this.dbs.db
       .update(vehicleDocuments)
       .set({
@@ -191,6 +196,10 @@ export class VehicleMediaService {
         .where(eq(files.id, after!.fileId));
     }
     await this.audit.record({ action: 'vehicle.document_updated', entityType: 'vehicle', entityId: vehicleId, ...diff(before, after!) });
+    // Same redaction as the vehicle page: a sensitive document's details stay hidden without the permission.
+    if (after!.isSensitive && !hasPermission(ctx, 'documents.read_sensitive')) {
+      return { ...after!, docNumber: null, fileId: null, notes: null, restricted: true };
+    }
     return after;
   }
 

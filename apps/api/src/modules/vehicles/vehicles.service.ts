@@ -13,6 +13,7 @@ import {
 } from '@autohub/shared';
 import { assertBranchAccess, assertPermission, hasPermission, TenantContext } from '../../common/context';
 import { AppError, conflict, notFound, registerUniqueConstraint, unprocessable } from '../../common/errors';
+import { ownEntry } from '../../common/lookup';
 import { DbService } from '../../db/db.service';
 import {
   branches,
@@ -475,7 +476,7 @@ export class VehiclesService {
     }
     const where = conds.length ? and(...conds) : undefined;
     const sortKey = q.sort?.replace(/^-/, '') ?? 'stockedAt';
-    const sortExpr = SORTS[sortKey] ?? SORTS.stockedAt!;
+    const sortExpr = ownEntry(SORTS, sortKey) ?? SORTS.stockedAt!;
     const order = q.sort?.startsWith('-') || !q.sort ? desc(sortExpr) : asc(sortExpr);
     const canSeeCost = hasPermission(ctx, 'vehicles.view_cost');
 

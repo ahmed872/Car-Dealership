@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { and, asc, eq } from 'drizzle-orm';
+import { and, asc, eq, ne } from 'drizzle-orm';
 import { EmployeeProfileUpdateInput, money, normalizeCustomerPhone } from '@autohub/shared';
-import { hasPermission, TenantContext } from '../../common/context';
-import { forbidden, notFound, registerUniqueConstraint, unprocessable } from '../../common/errors';
+import { assertPermission, hasPermission, TenantContext } from '../../common/context';
+import { AppError, conflict, forbidden, notFound, registerUniqueConstraint, unprocessable } from '../../common/errors';
 import { DbService } from '../../db/db.service';
-import { commissionPolicies, employeeProfiles, memberships, roles, users } from '../../db/schema';
+import { commissionPolicies, employeeProfiles, membershipBranches, memberships, roles, users } from '../../db/schema';
 import { AuditService, diff } from '../audit/audit.service';
 import { CommissionPoliciesService } from './commission-policies.service';
 
@@ -39,15 +39,20 @@ export class EmployeesService {
       .leftJoin(commissionPolicies, eq(commissionPolicies.id, employeeProfiles.commissionPolicyId));
   }
 
-  async list(ctx: TenantContext) {
+  /** Members of THIS company who accepted their membership (a pending invitee is not an employee yet). */
+  private member(ctx: TenantContext) {
     // Explicit tenant filter: RLS also exposes the caller's own memberships in other companies.
-    const rows = await this.query().where(eq(memberships.tenantId, ctx.tenant.id)).orderBy(asc(users.fullName));
+    return and(eq(memberships.tenantId, ctx.tenant.id), ne(memberships.status, 'invited'));
+  }
+
+  async list(ctx: TenantContext) {
+    const rows = await this.query().where(this.member(ctx)).orderBy(asc(users.fullName));
     return rows.map((r) => ({ ...r, profile: r.profile ?? null }));
   }
 
   async get(ctx: TenantContext, userId: string) {
     if (userId !== ctx.userId && !hasPermission(ctx, 'users.read')) throw forbidden('You can only view your own employee profile', { permission: 'users.read' });
-    const [r] = await this.query().where(and(eq(memberships.tenantId, ctx.tenant.id), eq(memberships.userId, userId)));
+    const [r] = await this.query().where(and(this.member(ctx), eq(memberships.userId, userId)));
     if (!r) throw notFound('Employee');
     const commission = await this.policies.resolveFor(ctx, userId).catch(() => null);
     return { ...r, profile: r.profile ?? null, commissionPolicy: commission?.policy ?? null };
@@ -55,10 +60,28 @@ export class EmployeesService {
 
   async upsert(ctx: TenantContext, userId: string, input: EmployeeProfileUpdateInput) {
     const [m] = await this.dbs.db
-      .select({ id: memberships.id })
+      .select({ id: memberships.id, allBranches: memberships.allBranches, status: memberships.status })
       .from(memberships)
       .where(and(eq(memberships.tenantId, ctx.tenant.id), eq(memberships.userId, userId)));
     if (!m) throw notFound('Employee');
+    if (m.status === 'invited') throw conflict('invitation_pending', 'This person has not accepted the invitation yet');
+    // Like user management (security review F2): a branch-scoped manager manages only members whose
+    // access lies within their own branches.
+    if (userId !== ctx.userId && !ctx.allBranches) {
+      const links = m.allBranches
+        ? null
+        : await this.dbs.db.select({ branchId: membershipBranches.branchId }).from(membershipBranches).where(eq(membershipBranches.membershipId, m.id));
+      if (!links || links.some((l) => !ctx.branchIds.includes(l.branchId))) {
+        throw new AppError('branch_scope_exceeded', 403, 'You can only grant or manage access to branches you can access yourself');
+      }
+    }
+    const [before] = await this.dbs.db.select().from(employeeProfiles).where(eq(employeeProfiles.userId, userId)).for('update');
+    // The commission policy decides pay: only policy managers assign it, and never to themselves
+    // (security review F9).
+    if (input.commissionPolicyId !== undefined && input.commissionPolicyId !== (before?.commissionPolicyId ?? null)) {
+      if (userId === ctx.userId) throw forbidden('You cannot change your own commission policy');
+      assertPermission(ctx, 'commissions.manage_policies');
+    }
     if (input.commissionPolicyId) {
       const p = await this.policies.byId(input.commissionPolicyId);
       if (!p.isActive) throw unprocessable('policy_inactive', 'This commission policy is deactivated', { field: 'commissionPolicyId' });
@@ -69,7 +92,6 @@ export class EmployeesService {
       monthlyTargetAmount:
         input.monthlyTargetAmount === undefined ? undefined : input.monthlyTargetAmount === null ? null : money(input.monthlyTargetAmount, ctx.tenant.baseCurrency),
     };
-    const [before] = await this.dbs.db.select().from(employeeProfiles).where(eq(employeeProfiles.userId, userId)).for('update');
     const [after] = before
       ? await this.dbs.db
           .update(employeeProfiles)

@@ -8,6 +8,7 @@ import { Card } from '@/components/ui/Card';
 import { Alert, errorMessage, PageLoader } from '@/components/ui/Feedback';
 import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
+import { PendingInvitations } from './Invitations';
 
 export function SelectCompanyPage() {
   const { t } = useTranslation();
@@ -46,6 +47,8 @@ export function SelectCompanyPage() {
             {error}
           </Alert>
         )}
+        {/* Accepting an invitation adds the company to the list below. */}
+        <PendingInvitations />
         <ul className="mt-5 space-y-2">
           {me.tenants.map((ten) => (
             <li key={ten.tenantId}>

@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { eq, sql } from 'drizzle-orm';
+import { eq } from 'drizzle-orm';
 import type { LoginInput } from '@autohub/shared';
 import { getEnv } from '../../config/env';
 import { AuthContext } from '../../common/context';
@@ -22,44 +22,53 @@ export class AuthService {
   ) {}
 
   /**
-   * Verifies credentials with lockout. Unknown emails take the same time as wrong passwords and
-   * return the same error, so the endpoint does not reveal which accounts exist.
+   * Verifies credentials with lockout. Each attempt is RESERVED atomically before the password is
+   * checked: one UPDATE counts it and, at the limit, locks the account — and refuses to count (so the
+   * password is never checked) while the lock lasts. Parallel guesses therefore cannot exceed
+   * LOGIN_MAX_FAILURES verifications per lockout window. A success clears the counter.
+   *
+   * Unknown emails, locked accounts, disabled accounts and wrong passwords all get the same 401
+   * `invalid_credentials` after one Argon2 verification, so the endpoint reveals neither which
+   * accounts exist nor which are locked.
    */
   async login(input: LoginInput, ip: string | null, userAgent: string | null) {
     const env = getEnv();
-    const user = await this.dbs.runInTenant({ tenantId: null, userId: null }, async () => {
-      const [u] = await this.dbs.db.select().from(users).where(eq(users.email, input.email)).limit(1);
-      return u ?? null;
+    const fail = () => new AppError('invalid_credentials', 401, 'Invalid email or password');
+    const reserved = await this.dbs.runInTenant({ tenantId: null, userId: null }, async () => {
+      // An expired lock starts a fresh window (the attempt counts as the first of it).
+      const rows = await this.dbs.query<{ id: string; email: string; password_hash: string; status: string }>(
+        `WITH next AS (
+           SELECT id, CASE WHEN locked_until IS NOT NULL THEN 1 ELSE failed_login_count + 1 END AS n
+             FROM users
+            WHERE email = $1 AND (locked_until IS NULL OR locked_until <= now())
+            FOR UPDATE
+         )
+         UPDATE users u
+            SET failed_login_count = next.n,
+                locked_until = CASE WHEN next.n >= $2 THEN now() + make_interval(mins => $3) ELSE NULL END
+           FROM next
+          WHERE u.id = next.id
+          RETURNING u.id, u.email, u.password_hash, u.status`,
+        [input.email, env.LOGIN_MAX_FAILURES, env.LOGIN_LOCKOUT_MINUTES],
+      );
+      return rows[0] ?? null;
     });
 
-    if (!user) {
+    if (!reserved) {
+      // Unknown email, or an account inside its lockout window: same work, same answer.
       await this.passwords.verifyDummy(input.password);
-      this.logger.warn({ event: 'login_failed', reason: 'unknown_email', ip }, 'login failed');
-      throw new AppError('invalid_credentials', 401, 'Invalid email or password');
+      this.logger.warn({ event: 'login_failed', reason: 'unknown_or_locked', ip }, 'login failed');
+      throw fail();
     }
-    if (user.lockedUntil && user.lockedUntil > new Date()) {
-      await this.passwords.verifyDummy(input.password);
-      throw new AppError('account_locked', 429, 'Too many failed sign-in attempts. Please try again later.');
-    }
-    const ok = user.status === 'active' && (await this.passwords.verify(user.passwordHash, input.password));
-    if (!ok) {
-      await this.dbs.runInTenant({ tenantId: null, userId: null }, async () => {
-        // Atomic increment; lock when the threshold is reached.
-        await this.dbs.db
-          .update(users)
-          .set({
-            failedLoginCount: sql`CASE WHEN ${users.failedLoginCount} + 1 >= ${env.LOGIN_MAX_FAILURES} THEN 0 ELSE ${users.failedLoginCount} + 1 END`,
-            lockedUntil: sql`CASE WHEN ${users.failedLoginCount} + 1 >= ${env.LOGIN_MAX_FAILURES}
-              THEN now() + make_interval(mins => ${env.LOGIN_LOCKOUT_MINUTES}) ELSE ${users.lockedUntil} END`,
-          })
-          .where(eq(users.id, user.id));
-      });
+    const ok = await this.passwords.verify(reserved.password_hash, input.password);
+    if (!ok || reserved.status !== 'active') {
       this.logger.warn(
-        { event: 'login_failed', reason: 'bad_password', userId: user.id, ip },
+        { event: 'login_failed', reason: ok ? 'inactive_user' : 'bad_password', userId: reserved.id, ip },
         'login failed',
       );
-      throw new AppError('invalid_credentials', 401, 'Invalid email or password');
+      throw fail();
     }
+    const user = { id: reserved.id, email: reserved.email };
 
     await this.dbs.runInTenant({ tenantId: null, userId: null }, () =>
       this.dbs.db

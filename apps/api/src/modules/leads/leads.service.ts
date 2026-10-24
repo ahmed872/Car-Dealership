@@ -19,6 +19,7 @@ import {
 } from '@autohub/shared';
 import { assertBranchAccess, assertPermission, hasPermission, TenantContext } from '../../common/context';
 import { conflict, notFound, registerUniqueConstraint, unprocessable } from '../../common/errors';
+import { ownEntry } from '../../common/lookup';
 import { assertWorkingMember } from '../../common/members';
 import { DbService } from '../../db/db.service';
 import {
@@ -542,7 +543,7 @@ export class LeadsService {
     let orderBy: SQL[] = [sql`${leads.createdAt} DESC`];
     if (q.sort) {
       const key = q.sort.replace(/^-/, '');
-      const col = (SORTS as Record<string, (typeof SORTS)[keyof typeof SORTS]>)[key];
+      const col = ownEntry(SORTS, key);
       if (!col) throw unprocessable('invalid_sort', `Unsupported sort field "${key}"`, { allowed: Object.keys(SORTS) });
       orderBy = [q.sort.startsWith('-') ? sql`${col} DESC NULLS LAST` : sql`${col} ASC NULLS LAST`];
     }

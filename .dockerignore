@@ -1,0 +1,36 @@
+# Build context for apps/api/Dockerfile and apps/web/Dockerfile (both built from the repo root).
+# Keep it small and free of secrets: only manifests, the lockfile and source are needed.
+.git
+.github
+.claude
+**/node_modules
+**/dist
+**/coverage
+**/*.tsbuildinfo
+**/*.log
+.turbo
+
+# Secrets and local data — never in an image or the build cache.
+**/.env
+**/.env.*
+!**/.env.example
+backups
+**/storage
+**/.storage
+**/.storage-test
+**/test-results
+**/playwright-report
+
+# Not needed in images.
+docs
+scripts
+infra
+apps/api/test
+**/*.spec.ts
+**/*.test.ts
+**/*.test.tsx
+e2e/*
+!e2e/package.json
+docker-compose*.yml
+**/Dockerfile
+.dockerignore
