@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
-import type { Browser } from 'playwright-core';
+import type { Browser, Page } from 'playwright-core';
 import { chromium } from 'playwright-core';
 import { getEnv } from '../../config/env';
 import { AppError } from '../../common/errors';
@@ -55,6 +55,10 @@ export class ConcurrencyGate {
  * reused; each document gets its own page. Rendering failures surface as 503 pdf_unavailable.
  * Renders share one process-wide ConcurrencyGate (reports and sale documents alike); when it is full
  * the request gets 503 `pdf_busy` instead of another Chromium page.
+ *
+ * Crash recovery: when Chromium exits (crash, out-of-memory kill, closed) the cached browser is
+ * dropped on its 'disconnected' event, so the next render starts a new one. If a render still finds
+ * a dead browser (the event not seen yet), it drops it and relaunches once before giving up.
  */
 @Injectable()
 export class PdfService implements OnModuleDestroy {
@@ -74,11 +78,58 @@ export class PdfService implements OnModuleDestroy {
   private launch(): Promise<Browser> {
     const executablePath = getEnv().CHROMIUM_PATH;
     if (!executablePath) throw new AppError('pdf_unavailable', 503, 'PDF rendering is not configured (CHROMIUM_PATH)');
-    this.browser ??= chromium.launch({ executablePath, args: ['--no-sandbox', '--disable-dev-shm-usage'] }).catch((e: Error) => {
-      this.browser = null;
-      throw e;
-    });
-    return this.browser;
+    if (this.browser) return this.browser;
+    const launching: Promise<Browser> = chromium.launch({ executablePath, args: ['--no-sandbox', '--disable-dev-shm-usage'] }).then(
+      (browser) => {
+        browser.on('disconnected', () => {
+          if (this.browser === launching) {
+            this.logger.warn('chromium disconnected; the next render starts a new browser');
+            this.browser = null;
+          }
+        });
+        return browser;
+      },
+      (e: Error) => {
+        if (this.browser === launching) this.browser = null;
+        throw e;
+      },
+    );
+    this.browser = launching;
+    return launching;
+  }
+
+  /** Forgets `launching` if it is still the cached browser, and closes it (ends a hung process). */
+  private drop(launching: Promise<Browser>, browser: Browser): void {
+    if (this.browser === launching) this.browser = null;
+    void browser.close().catch(() => undefined);
+  }
+
+  /** A fresh page on a live browser: relaunches once when the cached browser turns out to be dead. */
+  private async newPage(): Promise<{ browser: Browser; page: Page }> {
+    for (let attempt = 1; ; attempt++) {
+      let launching: Promise<Browser>;
+      let browser: Browser;
+      try {
+        launching = this.launch();
+        browser = await launching;
+      } catch (e) {
+        if (e instanceof AppError) throw e;
+        this.logger.error(`chromium launch failed: ${(e as Error).message}`);
+        throw new AppError('pdf_unavailable', 503, 'PDF rendering is temporarily unavailable');
+      }
+      try {
+        return { browser, page: await browser.newPage() };
+      } catch (e) {
+        const dead = !browser.isConnected() || /closed|disconnected|crash/i.test((e as Error).message);
+        if (dead) this.drop(launching, browser);
+        if (dead && attempt === 1) {
+          this.logger.warn(`chromium was gone (${(e as Error).message}); relaunching`);
+          continue;
+        }
+        this.logger.error(`chromium page failed: ${(e as Error).message}`);
+        throw new AppError('pdf_unavailable', 503, 'PDF rendering is temporarily unavailable');
+      }
+    }
   }
 
   async render(html: string, opts: { landscape?: boolean } = {}): Promise<Buffer> {
@@ -88,14 +139,7 @@ export class PdfService implements OnModuleDestroy {
   }
 
   private async renderNow(html: string, opts: { landscape?: boolean }): Promise<Buffer> {
-    let browser: Browser;
-    try {
-      browser = await this.launch();
-    } catch (e) {
-      this.logger.error(`chromium launch failed: ${(e as Error).message}`);
-      throw new AppError('pdf_unavailable', 503, 'PDF rendering is temporarily unavailable');
-    }
-    const page = await browser.newPage();
+    const { browser, page } = await this.newPage();
     try {
       // No network: everything (fonts, styles) is inline.
       await page.route('**/*', (route) => (route.request().url().startsWith('data:') ? route.continue() : route.abort()));
@@ -104,6 +148,13 @@ export class PdfService implements OnModuleDestroy {
       // for it: load every face, then wait for the font set, before printing.
       await page.evaluate('Promise.all([...document.fonts].map((f) => f.load().catch(() => null))).then(() => document.fonts.ready).then(() => true)');
       return await page.pdf({ format: 'A4', landscape: !!opts.landscape, printBackground: true, margin: { top: '14mm', bottom: '16mm', left: '12mm', right: '12mm' } });
+    } catch (e) {
+      // Chromium died during this render: the caller may retry (the next render relaunches it).
+      if (!browser.isConnected()) {
+        this.logger.error(`chromium exited during a render: ${(e as Error).message}`);
+        throw new AppError('pdf_unavailable', 503, 'PDF rendering is temporarily unavailable');
+      }
+      throw e;
     } finally {
       await page.close().catch(() => undefined);
     }

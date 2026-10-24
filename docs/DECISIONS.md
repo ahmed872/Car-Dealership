@@ -362,6 +362,10 @@ Report PDFs are capped at 2,000 rows (422 `pdf_too_many_rows`, pointing to xlsx/
 are rate limited per client (`EXPORT_RATE_LIMIT_PER_MIN`, default 20/min), and all Chromium renders
 (reports and sale documents) share one process-wide gate: `PDF_MAX_CONCURRENT` (2) running,
 `PDF_MAX_QUEUE` (4) waiting, then 503 `pdf_busy`.
+The one cached Chromium is dropped when it disconnects (crash, out-of-memory kill, close), so the
+next render starts a new browser; a render that still meets a dead browser drops it and relaunches
+once. Launch failures and a browser that dies during a render answer 503 `pdf_unavailable`; the API
+no longer needs a restart after a Chromium crash (`test/pdf-renderer.spec.ts` kills it between renders).
 
 ### D-046 Foreign-currency rates are bounded by company reference rates (F6)
 A stated exchange rate is accepted only for a currency with a company reference rate
@@ -377,6 +381,34 @@ company settings (`settings.manage`, audited by `company.updated`). PATCH /compa
 field inside each settings section (`sectionPatchOf`), so a partial section no longer resets that
 section's other values. Refund detail and the refund approval show the currency, amount and rate
 of the receipts behind the refund.
+
+### D-047 Supplier national IDs are stored like customers' (encrypted, hashed, masked)
+`suppliers.national_id` was plain text. Like B-023: the ID is normalised (`normalizeNationalId`:
+Arabic-Indic digits, upper case, separators removed; letters and digits, 4–40) and stored as
+`national_id_enc` (AES-256-GCM), `national_id_hash` (HMAC of the normalised value, indexed) and
+`national_id_last4`. API responses (supplier list/detail, create/update, the supplier inside
+`GET /acquisitions/:id`) carry only `nationalIdMasked` ("••••1234") and `hasNationalId`. The full value
+comes from `GET /suppliers/:id/sensitive`, which needs `suppliers.read` + the new
+`suppliers.view_sensitive` (purchasing group) and writes a `supplier.sensitive_viewed` audit entry
+without the value. New companies get the permission on the system roles holding
+`customers.view_sensitive` (owner, branch manager); migration 0018 grants it to existing companies'
+owner role, and to their branch-manager role if that role still holds `customers.view_sensitive`.
+Invalid IDs are refused with 422 (`invalid_national_id`). PATCH: absent keeps, null removes. The
+duplicate check compares hashes (case, spaces and separators do not matter) and is now
+`POST /suppliers/check-duplicates`, so an ID never appears in a URL or access log.
+Old plain-text values cannot be encrypted in SQL (the key lives in the app): after the rollout,
+`node dist/cli.js encrypt-supplier-ids` encrypts them company by company (idempotent; OPERATIONS §1);
+a value that is not a recognisable ID is kept encrypted exactly as typed, without a hash. Until then
+old values are still shown masked and can be revealed, and editing such a supplier encrypts its
+value. The application never writes `suppliers.national_id` again. No CHECK constraint is added now,
+because the previous release writes that column while migrations run (expand/contract, OPERATIONS
+§1); the next release drops the column after verifying it is empty (KI-030).
+
+### D-048 Destructive resets need the database's name
+`src/db/reset.ts` (used by `db:reset`, the API test setup, dev sandboxes and the E2E start script)
+drops the schema. It refuses in production, and resets only `autohub_dev` and `autohub_test*`
+without confirmation; any other name — including the deployment default `autohub` — needs
+`AUTOHUB_CONFIRM_RESET=<that name>`. `test/db-reset-guard.spec.ts` covers it.
 
 ## Business assumptions
 
@@ -522,5 +554,6 @@ last four digits are shown. Revealing the full ID needs `customers.view_sensitiv
 Sales reps see only the customers and leads assigned to them or created by them. Duplicate checks
 never reveal a hidden customer's name (initials only). A national-ID duplicate can never be
 forced. A phone duplicate can be forced (family members share phones) by users with
-`customers.manage`.
+`customers.manage`. Supplier national IDs follow the same storage and reveal rules since D-047
+(`suppliers.view_sensitive`).
 

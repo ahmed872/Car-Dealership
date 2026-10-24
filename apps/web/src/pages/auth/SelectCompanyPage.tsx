@@ -25,7 +25,9 @@ export function SelectCompanyPage() {
     setError(null);
     try {
       await api('/auth/switch-tenant', { method: 'POST', body: { tenantId } });
-      qc.clear();
+      // Keep the live 'me' query (AuthProvider observes it) and refetch it for the new company;
+      // qc.clear() would remove it, leaving nothing to refetch and the guards on the old company.
+      qc.removeQueries({ predicate: (q) => q.queryKey[0] !== 'me' });
       await qc.refetchQueries({ queryKey: ['me'] });
       navigate('/app', { replace: true });
     } catch (e) {

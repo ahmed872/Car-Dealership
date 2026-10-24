@@ -1,4 +1,5 @@
-import { CircleDollarSign, CreditCard, FileClock, Pencil, Plus, Power, ReceiptText, Wallet } from 'lucide-react';
+import { useMutation } from '@tanstack/react-query';
+import { CircleDollarSign, CreditCard, Eye, EyeOff, FileClock, Pencil, Plus, Power, ReceiptText, Wallet } from 'lucide-react';
 import { ReactNode, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Link, useNavigate, useParams } from 'react-router-dom';
@@ -10,7 +11,7 @@ import { DataTable, Pagination } from '@/components/ui/DataTable';
 import { Alert, EmptyState, ErrorState, PageLoader } from '@/components/ui/Feedback';
 import { PageHeader, Tabs } from '@/components/ui/Layout';
 import { ConfirmDialog } from '@/components/ui/Modal';
-import { ApiError } from '@/lib/api';
+import { api, ApiError } from '@/lib/api';
 import { Can, useAuth } from '@/lib/auth';
 import { fmtDate, fmtNumber } from '@/lib/format';
 import { useApi, useListParams } from '@/lib/hooks';
@@ -21,6 +22,7 @@ import {
   Supplier,
   SupplierDetail,
   SupplierPaymentListItem,
+  SupplierSensitive,
   SupplierStatement,
   useApAccess,
   useSupplier,
@@ -39,6 +41,43 @@ import {
 import { usePurchasingError, usePurchasingMutation } from './mutation';
 
 type TabKey = 'overview' | 'open' | 'acquisitions' | 'payments' | 'statement';
+
+/** Masked national ID with an audited "reveal" for suppliers.view_sensitive holders (D-047). */
+function NationalIdValue({ s }: { s: Supplier }) {
+  const { t } = useTranslation();
+  const describe = usePurchasingError();
+  const [shown, setShown] = useState<string | null>(null);
+  const reveal = useMutation({
+    mutationFn: () => api<SupplierSensitive>(`/suppliers/${s.id}/sensitive`),
+    onSuccess: (r) => setShown(r.nationalId),
+  });
+  if (!s.hasNationalId) return null;
+  return (
+    <span className="inline-flex flex-wrap items-center gap-2">
+      <bdi dir="ltr" className="num font-medium tracking-wide">
+        {shown ?? s.nationalIdMasked}
+      </bdi>
+      <Can perm="suppliers.view_sensitive">
+        {shown ? (
+          <button type="button" onClick={() => setShown(null)} className="inline-flex items-center gap-1 text-xs text-muted hover:text-ink">
+            <EyeOff className="h-3.5 w-3.5" aria-hidden /> {t('purchasing.suppliers.hide')}
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={() => reveal.mutate()}
+            disabled={reveal.isPending}
+            className="inline-flex items-center gap-1 text-xs font-medium text-brand-strong hover:underline disabled:opacity-50"
+            title={t('purchasing.suppliers.revealHint')}
+          >
+            <Eye className="h-3.5 w-3.5" aria-hidden /> {t('purchasing.suppliers.reveal')}
+          </button>
+        )}
+      </Can>
+      {reveal.error ? <span className="text-xs text-danger">{describe(reveal.error)}</span> : null}
+    </span>
+  );
+}
 
 function OpenDocuments({ supplierId }: { supplierId: string }) {
   const { t } = useTranslation();
@@ -475,7 +514,7 @@ export function SupplierDetailPage() {
                   ) : null,
                 },
                 { label: t('purchasing.suppliers.fields.taxNumber'), value: s.taxNumber ? <span className="num">{s.taxNumber}</span> : null },
-                { label: t('purchasing.suppliers.fields.nationalId'), value: s.nationalId ? <span className="num">{s.nationalId}</span> : null },
+                { label: t('purchasing.suppliers.fields.nationalId'), value: s.hasNationalId ? <NationalIdValue key={`${s.id}:${s.updatedAt}`} s={s} /> : null },
                 { label: t('common.city'), value: s.city },
                 { label: t('common.address'), value: s.address, full: true },
                 { label: t('common.notes'), value: s.notes, full: true },

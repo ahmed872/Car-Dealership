@@ -1,34 +1,30 @@
 # Execution Status
 
-**Current phase:** Phase 8 (hardening). Phases 0–3 and 5–7 complete; Phase 4 web is one page group short.
+**Current phase:** Phase 8 (hardening). Phases 0–7 complete.
 **Last completed tasks (2026-10-24):**
-- Security review fixes F1–F5, F7–F11 (03048a6, D-041–D-045, KI-026–KI-029): company invitations
-  for existing accounts, branch scope in user management, atomic login lockout, company-wide audit
-  log, branch-scoped file downloads, own-property sort keys, commission-policy and document-
-  sensitivity permissions, PDF limits. Regression spec `test/security-review.spec.ts`.
-- F6 (fb8cbc3, D-046): client exchange rates must lie within a band around company reference rates;
-  company settings page edits the rates (verified in Chromium). Settings PATCH no longer resets a
-  section's other values. Tax rate and other shares of a whole are bounded to 0–100 (e92cb7d).
-- Arabic/English messages for every API error code, enforced by `apps/web/src/i18n/errors.test.ts`.
-- Phase 4 web: appointments calendar/test drives, reservations, receipts and refunds (b1448b2).
-- Full API suite on the pushed head: 34 files / 345 tests passed, 2 skipped (perf smoke opt-in).
+- Security review fixes F1–F11 incl. F6 FX band (D-041–D-046); settings page edits reference rates.
+- Arabic/English messages for every API error code (enforced by `apps/web/src/i18n/errors.test.ts`).
+- Phase 4 web complete: appointments, reservations, receipts/refunds (b1448b2), wishes, employees
+  and commission policies (d05b370).
+- Playwright E2E suite (`e2e/`, 16 specs × AR/EN/390px = 48 tests, green) and a CI `e2e` job;
+  fixed sign-out and company switching leaving the old user/company in the UI.
+- Task 18 (D-047): supplier national IDs encrypted with a reveal permission and an
+  `encrypt-supplier-ids` backfill command; PDF renderer recovers after a Chromium crash.
+- Reset guard (D-048): only autohub_dev/autohub_test* reset without confirmation.
+- Full API suite on the pushed head: 37 files / 363 passed, 2 skipped (perf smoke, opt-in).
 
-**In progress (background agents; partial work is saved on disk):**
-- Phase 4 web: wishes and employees/commission policies (files in the main checkout, uncommitted
-  until reviewed; sandbox i).
-- Playwright E2E suite in worktree `scratchpad/wt-e2e` (branch `e2e-wip`, DB t, ports 3191/5291).
-- Task 18 in worktree `scratchpad/wt-t18` (branch `t18-sensitive`, DB r): encrypted supplier
-  national IDs with a reveal permission and a backfill CLI; PDF renderer recovers after a Chromium
-  crash.
+**In progress (background agent; partial work is saved on disk):**
+- Web integration pass (task 14) in worktree `scratchpad/wt-int` (branch `web-integration`, DB n,
+  sandbox j): assignable-staff endpoint, lead customer filter, installment-plan customer names,
+  cash-closing actor names, sale approvals in the inbox, showroom aging titles, QR filename,
+  WhatsApp text locale, receipt/refund search and allocation labels, FX rate prefill.
 
 **Exact next tasks:**
-1. Review and commit wishes/employees web pages; web integration pass (assignee pickers, lead
-   customer filter, installment-plan customer names, cash-closing actor names, sale approvals in
-   the inbox, showroom aging titles, QR download filename, WhatsApp share text locale, FX rate
-   prefill from reference rates).
-2. Review, full-suite and merge task 18.
-3. Merge the E2E suite, add a CI job, extend it to Phase 4/7 pages.
-4. Readiness report; final E2E audit; final report.
+1. Review, full-suite (API + E2E) and merge the web integration pass.
+2. Shared MoneyInput: currency tag overlaps digits in Arabic (features work around it locally) —
+   fix in components/ui and remove the local wrappers.
+3. Extend E2E to wishes, employees/commission policies, refunds and appointments.
+4. Readiness report; final E2E audit; final report; then delete the hourly continuation task.
 
 | Phase | Status |
 |---|---|
@@ -36,11 +32,11 @@
 | 1 Foundation | Complete |
 | 2 Vehicles & Inventory | Complete |
 | 3 Acquisitions & Cost Engine | Complete (backend + web) |
-| 4 CRM & Operations | Backend complete; web complete except wishes/employees (in review) |
+| 4 CRM & Operations | Complete (backend + web) |
 | 5 Sales & Financial | Complete (backend + web) |
 | 6 Dashboard & Reports | Complete (backend + web) |
 | 7 Showroom & Integrations | Complete (backend + web) |
-| 8 Hardening | In progress: tenant FKs, matrix, isolation sweep, security fixes F1–F11, infra/backup drill done; E2E suite and task 18 in progress |
+| 8 Hardening | In progress: tenant FKs, matrix, isolation sweep, security fixes F1–F11, infra/backup drill, E2E suite, sensitive-data encryption done; integration pass, readiness report, final audit open |
 
 ## Phase 1 — delivered
 - pnpm workspace: `packages/shared`, `apps/api`, `apps/web`, `e2e`.
@@ -174,7 +170,8 @@
 ## Local environment notes (for resumption)
 - PostgreSQL 16 local cluster: `service postgresql start`.
 - Roles/DBs bootstrapped with `infra/db/bootstrap-roles.sql` (dev passwords in `apps/api/.env`, not committed).
-- Dev reset: `cd apps/api && set -a && . ./.env && set +a && node -r @swc-node/register src/db/reset.ts`.
+- Dev reset: `cd apps/api && set -a && . ./.env && set +a && AUTOHUB_CONFIRM_RESET=autohub node -r @swc-node/register src/db/reset.ts`
+  (only `autohub_dev`/`autohub_test*` reset without `AUTOHUB_CONFIRM_RESET=<db name>`; never in production).
 - Platform admin (dev DB): admin@autohub.local / see session notes; tenant `elite-motors` owner owner@elite.test.
 
 ## External credentials required

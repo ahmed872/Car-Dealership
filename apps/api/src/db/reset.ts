@@ -1,15 +1,23 @@
 import { Pool } from 'pg';
 import { runMigrations } from './migrate';
 
+/** Databases that may be reset without confirmation. */
+const DEV_TEST_DB = /^autohub_(dev|test(_[a-z0-9]+)?)$/;
+
 /**
- * Drops and recreates the schema, then migrates. DEVELOPMENT/TEST ONLY — refuses to run in production
- * or against a database whose name does not look like a dev/test database.
+ * Drops and recreates the schema, then migrates. DEVELOPMENT/TEST ONLY — refuses to run in production.
+ * Only `autohub_dev` and `autohub_test*` are reset without confirmation: the deployment's database is
+ * named `autohub` by default (docker-compose AUTOHUB_DB_NAME), so any other name needs
+ * AUTOHUB_CONFIRM_RESET=<that name>, or a stray `db:reset` with a production URL would wipe it.
  */
 export async function resetDatabase(url: string): Promise<void> {
   if (process.env.NODE_ENV === 'production') throw new Error('Refusing to reset a production database');
-  const dbName = new URL(url).pathname.slice(1);
-  if (!/^autohub(_dev|_test(_[a-z0-9]+)?)?$/.test(dbName)) {
-    throw new Error(`Refusing to reset database "${dbName}"`);
+  const dbName = decodeURIComponent(new URL(url).pathname.slice(1));
+  if (!DEV_TEST_DB.test(dbName) && process.env.AUTOHUB_CONFIRM_RESET !== dbName) {
+    throw new Error(
+      `Refusing to reset database "${dbName}": only autohub_dev and autohub_test* are reset without confirmation. ` +
+        `This deletes ALL data; to proceed set AUTOHUB_CONFIRM_RESET=${dbName}.`,
+    );
   }
   const pool = new Pool({ connectionString: url, max: 1 });
   try {

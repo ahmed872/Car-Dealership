@@ -255,3 +255,27 @@ no network, no browser rendering. Load testing at production volumes remains ope
 
 Failures found and fixed: 150% VAT accepted (no bound on jsonb settings); a partial settings PATCH
 reset that section's other values; Arabic rate labels reordered by the bidi algorithm.
+
+### Phase 8 part 4 — E2E suite, supplier ID encryption, PDF recovery (2026-10-24)
+| Command | Result |
+|---|---|
+| `pnpm --filter @autohub/e2e test` (Playwright 1.56.1, Chromium, real API + production web build; projects ar-desktop, en-desktop, mobile-ar 390px; one worker) — agent runs | 45 passed ×4 (3.6–3.8 min), 0 flaky, 0 skipped |
+| Same, independent orchestrator run on the E2E branch | **45 passed** (3.9 min) |
+| Same, after merging task 18 and adding `company-switch.spec.ts` | **48 passed** (3.7 min) |
+| `company-switch.spec.ts` with the SelectCompanyPage fix reverted | 3 failed (the app kept showing the previous company) — the spec guards the fix |
+| Sign-out spec with the auth.tsx fix reverted (agent) | failed: stayed on `/app` after signing out |
+| `supplier-sensitive.spec.ts` / `pdf-renderer.spec.ts` | 9 / 5 passed; 2 PDF tests fail on the previous renderer, the reveal test fails without the permission check |
+| `db-reset-guard.spec.ts` | 4 passed |
+| Full API suite, merged head (DB o) | 37 files, **363 passed**, 2 skipped (perf smoke, opt-in) |
+| `tsc --noEmit` api, web, e2e; web vitest (5) | clean / passed |
+| `cli.js encrypt-supplier-ids` by hand (DB r) | 1st run encrypted the legacy rows and cleared plaintext; 2nd run changed nothing |
+
+E2E coverage: sign-in/out (AR/EN), lockout without revealing the account, deep-link return,
+language/direction switch and no horizontal scroll at 390px on 8 pages, maker-checker acquisition
+approval, cash transfer and reversal, cash sale to delivery, the full vehicle journey (purchase →
+cost → listing → reservation deposit → installment sale → collection) with GL 1100/1300/2100 checks
+in the database, dashboard/report figures and a real xlsx export, menu and route denials for a
+sales rep and a cash-only role, cross-company 404s, and company invitation + switching. Not yet
+covered in the browser: wishes, employees/commission policies, refunds, appointment workflows.
+The CI `e2e` job is defined in `.github/workflows/ci.yml` but has not yet been observed running on
+GitHub.

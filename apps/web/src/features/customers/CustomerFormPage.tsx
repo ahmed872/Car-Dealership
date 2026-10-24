@@ -489,7 +489,7 @@ export function CustomerFormPage() {
                 label: t('customers.fields.nationalId'),
                 ltr: true,
                 max: 40,
-                hint: isEdit && c?.nationalIdMasked ? t('customers.hints.nationalIdKeep', { masked: c.nationalIdMasked }) : t('customers.hints.nationalId'),
+                hint: isEdit && c?.nationalIdMasked ? t('customers.hints.nationalIdKeep', { masked: `\u2066${c.nationalIdMasked}\u2069` }) : t('customers.hints.nationalId'),
               })}
               {text('nationality', { label: t('customers.fields.nationality'), max: 60 })}
               {f.type === 'individual' && text('dateOfBirth', { label: t('customers.fields.dateOfBirth'), type: 'date', ltr: true })}

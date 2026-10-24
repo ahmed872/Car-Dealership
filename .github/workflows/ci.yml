@@ -52,3 +52,53 @@ jobs:
       - name: API integration tests (real PostgreSQL)
         run: pnpm --filter @autohub/api test
       - run: pnpm build
+
+  e2e:
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd "pg_isready -U postgres" --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      PGHOST: localhost
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      # One database for the run; the API start script drops, migrates and provisions it.
+      E2E_DATABASE_URL: postgres://autohub_app:ci_app_pw@localhost:5432/autohub_test_e2e
+      E2E_DATABASE_MIGRATION_URL: postgres://autohub_owner:ci_owner_pw@localhost:5432/autohub_test_e2e
+      # The web bundle is built by the step below; `vite preview` serves it.
+      E2E_SKIP_WEB_BUILD: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Bootstrap database roles
+        run: psql -v owner_password=ci_owner_pw -v app_password=ci_app_pw -v db_name=autohub_test_e2e -f infra/db/bootstrap-roles.sql
+      # The browser the tests drive; the API renders sale-document PDFs with the same Chromium.
+      - name: Install Chromium for Playwright
+        run: pnpm --filter @autohub/e2e exec playwright install --with-deps chromium
+      - name: Build
+        run: |
+          pnpm --filter @autohub/shared build
+          pnpm --filter @autohub/web build
+      - name: Browser end-to-end tests (Playwright)
+        run: pnpm --filter @autohub/e2e test
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            e2e/playwright-report
+            e2e/test-results
+          retention-days: 14
