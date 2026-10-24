@@ -491,3 +491,23 @@ forced**", which does not match the migrations.
 a restore onto a different host or cluster (same cluster here, so roles already existed), a
 production-sized dump (timing unknown), the 20 tables that were empty in the source, and switching
 the running deployment over to a restored database (§4 steps 3–6).
+
+### 2026-10-24 — second drill (schema through 0018_supplier_national_id_security, 19 migrations)
+
+**Same environment and roles as the first drill; target `autohub_restore_drill` (`--reset-target`).**
+
+1. **Source `autohub_test_t`** (data left by the Playwright browser suite: 7 companies, 76 tables,
+   3,175 rows, including showroom listings, reservations, installment sales, receipts, refunds,
+   appointments and cash transfers made through the UI) → **DRILL PASSED, 31/31 checks**: identical
+   row counts and content hashes for all 76 tables, ledger balanced for every company and equal to
+   the source, audit chain verifies for 7/7 companies as owner and as the app role, schema/security
+   metadata identical (957 lines), RLS active for the app role, ledger/audit/cash UPDATE/DELETE refused.
+2. **Source `autohub_test_q`** (data left by the whole API suite, 372 tests: 111 companies, 19,763
+   rows) → restore identical to the source (full fingerprint, 76 table content hashes, 111 ledgers,
+   ledger debit = credit = 19,548,393.36), 28 checks passed, **2 failed by design**: one company's
+   audit chain fails with `hash_mismatch` at seq 1 **in the source as well** — `audit-ledger.spec.ts`
+   tampers with it on purpose (trigger disabled by a superuser) to prove the verifier detects it.
+   The restore faithfully kept the tampered row, and the verifier flagged it after restore too.
+
+Reports: `scratchpad/drill-3/drill-report.txt` and `scratchpad/drill-2/drill-report.txt` (not kept in
+the repository; the commands above reproduce them).
