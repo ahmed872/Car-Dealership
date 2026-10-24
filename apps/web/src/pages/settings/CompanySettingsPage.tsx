@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
-import type { TenantSettings } from '@autohub/shared';
+import { CURRENCY_CODES, type TenantSettings } from '@autohub/shared';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Card, CardBody, CardHeader } from '@/components/ui/Card';
@@ -64,6 +64,15 @@ export function CompanySettingsPage() {
         installments: {
           ...v.settings.installments,
           reminderDaysBefore: Number(v.settings.installments.reminderDaysBefore),
+        },
+        // The rate map is replaced whole: an emptied field removes that currency's reference rate.
+        fx: {
+          maxDeviationPct: String(v.settings.fx.maxDeviationPct).trim(),
+          referenceRates: Object.fromEntries(
+            Object.entries(v.settings.fx.referenceRates ?? {})
+              .map(([cur, rate]) => [cur, String(rate ?? '').trim()] as const)
+              .filter(([cur, rate]) => cur !== q.data?.baseCurrency && rate !== ''),
+          ),
         },
       },
     }),
@@ -177,6 +186,38 @@ export function CompanySettingsPage() {
                         <option value="on_delivery">{t('settings.onDelivery')}</option>
                         <option value="on_confirmation">{t('settings.onConfirmation')}</option>
                       </Select>
+                    )}
+                  </Field>
+                </FormSection>
+
+                <FormSection title={t('settings.fxSection')} description={t('settings.fxSectionHint')}>
+                  {CURRENCY_CODES.filter((cur) => cur !== c.baseCurrency).map((cur) => (
+                    <Field
+                      key={cur}
+                      label={t('settings.fxReferenceRate', { currency: cur, base: c.baseCurrency })}
+                    >
+                      {(id) => (
+                        <Input
+                          id={id}
+                          dir="ltr"
+                          inputMode="decimal"
+                          className="num"
+                          placeholder={t('settings.fxNotSet')}
+                          {...reg(`settings.fx.referenceRates.${cur}`)}
+                        />
+                      )}
+                    </Field>
+                  ))}
+                  <Field label={t('settings.fxMaxDeviation')} hint={t('settings.fxMaxDeviationHint')}>
+                    {(id, d) => (
+                      <Input
+                        id={id}
+                        aria-describedby={d}
+                        dir="ltr"
+                        inputMode="decimal"
+                        className="num"
+                        {...reg('settings.fx.maxDeviationPct', { required: true })}
+                      />
                     )}
                   </Field>
                 </FormSection>
