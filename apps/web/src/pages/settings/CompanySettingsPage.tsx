@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { Controller, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
@@ -10,6 +10,7 @@ import { Alert, ErrorState, PageLoader } from '@/components/ui/Feedback';
 import { Checkbox, Field, Input, Select, Textarea } from '@/components/ui/Field';
 import { FormSection, PageHeader } from '@/components/ui/Layout';
 import { fmtDate } from '@/lib/format';
+import { ApiError } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { useApi, useApiMutation } from '@/lib/hooks';
 
@@ -77,6 +78,15 @@ export function CompanySettingsPage() {
       },
     }),
   });
+
+  // validation_failed issues carry the same dotted paths as the form fields.
+  const invalid = useMemo(() => {
+    const e = save.error;
+    if (!(e instanceof ApiError) || e.code !== 'validation_failed') return new Set<string>();
+    const issues = (e.details as { issues?: Array<{ path: string }> } | undefined)?.issues ?? [];
+    return new Set(issues.map((i) => i.path));
+  }, [save.error]);
+  const pctError = (path: string) => (invalid.has(path) ? t('settings.errPct100') : undefined);
 
   if (q.isLoading) return <PageLoader />;
   if (q.error || !q.data) return <ErrorState error={q.error} onRetry={() => q.refetch()} />;
@@ -154,7 +164,7 @@ export function CompanySettingsPage() {
                       </Select>
                     )}
                   </Field>
-                  <Field label={t('settings.taxRate')}>
+                  <Field label={t('settings.taxRate')} error={pctError('settings.tax.ratePct')}>
                     {(id) => (
                       <Input
                         id={id}
@@ -195,6 +205,7 @@ export function CompanySettingsPage() {
                     <Field
                       key={cur}
                       label={t('settings.fxReferenceRate', { currency: cur, base: c.baseCurrency })}
+                      error={invalid.has(`settings.fx.referenceRates.${cur}`) ? t('settings.errRate') : undefined}
                     >
                       {(id) => (
                         <Input
@@ -208,7 +219,11 @@ export function CompanySettingsPage() {
                       )}
                     </Field>
                   ))}
-                  <Field label={t('settings.fxMaxDeviation')} hint={t('settings.fxMaxDeviationHint')}>
+                  <Field
+                    label={t('settings.fxMaxDeviation')}
+                    hint={t('settings.fxMaxDeviationHint')}
+                    error={pctError('settings.fx.maxDeviationPct')}
+                  >
                     {(id, d) => (
                       <Input
                         id={id}
@@ -243,7 +258,10 @@ export function CompanySettingsPage() {
                       </Select>
                     )}
                   </Field>
-                  <Field label={t('settings.refundablePct')}>
+                  <Field
+                    label={t('settings.refundablePct')}
+                    error={pctError('settings.reservation.defaultRefundablePct')}
+                  >
                     {(id) => (
                       <Input
                         id={id}
