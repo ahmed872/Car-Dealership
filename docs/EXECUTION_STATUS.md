@@ -1,30 +1,19 @@
 # Execution Status
 
-**Current phase:** Phase 8 (hardening). Phases 0–7 complete.
-**Last completed tasks (2026-10-24):**
-- Security review fixes F1–F11 incl. F6 FX band (D-041–D-046); settings page edits reference rates.
-- Arabic/English messages for every API error code (enforced by `apps/web/src/i18n/errors.test.ts`).
-- Phase 4 web complete: appointments, reservations, receipts/refunds (b1448b2), wishes, employees
-  and commission policies (d05b370).
-- Playwright E2E suite (`e2e/`, 16 specs × AR/EN/390px = 48 tests, green) and a CI `e2e` job;
-  fixed sign-out and company switching leaving the old user/company in the UI.
-- Task 18 (D-047): supplier national IDs encrypted with a reveal permission and an
-  `encrypt-supplier-ids` backfill command; PDF renderer recovers after a Chromium crash.
-- Reset guard (D-048): only autohub_dev/autohub_test* reset without confirmation.
-- Full API suite on the pushed head: 37 files / 363 passed, 2 skipped (perf smoke, opt-in).
+**Current phase:** All phases (0–8) complete. Final reports written; Arabic user guide being finalised.
+**Last completed tasks (2026-10-25):**
+- Shared MoneyInput/PercentInput fixed in the UI kit; local wrappers removed.
+- Privacy: erasure of showroom-visitor data and optional inquiry retention (D-053).
+- E2E extended to appointments, refunds, wishes, employees and lead assignment: 69 passed (AR/EN/390px).
+- Second restore drill on the 21-migration schema: 31/31 checks passed (OPERATIONS §10).
+- Final adversarial audit: A1–A6 fixed with regression tests (D-054); API suite 389 passed, 2 skipped.
+- `docs/READINESS_REPORT.md` and `docs/FINAL_REPORT.md` written.
 
-- Web integration pass (D-049–D-052): assignable-staff endpoint and pickers, lead customer filter,
-  installment-plan customer names, cash-closing actors, sale approvals from the inbox, showroom
-  aging titles, QR download filename, WhatsApp text language, receipt/refund search and
-  allocation numbers, FX rate prefill. API 372 passed; E2E 48 passed.
+**In progress:** Arabic user guide PDF with real screenshots (`docs/user-guide/`).
 
-**In progress:** nothing running.
-
-**Exact next tasks:**
-1. Shared MoneyInput: currency tag overlaps digits in Arabic (features work around it locally) —
-   fix in components/ui and remove the local wrappers.
-2. Extend E2E to wishes, employees/commission policies, refunds and appointments.
-3. Readiness report; final E2E audit; final report; then delete the hourly continuation task.
+**Exact next tasks (outside this plan; need owner action or credentials):**
+1. Go-live checklist in `docs/READINESS_REPORT.md` §5 (deployment, load test, CI observed on GitHub).
+2. External integrations EXT-01…08 once accounts/keys exist.
 
 | Phase | Status |
 |---|---|
@@ -36,7 +25,7 @@
 | 5 Sales & Financial | Complete (backend + web) |
 | 6 Dashboard & Reports | Complete (backend + web) |
 | 7 Showroom & Integrations | Complete (backend + web) |
-| 8 Hardening | In progress: tenant FKs, matrix, isolation sweep, security fixes F1–F11, infra/backup drill, E2E suite, sensitive-data encryption done; integration pass done; readiness report, final audit open |
+| 8 Hardening | Complete: tenant FKs, matrix, isolation sweep, security fixes F1–F11 and A1–A6, backup/restore drills, E2E suite, sensitive-data encryption, privacy, readiness and final reports |
 
 ## Phase 1 — delivered
 - pnpm workspace: `packages/shared`, `apps/api`, `apps/web`, `e2e`.
