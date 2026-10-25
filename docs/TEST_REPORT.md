@@ -316,3 +316,24 @@ pre-fix code (source changes stashed, shared rebuilt) and **failed**, then **pas
 Left open: KI-035 (a branch-limited approver of a customer-credit refund does not see receipts of
 other branches, including their exchange rate). Expense, vehicle-cost and refund requests carry no
 version because nothing can change their reviewed amount while they are pending (no edit route).
+
+## Desktop edition (2026-10-25, D-055)
+
+`apps/desktop/test/smoke.mjs` drives the packaged program with Playwright (25 checks): activation
+(garbage key, key for another PC and expired key refused; valid key accepted), first-run setup (weak
+password refused, company created), sign-in, a customer with an Arabic name found by partial-name
+search, an inventory report PDF, the DNS-rebinding guard (421 for a foreign Host), automatic backup on
+exit, restart without activation with data kept, restore of the first backup from the File menu
+(later customer gone, original kept, replaced data set aside), second backup on exit.
+
+| Where | Build | Result |
+|---|---|---|
+| Linux container, non-root user, Xvfb | packaged `release/linux-unpacked` | 25/25 passed |
+| GitHub Actions `windows-latest` (run 40234071523, commit `5f137f8`) | packaged `release/win-unpacked/AutoHub Pro.exe`, throwaway key pair | **25/25 passed**; PDF rendered with Microsoft Edge (36,861 bytes) |
+
+Found and fixed on the way: electron-builder rejected an option and silently left the API's
+`node_modules` out of the package (afterPack hook); on Windows `pg_ctl start` kept piped handles open
+and start-up hung (now writes to its log file); shutdown could exit before the database stopped and
+was backed up (window-all-closed re-entrancy). The customer installer (NSIS) is built by the same
+workflow once the seller's public key is committed; it has not been built yet.
+

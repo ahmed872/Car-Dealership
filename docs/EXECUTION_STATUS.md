@@ -11,6 +11,10 @@
 - Arabic user guide: `docs/user-guide/AutoHub-Pro-User-Guide-AR.pdf` (139 pages, 145 screenshots of the
   running app); two untranslated labels it exposed were fixed.
 
+**Desktop edition (D-055):** `apps/desktop` Windows program with per-device activation; end-to-end
+test passes on Windows (GitHub Actions run 40234071523) and Linux. Waiting on the seller's public
+key (`apps/desktop/resources/license-public-key.txt`) to build the customer installer.
+
 **In progress:** nothing.
 
 **Exact next tasks (outside this plan; need owner action or credentials):**
