@@ -262,7 +262,7 @@ describe('sales, installments, commissions and cash closing', () => {
       expect(early.status).toBe(409);
       expect(early.body.error.code).toBe('invalid_sale_status');
       // The manager holds sales.approve_discount but made the sale: maker-checker refuses.
-      const self = await manager.client.post(`/sales/${s2.id}/approve`, {});
+      const self = await manager.client.post(`/sales/${s2.id}/approve`, { version: s2.version });
       expect(self.status).toBe(403);
       expect(self.body.error.code).toBe('self_approval_forbidden');
       const inbox = await checker.get('/approvals');
@@ -276,20 +276,20 @@ describe('sales, installments, commissions and cash closing', () => {
         entityType: 'sale',
         canDecide: true,
         branchId: t.branchId,
-        payload: { agreedPrice: '109200.00', floorPrice: '110000.00' },
+        payload: { agreedPrice: '109200.00', floorPrice: '110000.00', version: s.version },
       });
       expect(((await manager.client.get('/approvals')).body as Array<{ entityId: string; canDecide: boolean }>).find((x) => x.entityId === s.id)).toBeUndefined();
       // A branch-limited approver of another branch does not see it.
       const elsewhere = await createBranch(owner, 'Dammam');
       const farApprover = await addMemberWithPermissions(app, t, ['approvals.read', 'sales.approve_below_floor', 'sales.read'], { allBranches: false, branchIds: [elsewhere.id] });
       expect(((await farApprover.client.get('/approvals')).body as Array<{ entityId: string }>).some((x) => x.entityId === s.id)).toBe(false);
-      const ok = await checker.post(`/sales/${s2.id}/approve`, { note: 'Loyal customer' });
+      const ok = await checker.post(`/sales/${s2.id}/approve`, { note: 'Loyal customer', version: s2.version });
       expect(ok.status, JSON.stringify(ok.body)).toBe(200);
       expect(ok.body).toMatchObject({ status: 'approved' });
       await confirm(manager.client, s2.id);
 
       // Changing the price of an approved sale needs a fresh decision.
-      const rej = await checker.post(`/sales/${s.id}/reject`, { reason: 'Below floor without reason' });
+      const rej = await checker.post(`/sales/${s.id}/reject`, { reason: 'Below floor without reason', version: s.version });
       expect(rej.status).toBe(200);
       expect(rej.body.status).toBe('draft');
       const fixed = await manager.client.patch(`/sales/${s.id}`, { agreedPrice: '112000.00', version: rej.body.version });

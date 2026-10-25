@@ -90,8 +90,9 @@ export const zSaleUpdate = patchOf(zSaleFields.omit({ vehicleId: true, customerI
 export type SaleUpdateInput = z.infer<typeof zSaleUpdate>;
 
 export const zSaleVersion = z.object({ version: z.number().int().min(1) });
-export const zSaleDecision = z.object({ note: zOptText(500), version: z.number().int().min(1).optional() });
-export const zSaleReject = z.object({ reason: zText(500).min(3), version: z.number().int().min(1).optional() });
+/** Price decisions name the sale version the approver saw (the inbox reads it from the approval payload, D-054). */
+export const zSaleDecision = z.object({ note: zOptText(500), version: z.number().int().min(1) });
+export const zSaleReject = z.object({ reason: zText(500).min(3), version: z.number().int().min(1) });
 export const zSaleDeliver = z.object({
   version: z.number().int().min(1),
   /** Delivering with an unpaid balance needs sales.deliver_with_balance and a reason (B-012). */

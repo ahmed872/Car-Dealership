@@ -51,6 +51,8 @@ const ar = {
     daysHint: 'من 30 إلى 3650 يومًا. اتركه فارغًا للاحتفاظ بها دون حد.',
     error: 'أدخل عددًا صحيحًا من 30 إلى 3650، أو اتركه فارغًا',
     openPage: 'البحث عن شخص ومحو بياناته',
+    unlimited: 'دون حد',
+    managedBy: 'يغيّرها فقط من لديه صلاحية حماية البيانات ويصل إلى جميع الفروع.',
   },
 };
 
@@ -107,6 +109,8 @@ const en: typeof ar = {
     daysHint: '30 to 3650 days. Leave empty to keep them without a limit.',
     error: 'Enter a whole number from 30 to 3650, or leave it empty',
     openPage: 'Find a person and erase their data',
+    unlimited: 'No limit',
+    managedBy: 'Only users with the data-protection permission and access to all branches can change it.',
   },
 };
 

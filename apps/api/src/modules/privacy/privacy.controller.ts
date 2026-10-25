@@ -1,11 +1,11 @@
-import { Body, Controller, Get, HttpCode, Post, Query } from '@nestjs/common';
+import { Body, Controller, HttpCode, Post } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { createZodDto } from 'nestjs-zod';
-import { zPrivacySearchQuery, zRedactionRequest } from '@autohub/shared';
+import { zPrivacySearch, zRedactionRequest } from '@autohub/shared';
 import { Ctx, RequirePermissions, TenantContext } from '../../common/context';
 import { PrivacyService } from './privacy.service';
 
-class PrivacySearchDto extends createZodDto(zPrivacySearchQuery) {}
+class PrivacySearchDto extends createZodDto(zPrivacySearch) {}
 class RedactionDto extends createZodDto(zRedactionRequest) {}
 
 /**
@@ -17,11 +17,15 @@ class RedactionDto extends createZodDto(zRedactionRequest) {}
 export class PrivacyController {
   constructor(private readonly privacy: PrivacyService) {}
 
-  /** Inquiries and messages of one person (by phone and/or email), with masked contacts only. */
-  @Get('search')
+  /**
+   * Inquiries and messages of one person (by phone and/or email), with masked contacts only. A POST
+   * with a JSON body (read-only) so the data subject's contact never appears in a URL (D-054).
+   */
+  @Post('search')
+  @HttpCode(200)
   @RequirePermissions('privacy.manage')
-  search(@Ctx() ctx: TenantContext, @Query() q: PrivacySearchDto) {
-    return this.privacy.search(ctx, q);
+  search(@Ctx() ctx: TenantContext, @Body() body: PrivacySearchDto) {
+    return this.privacy.search(ctx, body);
   }
 
   /** Overwrites the personal fields of the given rows (irreversible); audited by the database function. */

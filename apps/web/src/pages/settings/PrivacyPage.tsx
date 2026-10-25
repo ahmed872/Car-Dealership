@@ -1,3 +1,4 @@
+import { useQuery } from '@tanstack/react-query';
 import { Eraser, Search, ShieldAlert, UserSearch } from 'lucide-react';
 import { type FormEvent, useState } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -9,9 +10,10 @@ import { Alert, EmptyState } from '@/components/ui/Feedback';
 import { Field, Input } from '@/components/ui/Field';
 import { PageHeader } from '@/components/ui/Layout';
 import { ConfirmDialog } from '@/components/ui/Modal';
+import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { fmtDateTime } from '@/lib/format';
-import { useApi, useApiMutation } from '@/lib/hooks';
+import { useApiMutation } from '@/lib/hooks';
 
 interface InquiryMatch {
   kind: 'showroom_inquiry';
@@ -106,7 +108,12 @@ function PrivacyRequests() {
   const [confirming, setConfirming] = useState(false);
   const [done, setDone] = useState<{ inquiries: number; messages: number } | null>(null);
 
-  const q = useApi<SearchResult>(['privacy-search'], query ? '/privacy/search' : null, query ?? undefined);
+  // POST with a JSON body: the person's phone/email never goes into a URL (logs, history; D-054).
+  const q = useQuery<SearchResult>({
+    queryKey: ['privacy-search', query],
+    queryFn: ({ signal }) => api<SearchResult>('/privacy/search', { method: 'POST', body: query, signal }),
+    enabled: query !== null,
+  });
   const inquiries = q.data?.inquiries ?? [];
   const messages = q.data?.messages ?? [];
   // Messages about a selected inquiry are erased with it; they need no separate request.

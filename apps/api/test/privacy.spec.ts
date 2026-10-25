@@ -159,12 +159,8 @@ describe('privacy: search, redaction and retention of showroom contact data', ()
   });
 
   it('finds one person by phone (any format) or email, showing only masked contacts', async () => {
-    for (const q of [
-      `phone=${encodeURIComponent(localA)}`,
-      `phone=${encodeURIComponent(phoneA)}`,
-      `email=${encodeURIComponent(emailA.toUpperCase())}`,
-    ]) {
-      const res = await a.owner.get(`/privacy/search?${q}`);
+    for (const q of [{ phone: localA }, { phone: phoneA }, { email: emailA.toUpperCase() }]) {
+      const res = await a.owner.post('/privacy/search', q);
       expect(res.status, JSON.stringify(res.body)).toBe(200);
       expect(res.body.inquiries.map((r: { id: string }) => r.id)).toEqual([inquiryA]);
       expect(res.body.messages.map((r: { id: string }) => r.id)).toEqual([messageAId]);
@@ -187,17 +183,17 @@ describe('privacy: search, redaction and retention of showroom contact data', ()
       for (const secret of [phoneA, phoneA.slice(4), emailA, 'Alpha', 'Camry'])
         expect(text).not.toContain(secret);
     }
-    const both = await a.owner.get(
-      `/privacy/search?phone=${encodeURIComponent(phoneA)}&email=${encodeURIComponent(emailA)}`,
-    );
+    const both = await a.owner.post('/privacy/search', { phone: phoneA, email: emailA });
     expect(both.body.inquiries[0].matchedOn).toEqual(['phone', 'email']);
     // Company B finds only its own row for the same person.
-    const inB = await b.owner.get(`/privacy/search?phone=${encodeURIComponent(phoneA)}`);
+    const inB = await b.owner.post('/privacy/search', { phone: phoneA });
     expect(inB.body.inquiries.map((r: { id: string }) => r.id)).toEqual([inquiryB]);
     expect(JSON.stringify(inB.body)).not.toContain(inquiryA);
     // Validation: a phone or an email is required; an impossible phone is refused.
-    expect((await a.owner.get('/privacy/search')).status).toBe(422);
-    const bad = await a.owner.get('/privacy/search?phone=abcdefgh');
+    expect((await a.owner.post('/privacy/search', {})).status).toBe(422);
+    const bad = await a.owner.post('/privacy/search', { phone: 'abcdefgh' });
+    // The old query-string form is gone (the contact must never be in a URL).
+    expect((await a.owner.get(`/privacy/search?phone=${encodeURIComponent(phoneA)}`)).status).toBe(404);
     expect([bad.status, bad.body.error?.code]).toEqual([422, 'invalid_phone']);
   });
 
@@ -205,7 +201,7 @@ describe('privacy: search, redaction and retention of showroom contact data', ()
     const manager = await addMember(app, a, 'branch_manager');
     const sales = await addMember(app, a, 'sales_manager');
     for (const c of [manager.client, sales.client]) {
-      const s = await c.get(`/privacy/search?phone=${encodeURIComponent(phoneA)}`);
+      const s = await c.post('/privacy/search', { phone: phoneA });
       expect([s.status, s.body.error?.code]).toEqual([403, 'forbidden']);
       const r = await c.post('/privacy/redactions', {
         kind: 'showroom_inquiry',
@@ -219,7 +215,7 @@ describe('privacy: search, redaction and retention of showroom contact data', ()
       allBranches: false,
       branchIds: [branch.id],
     });
-    const s = await limited.client.get(`/privacy/search?phone=${encodeURIComponent(phoneA)}`);
+    const s = await limited.client.post('/privacy/search', { phone: phoneA });
     expect([s.status, s.body.error?.code]).toEqual([403, 'company_scope_required']);
     const r = await limited.client.post('/privacy/redactions', {
       kind: 'showroom_inquiry',
@@ -387,7 +383,7 @@ describe('privacy: search, redaction and retention of showroom contact data', ()
     const listedRow = staff.body.items.find((r: { id: string }) => r.id === inquiryA);
     expect(listedRow).toMatchObject({ name: MARKER, phone: MARKER, email: null, message: null });
     expect(listedRow.redactedAt).toBeTruthy();
-    const search = await a.owner.get(`/privacy/search?phone=${encodeURIComponent(phoneA)}`);
+    const search = await a.owner.post('/privacy/search', { phone: phoneA });
     expect([search.body.inquiries.length, search.body.messages.length]).toEqual([0, 0]);
     const again = await a.owner.post('/privacy/redactions', {
       kind: 'showroom_inquiry',

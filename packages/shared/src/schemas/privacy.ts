@@ -6,16 +6,17 @@ export const REDACTION_KINDS = ['showroom_inquiry', 'message_log'] as const;
 export type RedactionKind = (typeof REDACTION_KINDS)[number];
 
 /**
- * `GET /privacy/search`: one person's contact, by phone and/or email (at least one). The phone is
+ * `POST /privacy/search` (JSON body, never a query string: the contact must not reach access logs or
+ * browser history, D-054): one person's contact, by phone and/or email (at least one). The phone is
  * compared in the company's normalised form, the email case-insensitively.
  */
-export const zPrivacySearchQuery = z
+export const zPrivacySearch = z
   .object({
     phone: z.string().trim().min(6).max(25).optional(),
     email: z.string().trim().email().max(120).optional(),
   })
   .refine((q) => !!q.phone || !!q.email, { message: 'phone_or_email_required', path: ['phone'] });
-export type PrivacySearchQuery = z.infer<typeof zPrivacySearchQuery>;
+export type PrivacySearchInput = z.infer<typeof zPrivacySearch>;
 
 /**
  * `POST /privacy/redactions`: overwrite the personal fields of these rows. Redacting an inquiry also

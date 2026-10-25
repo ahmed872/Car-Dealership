@@ -91,8 +91,8 @@ export class UsersController {
 
   @Delete('roles/:id')
   @RequirePermissions('roles.manage')
-  deleteRole(@Param('id', ParseUUIDPipe) id: string) {
-    return this.users.deleteRole(id);
+  deleteRole(@Ctx() ctx: TenantContext, @Param('id', ParseUUIDPipe) id: string) {
+    return this.users.deleteRole(ctx, id);
   }
 
   @Get('permissions')

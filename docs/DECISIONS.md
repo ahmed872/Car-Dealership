@@ -463,7 +463,7 @@ function audits every call. The owner role is refused outside the function too u
 and performs exactly the redaction transition; it owns the tables, so this is not a weaker guarantee
 than before. TRUNCATE of both tables is now refused by statement triggers.
 
-API: `GET /privacy/search?phone=&email=` (company-normalised phone or case-insensitive email; masked
+API: `POST /privacy/search {phone?, email?}` (a JSON body since D-054; company-normalised phone or case-insensitive email; masked
 contacts and initials only; at most 200 per kind) and `POST /privacy/redactions {kind, ids (≤500),
 reason}` (not idempotency-keyed: repeating it changes nothing). Redacting an inquiry also neutralises
 the managers' notification titles that carried the visitor's name (ordinary UPDATE, RLS-scoped). The
@@ -473,6 +473,41 @@ and messages about them, in one audited call per run (≤5,000 rows); a run with
 and audits nothing. `privacy.manage` (admin group) is held by the owner role only (branch managers do
 not get it); migration 0020 adds it to existing owner roles. Customers, leads, the audit log, ledger
 and backups are out of scope (OPERATIONS §9, KI-034).
+
+### D-054 Final audit fixes (2026-10-25)
+- **Retention needs privacy.manage and company scope.** The retention period drives irreversible,
+  company-wide erasure, so `PATCH /company` refuses a change to the `privacy` section unless the
+  caller holds `privacy.manage` (403 `forbidden`) and access to all branches (403
+  `company_scope_required`) — the same bar as `/privacy/*`; `settings.manage` alone no longer
+  suffices. Re-sending the stored value is not a change. The settings page shows the field only to
+  such users and otherwise leaves the section out of the request (others see the value read-only).
+- **Sale price decisions require the version.** `POST /sales/:id/approve|reject` require `version`
+  (409 `version_conflict` on mismatch). The approval request stores the version it was opened at
+  (`payload.version`), and changes that keep the request open (trade-ins, external-finance decision)
+  update it; the inbox sends it back, so a price changed after the inbox was loaded is never
+  approved unseen. Acquisition and work-order requests carry their version the same way (their APIs
+  already accepted it; an acquisition ownership update refreshes it), and the inbox sends it.
+  Expenses, vehicle costs and refunds have no edit route, so their reviewed amount cannot change
+  while pending. Requests opened before this change carry no version: the inbox sends sale requests
+  to the sale page.
+- **Privacy search via POST; query strings never logged.** `GET /privacy/search?phone=&email=` put
+  the data subject's contact into URLs and request logs; it is now `POST /privacy/search` with a JSON
+  body (like the duplicate checks). In addition, the pino-http request serializer
+  (`common/log-serializers.ts`) logs the path without the query string and drops the parsed `query`,
+  so no route's query parameters reach the logs.
+- **Role edits respect branch scope.** A role's permissions reach everyone holding it, so a
+  branch-limited `roles.manage` holder may change or delete a role only if every membership on it
+  (active, invited or suspended) lies within their branches; otherwise 403 `branch_scope_exceeded`
+  (the F2/D-042 rule for members, applied to roles).
+- **Refund source funds are scoped.** `GET /refunds/:id` lists only receipts of the caller's branches
+  or company-level ones (a customer-credit refund has no branch, its receipts do). The inbox payload
+  is stored when the request opens, so each `foreignReceipts` entry keeps its branch and the inbox
+  drops the ones outside a branch-limited reader's branches when it is read (entries stored without a
+  branch are shown to company-wide readers only); the plain-text summary quotes only company-level
+  receipts or receipts of the refund's own branch. Filtering at read time was chosen over storing one
+  payload per audience because the readers of a request are not known when it opens.
+- **Downloads**: `GET /files/:id` builds its header with `contentDisposition()` (inline for images,
+  video and PDF as before), so stored files also get the ASCII fallback of D-051.
 
 ## Business assumptions
 

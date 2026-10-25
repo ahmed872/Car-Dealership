@@ -6,6 +6,7 @@ import { ZodValidationPipe } from 'nestjs-zod';
 import { randomUUID } from 'node:crypto';
 import { getEnv } from './config/env';
 import { IdempotencyInterceptor, TenantTransactionInterceptor } from './common/interceptors';
+import { logRequestSerializer } from './common/log-serializers';
 import { CoreModule } from './core.module';
 import { AuditController } from './modules/audit/audit.controller';
 import { AuthController } from './modules/auth/auth.controller';
@@ -43,6 +44,8 @@ const env = getEnv();
           ],
           censor: '[REDACTED]',
         },
+        // Paths only: query strings never reach the logs (D-054).
+        serializers: { req: logRequestSerializer },
         autoLogging: env.NODE_ENV !== 'test',
         quietReqLogger: true,
         transport: undefined,

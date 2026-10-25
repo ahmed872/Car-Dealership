@@ -103,8 +103,8 @@ export class SalesService {
     return s;
   }
 
-  private checkVersion(s: SaleRow, version: number | undefined): void {
-    if (version !== undefined && version !== s.version) {
+  private checkVersion(s: SaleRow, version: number): void {
+    if (version !== s.version) {
       throw conflict('version_conflict', 'This sale was changed by someone else. Reload and try again.', { currentVersion: s.version });
     }
   }
@@ -326,9 +326,16 @@ export class SalesService {
       entityId: s.id,
       requiredPermission: s.approvalPermission!,
       summary: `${s.number}: ${s.agreedPrice} (−${s.discountPct}%)`,
-      payload: { agreedPrice: s.agreedPrice, askingPrice: s.askingPrice, floorPrice: s.floorPrice, discountPct: s.discountPct },
+      // The version the approver decides on: the inbox sends it back, so a sale changed after the
+      // approver opened it is refused (409 version_conflict) instead of approved unseen (D-054).
+      payload: { agreedPrice: s.agreedPrice, askingPrice: s.askingPrice, floorPrice: s.floorPrice, discountPct: s.discountPct, version: s.version },
       branchId: s.branchId,
     });
+  }
+
+  /** Keeps the pending approval's version in step when a change does not re-open the approval. */
+  private async syncApprovalVersion(s: SaleRow, version: number): Promise<void> {
+    if (s.status === 'pending_approval') await this.approvals.patchPendingPayload({ entityType: 'sale', entityId: s.id, patch: { version } });
   }
 
   private async cancelApproval(ctx: TenantContext, s: SaleRow, note: string): Promise<void> {
@@ -402,6 +409,7 @@ export class SalesService {
     this.assertCreditFits(s as unknown as Pricing, total.toFixed(2));
     await this.insertTradeIn(ctx, s, input);
     await this.dbs.db.update(sales).set({ version: s.version + 1, updatedAt: new Date() }).where(eq(sales.id, id));
+    await this.syncApprovalVersion(s, s.version + 1);
     await this.audit.record({ action: 'sale.updated', entityType: 'sale', entityId: id, summary: `Trade-in added: ${input.agreedValue}` });
     return this.get(ctx, id);
   }
@@ -414,13 +422,14 @@ export class SalesService {
     if (!t || t.status !== 'pending') throw notFound('Trade-in');
     await this.dbs.db.update(tradeIns).set({ status: 'cancelled' }).where(eq(tradeIns.id, tradeInId));
     await this.dbs.db.update(sales).set({ version: s.version + 1, updatedAt: new Date() }).where(eq(sales.id, id));
+    await this.syncApprovalVersion(s, s.version + 1);
     await this.audit.record({ action: 'sale.updated', entityType: 'sale', entityId: id, summary: `Trade-in removed: ${t.agreedValue}` });
     return this.get(ctx, id);
   }
 
   // ── Price approval (B-011) ────────────────────────────────────────────────────────────
 
-  async approve(ctx: TenantContext, id: string, input: { note?: string | null; version?: number }) {
+  async approve(ctx: TenantContext, id: string, input: { note?: string | null; version: number }) {
     const s = await this.find(ctx, id, true);
     this.checkVersion(s, input.version);
     this.assertStatus(s, ['pending_approval']);
@@ -442,7 +451,7 @@ export class SalesService {
     return this.get(ctx, id);
   }
 
-  async reject(ctx: TenantContext, id: string, input: { reason: string; version?: number }) {
+  async reject(ctx: TenantContext, id: string, input: { reason: string; version: number }) {
     const s = await this.find(ctx, id, true);
     this.checkVersion(s, input.version);
     this.assertStatus(s, ['pending_approval']);
@@ -568,6 +577,7 @@ export class SalesService {
     this.assertStatus(s, [...PRE_CONFIRM, 'confirmed']);
     const ef = { ...(s.externalFinance as Record<string, unknown>), status: input.status, reference: input.reference ?? (s.externalFinance as { reference?: string })?.reference ?? null, decidedAt: new Date().toISOString(), decidedBy: ctx.userId, note: input.note ?? null };
     await this.dbs.db.update(sales).set({ externalFinance: ef, version: s.version + 1, updatedAt: new Date() }).where(eq(sales.id, id));
+    await this.syncApprovalVersion(s, s.version + 1);
     await this.audit.record({ action: `sale.external_finance_${input.status}`, entityType: 'sale', entityId: id, before: { externalFinance: s.externalFinance }, after: { externalFinance: ef } });
     return this.get(ctx, id);
   }

@@ -288,3 +288,31 @@ GitHub.
 | `pnpm --filter @autohub/e2e test`, same head | **48 passed** (3.7 min) |
 | `tsc --noEmit` api/web/e2e, web vitest, `vite build`, permission matrix regenerated (unchanged after merge) | clean / 5 passed / built / consistent |
 | Chromium (agent sandbox j, a "Team lead" role without users.read) | pickers list the right staff per branch and permission; sale approvals decided from the inbox; QR download `listing-STK-…-qr.png`; WhatsApp text in the viewer's language; receipts/refunds search; FX rate prefilled (3.75) with the band; AR/EN and 390px without page overflow, no console errors |
+
+### Final audit (2026-10-25)
+Fixes for the final audit (D-054). Each finding has a regression test in
+`apps/api/test/final-audit.spec.ts`, built from the auditor's probe; all 8 tests were run against the
+pre-fix code (source changes stashed, shared rebuilt) and **failed**, then **passed** with the fixes.
+
+| Finding | Fix | Regression test (`final audit (D-054) > …`) | Before → after |
+|---|---|---|---|
+| A1 (medium) `settings.manage` could set `privacy.inquiryRetentionDays` and trigger mass erasure | `PATCH /company` requires `privacy.manage` + all branches for a changed privacy section; web shows the field only to them and omits the section otherwise | `A1 … settings.manage alone (branch-limited or company-wide) cannot switch on retention; the job then redacts nothing` | 200 and inquiry redacted → 403 `forbidden` / `company_scope_required`, job redacts 0 |
+| A2 (medium) inbox approved sale prices without the version | approval payload stores the version (kept in step by trade-ins/finance decisions); `version` required on `/sales/:id/approve|reject`; inbox sends it (also for acquisitions and work orders) | `A2 … a sale price changed after the inbox was loaded is refused (409); version is required`; `A2 … an acquisition edited after the inbox was loaded is refused when the inbox approves it` | approved unseen price (200) → 409 `version_conflict`; no version → 422 |
+| A3 (medium) `GET /privacy/search?phone=&email=` logged the contact | `POST /privacy/search` (JSON body); pino-http req serializer logs the path only, no `query` | `A3 … POST /privacy/search with a JSON body; the old GET with a query string is gone`; `A3 … request logs keep the path but drop the query string` (uses the app's own pino-http params) | GET 200 / URL with query logged → GET 404 / `"url":"/api/v1/customers"` only |
+| A4 (medium/low) branch-limited `roles.manage` changed roles of all-branch / other-branch members | `updateRole`/`deleteRole` refuse (403 `branch_scope_exceeded`) unless every membership on the role is within the caller's branches | `A4 … a branch-limited role manager cannot change or delete a role held beyond their branches` | 200 (permissions changed) → 403 |
+| A5 (low) refund source funds / inbox showed other branches' receipts | `sourceFunds` filtered by branch scope; payload `foreignReceipts` keep their branch and are filtered when the inbox is read; summary quotes only receipts visible to every reader | `A5 … a branch-limited user sees neither another branch's receipts on a customer-credit refund nor their details in the inbox` | far-branch receipt listed → empty for the branch user, still shown company-wide |
+| A6 (info) `/files/:id` built its own Content-Disposition | uses `contentDisposition()` (inline/attachment unchanged) | `A6 … a non-ASCII file name gets an ASCII fallback and the exact UTF-8 name (inline for PDFs)` | no `filename=` fallback → `inline; filename="_.pdf"; filename*=UTF-8''…` |
+
+| Command | Result |
+|---|---|
+| `npx vitest run test/final-audit.spec.ts` on the pre-fix code (DB o) | **8 failed** (8) |
+| same with the fixes | **8 passed** |
+| `route-policies` (with `WRITE_PERMISSION_MATRIX=1`), `security-review`, `privacy`, `sales`, `fx-band`, `members`, `maker-checker`, `work-orders`, `purchasing-core`, `final-audit` | 10 files, **82 passed**; PERMISSION_MATRIX: `GET` → `POST /api/v1/privacy/search` |
+| Full API suite (DB o) | 40 files passed, 1 skipped; **389 passed**, 2 skipped (perf smoke, opt-in) |
+| `tsc --noEmit` api / web; eslint on changed files | exit 0 / exit 0; clean |
+| web `npx vitest run`; `npx vite build` | 2 files, **8 passed**; built |
+| `pnpm --filter @autohub/e2e test` (ports 3194/5294, DB n; production web build) | **69 passed** (6.3 min), 0 failed, 0 flaky; no E2E spec used the old GET privacy search or version-less sale approvals |
+
+Left open: KI-035 (a branch-limited approver of a customer-credit refund does not see receipts of
+other branches, including their exchange rate). Expense, vehicle-cost and refund requests carry no
+version because nothing can change their reviewed amount while they are pending (no edit route).

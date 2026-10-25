@@ -302,7 +302,8 @@ identity check done, answer sent). Use that log's reference as the reason when e
    lead. Those are CRM records: correct them or deactivate the customer in the Customers screens
    (customers cannot be deleted, see below).
 
-API equivalent: `GET /api/v1/privacy/search?phone=&email=`, then
+API equivalent: `POST /api/v1/privacy/search {phone?, email?}` (a JSON body, so the contact is never in
+a URL or an access log), then
 `POST /api/v1/privacy/redactions {kind: "showroom_inquiry" | "message_log", ids: [...], reason}`.
 
 ### Retention (automatic erasure)

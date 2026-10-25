@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import {
   normalizeCustomerPhone,
   privacySettings,
-  PrivacySearchQuery,
+  PrivacySearchInput,
   RedactionKind,
   RedactionRequest,
 } from '@autohub/shared';
@@ -96,7 +96,7 @@ export class PrivacyService {
     jobs.register({ name: RETENTION_JOB, everyMs: 6 * 60 * 60_000, run: (ctx) => this.applyRetention(ctx) });
   }
 
-  async search(ctx: TenantContext, q: PrivacySearchQuery) {
+  async search(ctx: TenantContext, q: PrivacySearchInput) {
     assertPermission(ctx, 'privacy.manage');
     assertCompanyScope(ctx);
     const phone = q.phone ?? null;

@@ -11,7 +11,7 @@ import { Field, Textarea } from '@/components/ui/Field';
 import { PageHeader, Tabs } from '@/components/ui/Layout';
 import { ConfirmDialog, Modal } from '@/components/ui/Modal';
 import { featureModules } from '@/features/registry';
-import { newIdempotencyKey } from '@/lib/api';
+import { ApiError, newIdempotencyKey } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { fmtDateTime, fmtMoney } from '@/lib/format';
 import { useApi, useApiMutation, useListParams } from '@/lib/hooks';
@@ -44,7 +44,8 @@ interface ApprovalItem {
   entityId: string;
   summary: string;
   /** Sale price approvals carry agreedPrice (base currency) instead of amountBase. */
-  payload: { vehicleId?: string; amountBase?: string; agreedPrice?: string; itemCount?: number } | null;
+  /** `version`: the document version the request was opened at (sales, acquisitions, work orders). */
+  payload: { vehicleId?: string; amountBase?: string; agreedPrice?: string; itemCount?: number; version?: number } | null;
   requestedAt: string;
   requestedBy: string | null;
   requestedById: string | null;
@@ -68,6 +69,16 @@ const DECISION_BASE: Partial<Record<ApprovalType, string>> = {
   sale_discount: '/sales',
   sale_below_floor: '/sales',
 };
+
+/**
+ * Types whose decision names the version the approver reviewed (sales require it): a document changed
+ * after the inbox was loaded is refused with 409 version_conflict instead of decided unseen (D-054).
+ */
+const VERSIONED: ReadonlySet<ApprovalType> = new Set(['sale_discount', 'sale_below_floor', 'acquisition', 'work_order']);
+const VERSION_REQUIRED: ReadonlySet<ApprovalType> = new Set(['sale_discount', 'sale_below_floor']);
+const versionOf = (a: ApprovalItem) => (VERSIONED.has(a.type) ? a.payload?.version : undefined);
+/** Reject routes that take the version too (the others withdraw by reason only). */
+const REJECT_VERSIONED: ReadonlySet<ApprovalType> = new Set(['sale_discount', 'sale_below_floor']);
 
 /** Types whose own page can also settle the document on approval (pay now). */
 const PAY_ON_PAGE: ReadonlySet<ApprovalType> = new Set(['acquisition', 'work_order']);
@@ -152,17 +163,17 @@ export function ApprovalsPage() {
     ['sales'],
     ['sale'],
   ];
-  const approve = useApiMutation<{ path: string; note: string | null }>({
+  const approve = useApiMutation<{ path: string; note: string | null; version?: number }>({
     path: (v) => v.path,
-    body: (v) => ({ note: v.note }),
+    body: (v) => ({ note: v.note, ...(v.version !== undefined ? { version: v.version } : {}) }),
     idempotent: true,
     invalidate,
     success: t('approvals.success.approved'),
     onSuccess: () => setApproving(null),
   });
-  const reject = useApiMutation<{ path: string; reason: string }>({
+  const reject = useApiMutation<{ path: string; reason: string; version?: number }>({
     path: (v) => v.path,
-    body: (v) => ({ reason: v.reason }),
+    body: (v) => ({ reason: v.reason, ...(v.version !== undefined ? { version: v.version } : {}) }),
     invalidate,
     success: t('approvals.success.rejected'),
     onSuccess: () => setRejecting(null),
@@ -204,7 +215,8 @@ export function ApprovalsPage() {
         </div>
       );
     }
-    if (!DECISION_BASE[a.type]) {
+    // Requests opened before the inbox carried the version are decided on the document's own page.
+    if (!DECISION_BASE[a.type] || (VERSION_REQUIRED.has(a.type) && versionOf(a) === undefined)) {
       const href = documentLink(a, paths);
       return href ? (
         <Link to={href} className="text-[13px] font-medium text-brand-strong hover:underline">
@@ -367,11 +379,22 @@ export function ApprovalsPage() {
               loading={approve.isPending}
               onClick={() => {
                 if (!approving) return;
-                approve.mutate({
-                  path: `${DECISION_BASE[approving.item.type]}/${approving.item.entityId}/approve`,
-                  note: note.trim() || null,
-                  __idemKey: approving.key,
-                });
+                approve.mutate(
+                  {
+                    path: `${DECISION_BASE[approving.item.type]}/${approving.item.entityId}/approve`,
+                    note: note.trim() || null,
+                    version: versionOf(approving.item),
+                    __idemKey: approving.key,
+                  },
+                  // A stale request: close the dialog and reload the inbox so the approver reviews the
+                  // current version (with a new idempotency key) before deciding again.
+                  {
+                    onError: (e) => {
+                      if (e instanceof ApiError && e.code === 'version_conflict') setApproving(null);
+                      void list.refetch();
+                    },
+                  },
+                );
               }}
             >
               {t('approvals.approveDialog.confirm')}
@@ -430,7 +453,19 @@ export function ApprovalsPage() {
         loading={reject.isPending}
         onConfirm={(reason) => {
           if (rejecting)
-            reject.mutate({ path: `${DECISION_BASE[rejecting.type]}/${rejecting.entityId}/reject`, reason });
+            reject.mutate(
+              {
+                path: `${DECISION_BASE[rejecting.type]}/${rejecting.entityId}/reject`,
+                reason,
+                version: REJECT_VERSIONED.has(rejecting.type) ? versionOf(rejecting) : undefined,
+              },
+              {
+                onError: (e) => {
+                  if (e instanceof ApiError && e.code === 'version_conflict') setRejecting(null);
+                  void list.refetch();
+                },
+              },
+            );
         }}
       />
     </>

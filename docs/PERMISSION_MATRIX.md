@@ -160,7 +160,7 @@ ownership rules are enforced inside the services on top of this.
 | GET | `/api/v1/platform/tenants` | platform_admin |  |  |
 | POST | `/api/v1/platform/tenants` | platform_admin |  |  |
 | POST | `/api/v1/privacy/redactions` | permissions | privacy.manage |  |
-| GET | `/api/v1/privacy/search` | permissions | privacy.manage |  |
+| POST | `/api/v1/privacy/search` | permissions | privacy.manage |  |
 | GET | `/api/v1/public/showroom/:slug` | public |  |  |
 | POST | `/api/v1/public/showroom/:slug/inquiries` | public |  |  |
 | GET | `/api/v1/public/showroom/:slug/media/:mediaId` | public |  |  |

@@ -351,7 +351,8 @@ export class WorkOrdersService {
       entityId: id,
       requiredPermission: 'work_orders.approve',
       summary: `${wo.number} · ${vehicle.stockNumber}: ${wo.title} ${totalBase} ${ctx.tenant.baseCurrency}`,
-      payload: { vehicleId: vehicle.id, amountBase: totalBase, itemCount: items.length },
+      // after.version: bumped by the trigger; the inbox sends it back with the decision (D-054).
+      payload: { vehicleId: vehicle.id, amountBase: totalBase, itemCount: items.length, version: after!.version },
       branchId: vehicle.branchId,
     });
     await this.audit.record({

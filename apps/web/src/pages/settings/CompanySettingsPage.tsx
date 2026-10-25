@@ -11,7 +11,7 @@ import { Checkbox, Field, Input, Select, Textarea } from '@/components/ui/Field'
 import { FormSection, PageHeader } from '@/components/ui/Layout';
 import { fmtDate } from '@/lib/format';
 import { ApiError } from '@/lib/api';
-import { useAuth } from '@/lib/auth';
+import { Can, useAuth } from '@/lib/auth';
 import { useApi, useApiMutation } from '@/lib/hooks';
 
 interface Company {
@@ -40,9 +40,12 @@ type FormValues = { name: string; settings: TenantSettings };
 
 export function CompanySettingsPage() {
   const { t, i18n } = useTranslation();
-  const { can, refresh } = useAuth();
+  const { can, me, refresh } = useAuth();
   const q = useApi<Company>(['company'], '/company');
   const editable = can('settings.manage');
+  // The retention period drives irreversible erasure: only company-wide privacy.manage holders change
+  // it (the server refuses others, D-054), and the page never sends the section for anyone else.
+  const privacyEditable = can('privacy.manage') && !!me?.allBranches;
   const form = useForm<FormValues>();
   useEffect(() => {
     if (q.data) form.reset({ name: q.data.name, settings: q.data.settings });
@@ -52,32 +55,34 @@ export function CompanySettingsPage() {
     method: 'PATCH',
     invalidate: [['company']],
     onSuccess: () => void refresh(),
-    body: (v) => ({
-      name: v.name,
+    body: ({ name, settings: { privacy, ...v } }) => ({
+      name,
       settings: {
-        ...v.settings,
-        reservation: { ...v.settings.reservation, defaultDays: Number(v.settings.reservation.defaultDays) },
+        ...v,
+        reservation: { ...v.reservation, defaultDays: Number(v.reservation.defaultDays) },
         inventory: {
-          ...v.settings.inventory,
-          staleDaysWarning: Number(v.settings.inventory.staleDaysWarning),
-          staleDaysCritical: Number(v.settings.inventory.staleDaysCritical),
+          ...v.inventory,
+          staleDaysWarning: Number(v.inventory.staleDaysWarning),
+          staleDaysCritical: Number(v.inventory.staleDaysCritical),
         },
         installments: {
-          ...v.settings.installments,
-          reminderDaysBefore: Number(v.settings.installments.reminderDaysBefore),
+          ...v.installments,
+          reminderDaysBefore: Number(v.installments.reminderDaysBefore),
         },
-        // Empty keeps inquiries without a limit (null).
-        privacy: {
-          inquiryRetentionDays:
-            String(v.settings.privacy?.inquiryRetentionDays ?? '').trim() === ''
-              ? null
-              : Number(v.settings.privacy?.inquiryRetentionDays),
-        },
+        // Empty keeps inquiries without a limit (null). Omitted for users who may not change it.
+        ...(privacyEditable
+          ? {
+              privacy: {
+                inquiryRetentionDays:
+                  String(privacy?.inquiryRetentionDays ?? '').trim() === '' ? null : Number(privacy?.inquiryRetentionDays),
+              },
+            }
+          : {}),
         // The rate map is replaced whole: an emptied field removes that currency's reference rate.
         fx: {
-          maxDeviationPct: String(v.settings.fx.maxDeviationPct).trim(),
+          maxDeviationPct: String(v.fx.maxDeviationPct).trim(),
           referenceRates: Object.fromEntries(
-            Object.entries(v.settings.fx.referenceRates ?? {})
+            Object.entries(v.fx.referenceRates ?? {})
               .map(([cur, rate]) => [cur, String(rate ?? '').trim()] as const)
               .filter(([cur, rate]) => cur !== q.data?.baseCurrency && rate !== ''),
           ),
@@ -435,31 +440,40 @@ export function CompanySettingsPage() {
                 </FormSection>
 
                 <FormSection title={t('privacy.retention.section')} description={t('privacy.retention.sectionHint')}>
-                  <Field
-                    label={t('privacy.retention.days')}
-                    hint={t('privacy.retention.daysHint')}
-                    error={invalid.has('settings.privacy.inquiryRetentionDays') ? t('privacy.retention.error') : undefined}
+                  <Can
+                    perm="privacy.manage"
+                    fallback={<RetentionReadOnly days={c.settings.privacy?.inquiryRetentionDays ?? null} />}
                   >
-                    {(id, d) => (
-                      <Input
-                        id={id}
-                        aria-describedby={d}
-                        type="number"
-                        min={30}
-                        max={3650}
-                        dir="ltr"
-                        className="num"
-                        {...reg('settings.privacy.inquiryRetentionDays')}
-                      />
+                    {privacyEditable ? (
+                      <>
+                        <Field
+                          label={t('privacy.retention.days')}
+                          hint={t('privacy.retention.daysHint')}
+                          error={invalid.has('settings.privacy.inquiryRetentionDays') ? t('privacy.retention.error') : undefined}
+                        >
+                          {(id, d) => (
+                            <Input
+                              id={id}
+                              aria-describedby={d}
+                              type="number"
+                              min={30}
+                              max={3650}
+                              dir="ltr"
+                              className="num"
+                              {...reg('settings.privacy.inquiryRetentionDays')}
+                            />
+                          )}
+                        </Field>
+                        <div className="flex items-end pb-2 text-[13px]">
+                          <Link to="/app/settings/privacy" className="font-medium text-brand-strong hover:underline">
+                            {t('privacy.retention.openPage')}
+                          </Link>
+                        </div>
+                      </>
+                    ) : (
+                      <RetentionReadOnly days={c.settings.privacy?.inquiryRetentionDays ?? null} />
                     )}
-                  </Field>
-                  {can('privacy.manage') && (
-                    <div className="flex items-end pb-2 text-[13px]">
-                      <Link to="/app/settings/privacy" className="font-medium text-brand-strong hover:underline">
-                        {t('privacy.retention.openPage')}
-                      </Link>
-                    </div>
-                  )}
+                  </Can>
                 </FormSection>
               </fieldset>
             </form>
@@ -523,5 +537,19 @@ export function CompanySettingsPage() {
         </div>
       </div>
     </>
+  );
+}
+
+/** The retention period for users who may not change it (privacy.manage with access to all branches). */
+function RetentionReadOnly({ days }: { days: number | null }) {
+  const { t } = useTranslation();
+  return (
+    <div className="text-[13px] sm:col-span-2">
+      <div className="font-medium text-ink">
+        {t('privacy.retention.days')}:{' '}
+        <span className="num">{days === null ? t('privacy.retention.unlimited') : days}</span>
+      </div>
+      <div className="mt-1 text-muted">{t('privacy.retention.managedBy')}</div>
+    </div>
   );
 }

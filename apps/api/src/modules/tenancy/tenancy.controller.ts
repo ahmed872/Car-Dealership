@@ -4,7 +4,7 @@ import { and, asc, eq, sql } from 'drizzle-orm';
 import { createZodDto } from 'nestjs-zod';
 import { z } from 'zod';
 import { patchOf, privacySettings, zBranchInput, zTenantSettings, zTenantSettingsPatch, TenantSettings } from '@autohub/shared';
-import { Ctx, RequirePermissions, TenantContext, Authenticated } from '../../common/context';
+import { assertPermission, Ctx, RequirePermissions, TenantContext, Authenticated } from '../../common/context';
 import { AppError, notFound, unprocessable } from '../../common/errors';
 import { DbService } from '../../db/db.service';
 import { branches, journalEntries, tenants } from '../../db/schema';
@@ -87,6 +87,18 @@ export class TenancyController {
       throw unprocessable('fx_reference_base_currency', `${current.baseCurrency} is the base currency; it always converts at 1 and takes no reference rate`, {
         currency: current.baseCurrency,
       });
+    }
+    // The privacy section drives the retention job, which redacts personal data irreversibly
+    // (D-053): changing it needs privacy.manage and company-wide scope, not only settings.manage (D-054).
+    if (canonicalJson(privacySettings(validated)) !== canonicalJson(privacySettings(current.settings))) {
+      assertPermission(ctx, 'privacy.manage');
+      if (!ctx.allBranches) {
+        throw new AppError(
+          'company_scope_required',
+          403,
+          'Data-retention settings cover the whole company; they require access to all branches',
+        );
+      }
     }
     const changedLocked = LOCKED_AFTER_POSTING.filter(
       (k) => JSON.stringify(validated[k]) !== JSON.stringify(current.settings[k]),

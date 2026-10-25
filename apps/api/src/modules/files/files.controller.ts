@@ -1,6 +1,7 @@
 import { Controller, Get, Param, ParseUUIDPipe, Res, StreamableFile } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import type { Response } from 'express';
+import { contentDisposition } from '../../common/content-disposition';
 import { Authenticated, Ctx, TenantContext } from '../../common/context';
 import { FilesService } from './files.service';
 
@@ -21,10 +22,8 @@ export class FilesController {
     res.setHeader('X-Content-Type-Options', 'nosniff');
     res.setHeader('Cache-Control', 'private, max-age=300');
     res.setHeader('Content-Security-Policy', "default-src 'none'; sandbox");
-    res.setHeader(
-      'Content-Disposition',
-      `${inline ? 'inline' : 'attachment'}; filename*=UTF-8''${encodeURIComponent(f.originalName)}`,
-    );
+    // D-051: one header builder for every download (ASCII fallback + exact UTF-8 name).
+    res.setHeader('Content-Disposition', contentDisposition(inline ? 'inline' : 'attachment', f.originalName));
     return new StreamableFile(stream);
   }
 }

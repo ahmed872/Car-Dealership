@@ -59,6 +59,30 @@ export class UsersService {
     }
   }
 
+  /**
+   * A role's permissions apply to everyone holding it: a branch-limited role manager may only change
+   * or delete a role whose members (any status: a suspended or invited member gets the role back on
+   * reactivation or acceptance) all lie within their own branches (F2/D-042 rule, D-054).
+   */
+  private async assertRoleWithinScope(ctx: TenantContext, roleId: string): Promise<void> {
+    if (ctx.allBranches) return;
+    const own = ctx.branchIds.length ? ctx.branchIds : ['00000000-0000-0000-0000-000000000000'];
+    const [outside] = await this.dbs.query<{ n: number }>(
+      `SELECT count(*)::int AS n FROM memberships m
+        WHERE m.role_id = $1
+          AND (m.all_branches
+               OR EXISTS (SELECT 1 FROM membership_branches mb WHERE mb.membership_id = m.id AND NOT (mb.branch_id = ANY($2::uuid[]))))`,
+      [roleId, own],
+    );
+    if ((outside?.n ?? 0) > 0) {
+      throw new AppError(
+        'branch_scope_exceeded',
+        403,
+        'This role is held by members with access beyond your branches; only a user with access to all branches can change it',
+      );
+    }
+  }
+
   private async scopeOf(m: { id: string; allBranches: boolean }): Promise<MemberScope> {
     if (m.allBranches) return { allBranches: true, branchIds: [] };
     const rows = await this.dbs.db
@@ -379,6 +403,7 @@ export class UsersService {
     if (!before) throw notFound('Role');
     if (before.key === 'owner') throw forbidden('The owner role always has every permission');
     if (before.id === ctx.roleId) throw forbidden('You cannot modify your own role');
+    await this.assertRoleWithinScope(ctx, roleId);
     this.assertCanGrant(ctx, before.permissions, before.maxDiscountPct);
     this.assertCanGrant(ctx, input.permissions, input.maxDiscountPct);
     const [after] = await db
@@ -401,11 +426,12 @@ export class UsersService {
     return after;
   }
 
-  async deleteRole(roleId: string) {
+  async deleteRole(ctx: TenantContext, roleId: string) {
     const db = this.dbs.db;
     const [role] = await db.select().from(roles).where(eq(roles.id, roleId));
     if (!role) throw notFound('Role');
     if (role.isSystem) throw forbidden('System roles cannot be deleted');
+    await this.assertRoleWithinScope(ctx, roleId);
     const [used] = await db
       .select({ n: sql<number>`count(*)::int` })
       .from(memberships)

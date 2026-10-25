@@ -27,6 +27,20 @@ export const MAKER_ACTIONS: Readonly<Record<string, readonly string[]>> = {
 const ALL_MAKER_ACTIONS = [...new Set(Object.values(MAKER_ACTIONS).flat())];
 
 /**
+ * A payload is stored when the request opens; receipt details in it (refund `foreignReceipts`) are
+ * narrowed to the reader's branches when it is read (D-054). Entries keep their branch in storage
+ * only; entries stored without one (before D-054) are shown to company-wide readers only.
+ */
+function scopePayload(ctx: TenantContext, payload: unknown): unknown {
+  if (!payload || typeof payload !== 'object' || !Array.isArray((payload as { foreignReceipts?: unknown }).foreignReceipts)) return payload;
+  const { foreignReceipts, ...rest } = payload as { foreignReceipts: Array<Record<string, unknown>> };
+  const visible = foreignReceipts
+    .filter((e) => ctx.allBranches || (('branchId' in e) && (e.branchId === null || ctx.branchIds.includes(e.branchId as string))))
+    .map(({ branchId: _b, ...e }) => e);
+  return visible.length ? { ...rest, foreignReceipts: visible } : rest;
+}
+
+/**
  * Approval inbox. Each module owns its own status machine; this service records what is waiting
  * for a decision (and who decided), so approvers have one place to look.
  */
@@ -68,6 +82,19 @@ export class ApprovalsService {
           eq(approvalRequests.entityId, r.entityId),
           eq(approvalRequests.status, 'pending'),
         ),
+      );
+  }
+
+  /**
+   * Merges `patch` into the payload of the entity's pending requests, e.g. the document version the
+   * approver decides on when the document changed in a way that does not need a new request.
+   */
+  async patchPendingPayload(r: { entityType: string; entityId: string; patch: Record<string, unknown> }): Promise<void> {
+    await this.dbs.db
+      .update(approvalRequests)
+      .set({ payload: sql`coalesce(${approvalRequests.payload}, '{}'::jsonb) || ${JSON.stringify(r.patch)}::jsonb` })
+      .where(
+        and(eq(approvalRequests.entityType, r.entityType), eq(approvalRequests.entityId, r.entityId), eq(approvalRequests.status, 'pending')),
       );
   }
 
@@ -161,7 +188,7 @@ export class ApprovalsService {
   async pendingFor(ctx: TenantContext) {
     const { perms, where } = this.scope(ctx);
     if (!perms.length) return [];
-    return this.dbs.db
+    const rows = await this.dbs.db
       .select({
         id: approvalRequests.id,
         type: approvalRequests.type,
@@ -181,5 +208,6 @@ export class ApprovalsService {
       .where(where)
       .orderBy(desc(approvalRequests.requestedAt))
       .limit(500);
+    return rows.map((r) => ({ ...r, payload: scopePayload(ctx, r.payload) }));
   }
 }

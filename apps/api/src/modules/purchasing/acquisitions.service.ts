@@ -111,7 +111,8 @@ export class AcquisitionsService {
       entityId: a.id,
       requiredPermission: 'acquisitions.approve',
       summary: `${a.number} · ${stockNumber}: ${a.purchasePrice} ${a.currency}`,
-      payload: { vehicleId: a.vehicleId, amountBase: a.purchasePriceBase },
+      // The version the inbox sends back with the decision (D-054): an edit since then is refused.
+      payload: { vehicleId: a.vehicleId, amountBase: a.purchasePriceBase, version: a.version },
       branchId: a.branchId,
     });
   }
@@ -295,6 +296,10 @@ export class AcquisitionsService {
       .set({ ownershipTransferStatus: status, version: a.version + 1, updatedAt: new Date() })
       .where(eq(acquisitions.id, id))
       .returning();
+    // The price is unchanged: the pending request stays valid, at the new version.
+    if (a.status === 'pending_approval') {
+      await this.approvals.patchPendingPayload({ entityType: 'acquisition', entityId: id, patch: { version: after!.version } });
+    }
     await this.audit.record({
       action: 'acquisition.ownership_updated',
       entityType: 'acquisition',

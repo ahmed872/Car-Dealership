@@ -115,22 +115,31 @@ export class RefundsService {
    * reservation whose deposit was converted into it.
    */
   async sourceFunds(ctx: TenantContext, sourceType: string, sourceId: string): Promise<RefundSourceFunds> {
-    const receipts = await this.dbs.query<RefundSourceReceipt & Record<string, unknown>>(
+    // A branch-limited user sees only receipts of their branches (or company-level ones), as on
+    // GET /receipts: a customer-credit refund has no branch, but its receipts do (D-054).
+    const rows = await this.fundsReceipts(sourceType, sourceId, ctx.allBranches ? null : ctx.branchIds);
+    const receipts = rows.map(({ branchId: _b, ...r }) => r);
+    const baseCurrency = ctx.tenant.baseCurrency;
+    return { baseCurrency, foreignCurrency: receipts.some((x) => x.currency !== baseCurrency), receipts };
+  }
+
+  /** The receipts behind a source with their branch; `branchIds` null = every branch. */
+  private fundsReceipts(sourceType: string, sourceId: string, branchIds: string[] | null) {
+    return this.dbs.query<RefundSourceReceipt & { branchId: string | null } & Record<string, unknown>>(
       `SELECT r.id AS "receiptId", r.number, r.received_at::text AS "receivedAt", ra.target_type AS "targetType",
               r.currency, r.amount::text AS amount, r.exchange_rate::text AS "exchangeRate", r.amount_base::text AS "amountBase",
-              ra.amount_base::text AS "allocatedBase"
+              ra.amount_base::text AS "allocatedBase", r.branch_id AS "branchId"
          FROM receipt_allocations ra
          JOIN receipts r ON r.id = ra.receipt_id
         WHERE r.status = 'posted'
+          AND ($3::uuid[] IS NULL OR r.branch_id IS NULL OR r.branch_id = ANY($3::uuid[]))
           AND ((ra.target_type = $1 AND ra.target_id = $2)
             OR ($1 = 'sale' AND ra.target_type = 'installment' AND ra.target_id IN (SELECT p.id FROM installment_plans p WHERE p.sale_id = $2))
             OR ($1 = 'sale' AND ra.target_type = 'reservation'
                 AND ra.target_id IN (SELECT s.reservation_id FROM sales s WHERE s.id = $2 AND s.deposit_transferred > 0)))
         ORDER BY r.received_at, r.number`,
-      [sourceType, sourceId],
+      [sourceType, sourceId, branchIds],
     );
-    const baseCurrency = ctx.tenant.baseCurrency;
-    return { baseCurrency, foreignCurrency: receipts.some((x) => x.currency !== baseCurrency), receipts };
   }
 
   /**
@@ -166,12 +175,17 @@ export class RefundsService {
       })
       .returning();
     // The approver must see when the money came in a foreign currency, and at which rate (F6).
-    const funds = await this.sourceFunds(ctx, input.sourceType, input.sourceId);
-    const foreign = funds.receipts
+    // The payload keeps every receipt with its branch: the inbox drops the ones outside a
+    // branch-limited approver's branches when it is read (ApprovalsService.pendingFor, D-054). The
+    // summary is one text for every reader, so it quotes only receipts anyone who sees the request
+    // may see (company-level or the refund's own branch).
+    const all = await this.fundsReceipts(input.sourceType, input.sourceId, null);
+    const foreign = all
       .filter((x) => x.currency !== ctx.tenant.baseCurrency)
-      .map((x) => ({ number: x.number, currency: x.currency, amount: x.amount, exchangeRate: x.exchangeRate, amountBase: x.amountBase }));
-    const foreignNote = foreign.length
-      ? ` · ${foreign[0]!.amount} ${foreign[0]!.currency} @ ${d(foreign[0]!.exchangeRate).toString()}${foreign.length > 1 ? ` (+${foreign.length - 1})` : ''}`
+      .map((x) => ({ number: x.number, currency: x.currency, amount: x.amount, exchangeRate: x.exchangeRate, amountBase: x.amountBase, branchId: x.branchId }));
+    const quotable = foreign.filter((x) => x.branchId === null || x.branchId === info.branchId);
+    const foreignNote = quotable.length
+      ? ` · ${quotable[0]!.amount} ${quotable[0]!.currency} @ ${d(quotable[0]!.exchangeRate).toString()}${quotable.length > 1 ? ` (+${quotable.length - 1})` : ''}`
       : '';
     await this.approvals.open(ctx, {
       type: 'refund',
