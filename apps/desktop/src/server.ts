@@ -61,6 +61,13 @@ export class WebServer {
       "object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'";
 
     const server = http.createServer((req, res) => {
+      // DNS rebinding: a web page in the user's browser could resolve its own name to 127.0.0.1 and
+      // reach this port. Only requests addressed to this server by its own address are served.
+      const port = (server.address() as { port: number } | null)?.port;
+      if (req.headers.host !== `127.0.0.1:${port}` && req.headers.host !== `localhost:${port}`) {
+        res.writeHead(421, { 'Content-Type': 'text/plain' }).end('Misdirected request');
+        return;
+      }
       const url = new URL(req.url ?? '/', 'http://localhost');
       if (url.pathname.startsWith('/api/')) {
         const upstream = http.request(

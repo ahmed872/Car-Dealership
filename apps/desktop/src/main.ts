@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { BrowserWindow, Menu, app, clipboard, dialog, ipcMain, shell } from 'electron';
+import { BrowserWindow, Menu, app, clipboard, dialog, ipcMain, session, shell } from 'electron';
 import { ApiServer, type CompanySetup, migrate, provisionCompany } from './api';
 import { createBackup, restoreBackup } from './backup';
 import { type Secrets, type Settings, loadOrCreateSecrets, loadSettings, saveSettings } from './config';
@@ -339,6 +339,10 @@ function buildMenu(): void {
 
 // ── lifecycle ──────────────────────────────────────────────────────────────────────────────────
 async function startup(): Promise<void> {
+  // Electron grants permission requests (camera, microphone, location, notifications…) by default.
+  const allowed = new Set(['clipboard-sanitized-write', 'fullscreen']);
+  session.defaultSession.setPermissionRequestHandler((_wc, permission, callback) => callback(allowed.has(permission)));
+  session.defaultSession.setPermissionCheckHandler((_wc, permission) => allowed.has(permission));
   fs.mkdirSync(dataDir, { recursive: true });
   settings = loadSettings();
   code = await machineCode();

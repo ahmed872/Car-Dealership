@@ -14,6 +14,7 @@
 // It uses throwaway data and backup folders and never touches the real ones.
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
+import http from 'node:http';
 import { createRequire } from 'node:module';
 import os from 'node:os';
 import path from 'node:path';
@@ -196,6 +197,16 @@ try {
 
   const health = await call(main, 'GET', '/api/v1/health/ready');
   assert(health.status === 200, 'API healthy');
+  const rebound = await new Promise((resolve, reject) => {
+    const port = new URL(main.url()).port;
+    http
+      .get({ host: '127.0.0.1', port, path: '/api/v1/health/ready', headers: { Host: `attacker.example:${port}` } }, (r) => {
+        r.resume();
+        resolve(r.statusCode);
+      })
+      .on('error', reject);
+  });
+  assert(rebound === 421, `request for another host name refused (DNS rebinding guard, ${rebound})`);
 
   step('quit: automatic backup');
   await closeApp(app);
