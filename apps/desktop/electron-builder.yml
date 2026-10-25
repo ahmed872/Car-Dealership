@@ -1,6 +1,10 @@
 # AutoHub Pro desktop installer. Run after `pnpm build` and `pnpm stage` in apps/desktop.
 appId: pro.autohub.desktop
 productName: AutoHub Pro
+# AutoHub Pro.exe on Windows (the smoke test and shortcuts rely on it).
+executableName: AutoHub Pro
+# No auto-update channel (KI-037).
+publish: null
 copyright: AutoHub Pro
 directories:
   output: release
@@ -10,8 +14,9 @@ files:
   - dist/**/*
   - package.json
   - '!node_modules/**/*'
-includeSubNodeModules: false
 asar: true
+# Copies stage/api/node_modules (electron-builder skips node_modules in extraResources).
+afterPack: scripts/after-pack.cjs
 extraResources:
   - from: stage/api
     to: api
@@ -40,4 +45,5 @@ nsis:
   language: '1025'
 linux:
   target: [dir]
+  executableName: autohub-pro
   category: Office
