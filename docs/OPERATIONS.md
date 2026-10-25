@@ -276,20 +276,58 @@ Losing the key is equally serious: back it up in a secrets manager, separately f
 
 ## 9. Data-protection requests (KSA PDPL, UAE PDPL, Egypt Law 151/2020)
 
-There is **no erasure or retention tooling yet** — see `docs/KNOWN_ISSUES.md` **KI-021**.
-`showroom_inquiries`, `message_log` and `audit_logs` are append-only: the app role cannot update or
-delete them, and triggers block even the owner. Customers, sales and other business documents cannot
-be deleted by the app role either; they are cancelled or voided. The audit log redacts national IDs,
-but it keeps names and changed values. Therefore:
+Visitors of the online showroom are not customers: their inquiries (`showroom_inquiries`) and the
+messages sent to them (`message_log`) are append-only evidence, but their **personal fields can be
+erased** (D-053). Everything else follows the normal screens or stays, as listed below.
 
-* Log every request (who, what, date, deadline) outside the application.
-* Access/export requests: there is no per-person export. Use the record screens and the report
-  exports (`GET /api/v1/reports/:key/export`) and assemble the answer by hand.
-* Erasure/correction: corrections go through the normal edit screens. Erasure of append-only data
-  needs the SECURITY DEFINER redaction function planned in KI-021, reviewed with counsel. **Do not
-  disable triggers or edit rows by hand as superuser**: it breaks the audit hash chain (detected by
-  the verifier) and the ledger guarantees.
-* Backups keep the data until they expire under the retention policy (§3). Say so in the privacy notice.
+**Log every request outside the application** (who asked, what, date received, legal deadline,
+identity check done, answer sent). Use that log's reference as the reason when erasing.
+
+### Erasure ("delete my data") — showroom visitors
+
+1. Sign in as a user with `privacy.manage` (company owner role by default) **and access to all
+   branches**. Open *Settings → Data protection* (`/app/settings/privacy`).
+2. Search by the phone and/or email given in the request. The phone matches in any format (`05…`,
+   `+9665…`, Arabic digits). Results show only masked contacts (`•••• 4567`, `a•••@g•••.com`) and
+   initials, never the full data.
+3. Select the inquiries (their messages are included) and any other messages, press *Erase personal
+   data*, and give the request reference as the reason — **not the person's name or contact**: the
+   reason is stored in the audit log.
+4. The name, phone, email, message text and client-address hash of the inquiry, and the recipient,
+   body and error of the messages, become `[redacted]` / empty; `redacted_at` and `redacted_by` are
+   set. The rows stay (date, type, vehicle, consent time, links). Manager notifications about the
+   inquiry lose the visitor's name. One audit entry `privacy.redacted` records the counts, row ids
+   and reason. This cannot be undone.
+5. If the search shows *Linked to a customer*, the inquiry also created or matched a customer and a
+   lead. Those are CRM records: correct them or deactivate the customer in the Customers screens
+   (customers cannot be deleted, see below).
+
+API equivalent: `GET /api/v1/privacy/search?phone=&email=`, then
+`POST /api/v1/privacy/redactions {kind: "showroom_inquiry" | "message_log", ids: [...], reason}`.
+
+### Retention (automatic erasure)
+
+*Settings → Company → Data protection*: `privacy.inquiryRetentionDays` (30–3650 days; empty = keep).
+The `privacy.inquiry_retention` job (every 6 hours, per company) erases inquiries older than that,
+with their messages, up to 5,000 per run, in one audited call per run. A run with nothing to do
+changes and audits nothing. State the period in the privacy notice.
+
+### What is still not erasable, and why
+
+| Data | Why it stays | What to do |
+|---|---|---|
+| `audit_logs` | Hash-chained and append-only (tamper evidence; `audit_verify_chain`). Entries keep names and changed values of customers/leads created from an inquiry (national IDs are redacted). | Keep for the legal retention period; mention it in the privacy notice. |
+| Ledger, cash book, receipts, sales, contracts, invoices | Financial and tax records with statutory retention; journal and cash rows are immutable. | Not erasable while the retention period runs. |
+| Customers, leads, interactions | Business records; the app role cannot delete customers or leads. An inquiry's text is also copied into the customer's interaction note. | Correct or anonymise fields in the customer and lead screens; deactivate the customer. |
+| Backups | Dumps are immutable files. | Data erased in the database disappears from backups when they expire (§3). Do not restore an old backup without re-applying erasures (keep the request log). |
+
+**Do not disable triggers or edit rows by hand as superuser**: it bypasses the narrow redaction
+path, leaves no audit entry, and an edit of `audit_logs` breaks the hash chain.
+
+### Access / export requests
+
+There is no per-person export. Use the record screens and the report exports
+(`GET /api/v1/reports/:key/export`) and assemble the answer by hand.
 
 ---
 
@@ -491,3 +529,23 @@ forced**", which does not match the migrations.
 a restore onto a different host or cluster (same cluster here, so roles already existed), a
 production-sized dump (timing unknown), the 20 tables that were empty in the source, and switching
 the running deployment over to a restored database (§4 steps 3–6).
+
+### 2026-10-24 — second drill (schema through 0018_supplier_national_id_security, 19 migrations)
+
+**Same environment and roles as the first drill; target `autohub_restore_drill` (`--reset-target`).**
+
+1. **Source `autohub_test_t`** (data left by the Playwright browser suite: 7 companies, 76 tables,
+   3,175 rows, including showroom listings, reservations, installment sales, receipts, refunds,
+   appointments and cash transfers made through the UI) → **DRILL PASSED, 31/31 checks**: identical
+   row counts and content hashes for all 76 tables, ledger balanced for every company and equal to
+   the source, audit chain verifies for 7/7 companies as owner and as the app role, schema/security
+   metadata identical (957 lines), RLS active for the app role, ledger/audit/cash UPDATE/DELETE refused.
+2. **Source `autohub_test_q`** (data left by the whole API suite, 372 tests: 111 companies, 19,763
+   rows) → restore identical to the source (full fingerprint, 76 table content hashes, 111 ledgers,
+   ledger debit = credit = 19,548,393.36), 28 checks passed, **2 failed by design**: one company's
+   audit chain fails with `hash_mismatch` at seq 1 **in the source as well** — `audit-ledger.spec.ts`
+   tampers with it on purpose (trigger disabled by a superuser) to prove the verifier detects it.
+   The restore faithfully kept the tampered row, and the verifier flagged it after restore too.
+
+Reports: `scratchpad/drill-3/drill-report.txt` and `scratchpad/drill-2/drill-report.txt` (not kept in
+the repository; the commands above reproduce them).

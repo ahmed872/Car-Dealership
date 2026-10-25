@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { d, money, WORK_ORDER_ITEM_KINDS } from '@autohub/shared';
 import { Button } from '@/components/ui/Button';
 import { Alert, errorMessage } from '@/components/ui/Feedback';
-import { Field, Input, Select } from '@/components/ui/Field';
+import { Field, Input, MoneyInput, Select } from '@/components/ui/Field';
 import { Modal } from '@/components/ui/Modal';
 import {
   categoryName,
@@ -13,7 +13,7 @@ import {
   useTenantDefaults,
   useVehicleCategories,
 } from '@/features/costs/api';
-import { SupplierPicker, MoneyBox } from '@/features/costs/components';
+import { SupplierPicker } from '@/features/costs/components';
 import { ApiError } from '@/lib/api';
 import { fmtMoney } from '@/lib/format';
 import { useApiMutation } from '@/lib/hooks';
@@ -199,7 +199,7 @@ export function WorkOrderItemModal({
           </Field>
           <Field label={t('workOrders.items.unitCost')} required error={errors.unitCost}>
             {(id, desc) => (
-              <MoneyBox
+              <MoneyInput
                 id={id}
                 aria-describedby={desc}
                 invalid={!!errors.unitCost}

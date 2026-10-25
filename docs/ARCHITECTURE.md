@@ -80,6 +80,9 @@ by the UI for previews. The server always recomputes; the client is never truste
   `tenant_id IS NULL` rows (platform catalog) plus tenant rows.
 * Cross-tenant operations (job runner listing tenants, public showroom slug lookup) use narrow
   `SECURITY DEFINER` functions that return ids only.
+* Erasure of showroom visitors' personal data in the append-only inquiries and message log goes
+  through one `SECURITY DEFINER` function, `app_redact_contact()`; the tables' triggers refuse every
+  other change, including the application role's (D-053).
 * Branch scoping (users limited to some branches) is enforced in the service layer with a shared
   helper, and covered by tests.
 

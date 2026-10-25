@@ -433,6 +433,47 @@ Foreign-currency forms prefill the company reference rate and show the accepted 
 `GET /company` (`settings.fx`), never overwriting a typed rate. The client always sends the rate
 explicitly; the band is enforced only by the server (D-046).
 
+### D-053 Erasing personal data in append-only showroom tables (KI-021)
+Showroom inquiries and the message log stay append-only, but their personal fields can be overwritten
+through exactly one path: `app_redact_contact(kind, ids, reason, context)`, a `SECURITY DEFINER`
+function owned by the migration (owner) role, with `SET search_path = public, pg_temp`, schema-qualified
+tables, EXECUTE revoked from PUBLIC and granted to `autohub_app` only (migrations 0019/0020). For the
+current company only (`app_current_tenant()`; NULL refuses) it sets name, phone, email, message,
+normalised phone and client hash of inquiries (and recipient, body and error of their messages, or of
+the given messages) to the marker `[redacted]` or NULL, sets `redacted_at`/`redacted_by`, and writes
+one `privacy.redacted` audit entry itself (counts, row ids, reason, request id; no personal values),
+so no caller can redact without a trace. Rows of another company are simply not matched (count 0).
+
+The immutability triggers now run `app_contact_redaction_guard(<personal columns>)`, which refuses
+every DELETE and every UPDATE unless ALL of: (1) `current_user` is the owner of `app_redact_contact`
+— true only inside that SECURITY DEFINER function; (2) the transaction-local flag
+`app.redaction_in_progress` is `on` (set and cleared inside the function); (3) the row goes from
+not redacted to redacted; (4) nothing but the listed personal columns and `redacted_at/by` changes,
+and each personal column ends NULL or `[redacted]`. Why the application role cannot abuse it: it has
+no UPDATE/DELETE/TRUNCATE/TRIGGER privilege on these tables (`app_apply_privileges`), so its own
+statements fail before any trigger runs; it is not a member of the owner role (`SET ROLE` is refused)
+and owns nothing (cannot disable or drop triggers, alter or replace the functions, or create functions
+in `public`); setting the flag itself is harmless because the flag is not the boundary — the
+identity check is (verified with a superuser-granted UPDATE: the trigger still refuses `autohub_app`);
+it cannot attach a trigger to any table the function writes, which would otherwise run with the
+owner's rights; a temporary table named like a real one is not used (fixed search_path, qualified
+names). What the app role CAN do is call the function for its current company — which is why the API
+route requires `privacy.manage` plus all-branch access (403 `company_scope_required`) and why the
+function audits every call. The owner role is refused outside the function too unless it sets the flag
+and performs exactly the redaction transition; it owns the tables, so this is not a weaker guarantee
+than before. TRUNCATE of both tables is now refused by statement triggers.
+
+API: `GET /privacy/search?phone=&email=` (company-normalised phone or case-insensitive email; masked
+contacts and initials only; at most 200 per kind) and `POST /privacy/redactions {kind, ids (≤500),
+reason}` (not idempotency-keyed: repeating it changes nothing). Redacting an inquiry also neutralises
+the managers' notification titles that carried the visitor's name (ordinary UPDATE, RLS-scoped). The
+company setting `privacy.inquiryRetentionDays` (30–3650, null = keep; settings stored before the
+section existed read as null) drives the `privacy.inquiry_retention` job: inquiries older than that,
+and messages about them, in one audited call per run (≤5,000 rows); a run with nothing due changes
+and audits nothing. `privacy.manage` (admin group) is held by the owner role only (branch managers do
+not get it); migration 0020 adds it to existing owner roles. Customers, leads, the audit log, ledger
+and backups are out of scope (OPERATIONS §9, KI-034).
+
 ## Business assumptions
 
 ### B-001 Revenue recognition default = on delivery **[PO-CONFIRM]**

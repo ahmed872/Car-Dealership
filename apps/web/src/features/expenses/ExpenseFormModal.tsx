@@ -3,14 +3,13 @@ import { useTranslation } from 'react-i18next';
 import { CURRENCY_CODES, PAYMENT_METHODS, zExpenseCreate } from '@autohub/shared';
 import { Button } from '@/components/ui/Button';
 import { Alert } from '@/components/ui/Feedback';
-import { Checkbox, Field, Input, Select, Textarea } from '@/components/ui/Field';
+import { Checkbox, Field, Input, MoneyInput, Select, Textarea } from '@/components/ui/Field';
 import { Modal } from '@/components/ui/Modal';
 import { useAuth } from '@/lib/auth';
 import { fmtMoney, todayIso } from '@/lib/format';
 import { useFxRateField, withFxHint } from '@/lib/fx';
 import { useCashAccountOptions } from '@/features/cash/api';
 import {
-  AmountInput,
   FieldErrors,
   focusFirstInvalid,
   isMoney,
@@ -280,7 +279,7 @@ export function ExpenseFormModal({
         </Field>
         <Field label={t('expenses.form.amount')} required error={err('amount')}>
           {(id, desc) => (
-            <AmountInput
+            <MoneyInput
               id={id}
               aria-describedby={desc}
               currency={currency}

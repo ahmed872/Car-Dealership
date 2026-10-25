@@ -1,8 +1,8 @@
 import { useTranslation } from 'react-i18next';
 import { d, isValidMoney, SPEC_REGIONS, validateVin } from '@autohub/shared';
-import { Field, Input, Select, Textarea } from '@/components/ui/Field';
+import { Field, Input, MoneyInput, Select, Textarea } from '@/components/ui/Field';
 import { useMakes, useModels } from '@/features/vehicles/api';
-import { AmountInput, useFieldMessage, useTenantMoney } from './shared';
+import { useFieldMessage, useTenantMoney } from './shared';
 
 /** A trade-in as edited in the form (strings until submitted). */
 export interface TradeInDraft {
@@ -107,7 +107,7 @@ export function TradeInFields({
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       <Field label={t('sales.tradeIn.agreedValue')} required error={fm(errors.agreedValue)} hint={t('sales.tradeIn.agreedValueHint')}>
         {(id, desc) => (
-          <AmountInput id={id} aria-describedby={desc} currency={base} value={value.agreedValue} invalid={!!errors.agreedValue} onChange={(e) => set({ agreedValue: e.target.value })} />
+          <MoneyInput id={id} aria-describedby={desc} currency={base} value={value.agreedValue} invalid={!!errors.agreedValue} onChange={(e) => set({ agreedValue: e.target.value })} />
         )}
       </Field>
       <Field label={t('vehicles.make')} required error={fm(errors['vehicle.makeId'])}>

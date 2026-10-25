@@ -171,6 +171,11 @@ export const PERMISSIONS = {
   'subscription.manage': { group: 'admin', en: 'Manage subscription', ar: 'إدارة الاشتراك' },
   'audit.read': { group: 'admin', en: 'View audit log', ar: 'عرض سجل التدقيق' },
   'approvals.read': { group: 'admin', en: 'View approval requests', ar: 'عرض طلبات الموافقة' },
+  'privacy.manage': {
+    group: 'admin',
+    en: 'Data protection (find and erase personal data)',
+    ar: 'حماية البيانات (البحث عن البيانات الشخصية ومحوها)',
+  },
 } as const;
 
 export type Permission = keyof typeof PERMISSIONS;
@@ -224,6 +229,7 @@ export const SYSTEM_ROLES: Record<SystemRoleKey, RoleTemplate> = {
       'ledger.post_manual',
       'cash.reopen',
       'commissions.manage_policies',
+      'privacy.manage',
     ]),
     maxDiscountPct: '15',
   },

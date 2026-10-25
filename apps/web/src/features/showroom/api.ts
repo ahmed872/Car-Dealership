@@ -77,6 +77,8 @@ export interface InquiryRow {
   createdAt: string;
   vehicleId: string | null;
   stockNumber: string | null;
+  /** Set when the personal fields were erased (data protection, D-053); name and phone read "[redacted]". */
+  redactedAt: string | null;
 }
 
 /** GET /vehicles/:id/price-guidance — an estimate from the company's own recognised sales. */

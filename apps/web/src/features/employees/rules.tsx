@@ -1,23 +1,15 @@
 import clsx from 'clsx';
 import { Calculator, Plus, Trash2 } from 'lucide-react';
-import { ComponentProps, FormEvent, forwardRef, useState } from 'react';
+import { FormEvent, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { COMMISSION_EARN_ON, COMMISSION_TYPES, CommissionEarnOn, CommissionType, d, MONEY_REGEX, zCommissionRule } from '@autohub/shared';
 import { Button } from '@/components/ui/Button';
 import { Alert } from '@/components/ui/Feedback';
-import { Checkbox, Field, Input, MoneyInput, Select } from '@/components/ui/Field';
+import { Checkbox, Field, MoneyInput, PercentInput, Select } from '@/components/ui/Field';
 import { useAuth } from '@/lib/auth';
 import { fmtMoney, fmtPct } from '@/lib/format';
 import type { PreviewResult, StoredRule } from './api';
 import { issuesToFields, useEmpFieldMessage, useEmpMutation } from './kit';
-
-/**
- * MoneyInput whose currency tag never covers the digits in Arabic: the kit's input is dir="ltr" but
- * places the tag at the page's inline end (the left in RTL), so the padding must follow it there.
- */
-export const AmountInput = forwardRef<HTMLInputElement, ComponentProps<typeof MoneyInput>>(function AmountInput({ className, ...rest }, ref) {
-  return <MoneyInput ref={ref} className={clsx(rest.currency && 'rtl:ps-14 rtl:pe-3', className)} {...rest} />;
-});
 
 // ── Summary ───────────────────────────────────────────────────────────────────────────────
 
@@ -160,12 +152,6 @@ export function RuleBuilder({ form, onChange, errors }: { form: RuleForm; onChan
   const { currency } = useAuth();
   const msg = useEmpFieldMessage();
   const err = (k: string) => msg(errors[k]);
-  const pctInput = (value: string, set: (v: string) => void, id: string, describedBy: string | undefined, invalid: boolean) => (
-    <div className="relative">
-      <Input id={id} aria-describedby={describedBy} invalid={invalid} inputMode="decimal" dir="ltr" className="num pe-9 text-start rtl:ps-9 rtl:pe-3" placeholder="0" value={value} onChange={(e) => set(e.target.value)} />
-      <span className="pointer-events-none absolute inset-y-0 end-3 flex items-center text-xs text-muted">%</span>
-    </div>
-  );
   const setTier = (i: number, patch: Partial<{ from: string; ratePct: string }>) => onChange({ tiers: form.tiers.map((x, j) => (j === i ? { ...x, ...patch } : x)) });
 
   return (
@@ -195,7 +181,7 @@ export function RuleBuilder({ form, onChange, errors }: { form: RuleForm; onChan
       {(form.type === 'pct_of_profit' || form.type === 'pct_of_sale') && (
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label={t('employees.rule.ratePct')} required error={err('ratePct')}>
-            {(id, dsc) => pctInput(form.ratePct, (v) => onChange({ ratePct: v }), id, dsc, !!errors.ratePct)}
+            {(id, dsc) => <PercentInput id={id} aria-describedby={dsc} invalid={!!errors.ratePct} value={form.ratePct} onChange={(e) => onChange({ ratePct: e.target.value })} />}
           </Field>
         </div>
       )}
@@ -203,7 +189,7 @@ export function RuleBuilder({ form, onChange, errors }: { form: RuleForm; onChan
       {form.type === 'fixed' && (
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label={t('employees.rule.fixedAmount')} required error={err('fixedAmount')}>
-            {(id, dsc) => <AmountInput id={id} aria-describedby={dsc} invalid={!!errors.fixedAmount} currency={currency} value={form.fixedAmount} onChange={(e) => onChange({ fixedAmount: e.target.value })} />}
+            {(id, dsc) => <MoneyInput id={id} aria-describedby={dsc} invalid={!!errors.fixedAmount} currency={currency} value={form.fixedAmount} onChange={(e) => onChange({ fixedAmount: e.target.value })} />}
           </Field>
         </div>
       )}
@@ -239,14 +225,14 @@ export function RuleBuilder({ form, onChange, errors }: { form: RuleForm; onChan
             <p className="mb-2 text-xs text-muted">{t('employees.rule.tierHint')}</p>
             <div className="space-y-2">
               {form.tiers.map((tier, i) => (
-                <div key={i} className="grid grid-cols-[minmax(0,1fr)_minmax(0,7rem)_auto] items-start gap-2">
+                <div key={i} className="grid grid-cols-[minmax(0,1fr)_minmax(0,6rem)_auto] items-start gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,7rem)_auto]">
                   <Field label={i === 0 ? t('employees.rule.tierFrom') : undefined} error={err(`tiers.${i}.from`)}>
                     {(id, dsc) => (
-                      <AmountInput id={id} aria-describedby={dsc} aria-label={t('employees.rule.tierFrom')} invalid={!!errors[`tiers.${i}.from`]} currency={currency} value={tier.from} onChange={(e) => setTier(i, { from: e.target.value })} />
+                      <MoneyInput id={id} aria-describedby={dsc} aria-label={t('employees.rule.tierFrom')} invalid={!!errors[`tiers.${i}.from`]} currency={currency} value={tier.from} onChange={(e) => setTier(i, { from: e.target.value })} />
                     )}
                   </Field>
                   <Field label={i === 0 ? t('employees.rule.tierRate') : undefined} error={err(`tiers.${i}.ratePct`)}>
-                    {(id, dsc) => pctInput(tier.ratePct, (v) => setTier(i, { ratePct: v }), id, dsc, !!errors[`tiers.${i}.ratePct`])}
+                    {(id, dsc) => <PercentInput id={id} aria-describedby={dsc} invalid={!!errors[`tiers.${i}.ratePct`]} value={tier.ratePct} onChange={(e) => setTier(i, { ratePct: e.target.value })} />}
                   </Field>
                   <Button
                     variant="ghost"
@@ -285,10 +271,10 @@ export function RuleBuilder({ form, onChange, errors }: { form: RuleForm; onChan
         <legend className="mb-2 text-[13px] font-semibold text-ink">{t('employees.rule.limits')}</legend>
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label={t('employees.rule.minAmount')} error={err('minAmount')}>
-            {(id, dsc) => <AmountInput id={id} aria-describedby={dsc} invalid={!!errors.minAmount} currency={currency} value={form.minAmount} onChange={(e) => onChange({ minAmount: e.target.value })} />}
+            {(id, dsc) => <MoneyInput id={id} aria-describedby={dsc} invalid={!!errors.minAmount} currency={currency} value={form.minAmount} onChange={(e) => onChange({ minAmount: e.target.value })} />}
           </Field>
           <Field label={t('employees.rule.capAmount')} error={err('capAmount')}>
-            {(id, dsc) => <AmountInput id={id} aria-describedby={dsc} invalid={!!errors.capAmount} currency={currency} value={form.capAmount} onChange={(e) => onChange({ capAmount: e.target.value })} />}
+            {(id, dsc) => <MoneyInput id={id} aria-describedby={dsc} invalid={!!errors.capAmount} currency={currency} value={form.capAmount} onChange={(e) => onChange({ capAmount: e.target.value })} />}
           </Field>
           <Field label={t('employees.rule.earnOn')}>
             {(id) => (
@@ -362,10 +348,10 @@ export function PreviewCalculator({ source, disabled, className }: { source: Pre
     <form onSubmit={run} className={clsx('space-y-3', className)} noValidate>
       <div className="grid gap-3 sm:grid-cols-2">
         <Field label={t('employees.preview.saleNet')} error={msg(errors.saleNet)}>
-          {(id, dsc) => <AmountInput id={id} aria-describedby={dsc} invalid={!!errors.saleNet} currency={currency} value={saleNet} onChange={(e) => setSaleNet(e.target.value)} />}
+          {(id, dsc) => <MoneyInput id={id} aria-describedby={dsc} invalid={!!errors.saleNet} currency={currency} value={saleNet} onChange={(e) => setSaleNet(e.target.value)} />}
         </Field>
         <Field label={t('employees.preview.grossProfit')} hint={t('employees.preview.grossProfitHint')} error={msg(errors.grossProfit)}>
-          {(id, dsc) => <AmountInput id={id} aria-describedby={dsc} invalid={!!errors.grossProfit} currency={currency} placeholder="0.00" value={grossProfit} onChange={(e) => setGrossProfit(e.target.value)} />}
+          {(id, dsc) => <MoneyInput id={id} aria-describedby={dsc} invalid={!!errors.grossProfit} currency={currency} placeholder="0.00" value={grossProfit} onChange={(e) => setGrossProfit(e.target.value)} />}
         </Field>
       </div>
       {ruleInvalid && <Alert tone="warning">{t('employees.preview.fixRule')}</Alert>}

@@ -18,7 +18,7 @@ import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { Card, CardBody, CardHeader } from '@/components/ui/Card';
 import { Alert, EmptyState, errorMessage } from '@/components/ui/Feedback';
-import { Field, Input, Select } from '@/components/ui/Field';
+import { Field, Input, MoneyInput, Select } from '@/components/ui/Field';
 import { PageHeader } from '@/components/ui/Layout';
 import { api, ApiError, newIdempotencyKey } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
@@ -47,7 +47,6 @@ import {
   PickedVehicle,
   SupplierPicker,
   VehicleSearch,
-  MoneyBox,
 } from './components';
 
 type Method = (typeof ALLOCATION_METHODS)[number];
@@ -422,7 +421,7 @@ export function AllocationPage() {
                             <td className="px-4 py-2.5 text-end">
                               {method === 'manual' ? (
                                 <div className="ms-auto w-40">
-                                  <MoneyBox
+                                  <MoneyInput
                                     aria-label={`${t('costs.allocation.manualAmount')} — ${v.stockNumber}`}
                                     currency={currency}
                                     invalid={!!err}
@@ -602,7 +601,7 @@ export function AllocationPage() {
             <div className="grid grid-cols-[minmax(0,1fr)_110px] gap-3">
               <Field label={t('costs.allocation.total')} required error={errors.totalAmount}>
                 {(id, desc) => (
-                  <MoneyBox
+                  <MoneyInput
                     id={id}
                     aria-describedby={desc}
                     invalid={!!errors.totalAmount}

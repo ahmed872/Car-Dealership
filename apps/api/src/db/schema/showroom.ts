@@ -64,7 +64,7 @@ export const integrationSettings = pgTable(
   ],
 );
 
-/** Outbound message log (append-only). The development adapter only logs; nothing is delivered. */
+/** Outbound message log (append-only; personal fields can only be redacted, D-053). The development adapter only logs; nothing is delivered. */
 export const messageLog = pgTable(
   'message_log',
   {
@@ -80,6 +80,9 @@ export const messageLog = pgTable(
     relatedId: uuid('related_id'),
     createdBy: uuid('created_by'),
     createdAt: createdAt(),
+    /** Set only by app_redact_contact() (D-053): recipient, body and error were overwritten. */
+    redactedAt: ts('redacted_at'),
+    redactedBy: uuid('redacted_by'),
   },
   (t) => [
     index('message_log_tenant_idx').on(t.tenantId, t.createdAt),
@@ -88,7 +91,7 @@ export const messageLog = pgTable(
   ],
 );
 
-/** Inquiries and test-drive requests from the public showroom (append-only). */
+/** Inquiries and test-drive requests from the public showroom (append-only; personal fields can only be redacted, D-053). */
 export const showroomInquiries = pgTable(
   'showroom_inquiries',
   {
@@ -115,6 +118,9 @@ export const showroomInquiries = pgTable(
     /** Keyed hash of the client address, for abuse review without storing the address. */
     clientHash: text('client_hash'),
     createdAt: createdAt(),
+    /** Set only by app_redact_contact() (D-053): the personal fields were overwritten. */
+    redactedAt: ts('redacted_at'),
+    redactedBy: uuid('redacted_by'),
   },
   (t) => [
     index('showroom_inquiries_tenant_idx').on(t.tenantId, t.createdAt),

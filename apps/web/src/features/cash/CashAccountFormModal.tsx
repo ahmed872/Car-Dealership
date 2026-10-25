@@ -9,14 +9,13 @@ import {
 } from '@autohub/shared';
 import { Button } from '@/components/ui/Button';
 import { Alert } from '@/components/ui/Feedback';
-import { Field, Input, Select } from '@/components/ui/Field';
+import { Field, Input, MoneyInput, Select } from '@/components/ui/Field';
 import { Modal } from '@/components/ui/Modal';
 import { useAuth } from '@/lib/auth';
 import { fmtMoney, todayIso } from '@/lib/format';
 import { useFxRateField, withFxHint } from '@/lib/fx';
 import type { CashAccountDetail, CashAccountType } from './api';
 import {
-  AmountInput,
   FieldErrors,
   focusFirstInvalid,
   iso,
@@ -327,7 +326,7 @@ export function CashAccountFormModal({ account, onClose, onSaved }: Props) {
                 <div className="mt-3 grid gap-4 sm:grid-cols-2">
                   <Field label={t('cash.accounts.openingBalance')} error={err('openingBalance')}>
                     {(id, desc) => (
-                      <AmountInput
+                      <MoneyInput
                         id={id}
                         aria-describedby={desc}
                         currency={currency}

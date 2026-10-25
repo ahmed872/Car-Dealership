@@ -21,6 +21,7 @@ import commissions from './commissions';
 import cashClosing from './cashClosing';
 import reports from './reports';
 import showroom from './showroom';
+import privacy from './privacy';
 
 const en: Messages = {
   app: { name: 'AutoHub Pro', tagline: 'Car dealership management' },
@@ -634,6 +635,7 @@ const en: Messages = {
   cashClosing: cashClosing.en,
   reports: reports.en,
   showroom: showroom.en,
+  privacy: privacy.en,
 };
 
 export default en;

@@ -4,13 +4,12 @@ import { useTranslation } from 'react-i18next';
 import { CurrencyCode, d, zCashTransfer } from '@autohub/shared';
 import { Button } from '@/components/ui/Button';
 import { Alert, Spinner } from '@/components/ui/Feedback';
-import { Field, Input, Select, Textarea } from '@/components/ui/Field';
+import { Field, Input, MoneyInput, Select, Textarea } from '@/components/ui/Field';
 import { Modal } from '@/components/ui/Modal';
 import { fmtMoney, todayIso } from '@/lib/format';
 import { useFxRateField, withFxHint } from '@/lib/fx';
 import { CashAccountListItem, CashTransfer, useCashAccounts } from './api';
 import {
-  AmountInput,
   FieldErrors,
   focusFirstInvalid,
   isPositiveMoney,
@@ -248,7 +247,7 @@ export function TransferFormModal({
             }
           >
             {(id, desc) => (
-              <AmountInput
+              <MoneyInput
                 id={id}
                 aria-describedby={desc}
                 currency={from?.currency}
@@ -304,7 +303,7 @@ export function TransferFormModal({
               hint={t('cash.transfers.amountReceivedHint', { currency: to!.currency })}
             >
               {(id, desc) => (
-                <AmountInput
+                <MoneyInput
                   id={id}
                   aria-describedby={desc}
                   currency={to!.currency as CurrencyCode}

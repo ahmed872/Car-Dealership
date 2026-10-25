@@ -3,14 +3,13 @@ import { useTranslation } from 'react-i18next';
 import { d } from '@autohub/shared';
 import { Button } from '@/components/ui/Button';
 import { Alert } from '@/components/ui/Feedback';
-import { Field, Input, Select, Textarea } from '@/components/ui/Field';
+import { Field, Input, MoneyInput, Select, Textarea } from '@/components/ui/Field';
 import { Modal } from '@/components/ui/Modal';
 import { ApiError } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { fmtNumber, fmtPct } from '@/lib/format';
 import { DeliveryBlocker, SaleDetail, SaleDocumentType } from './api';
 import {
-  AmountInput,
   FailureAlert,
   isPositiveMoney,
   Money,
@@ -600,7 +599,7 @@ export function RefundRequestModal({ sale, onClose, onReload }: DialogProps) {
           <Money value={sale.money.refundable} className="font-semibold" />
         </div>
         <Field label={t('sales.refund.amount')} required error={fm(amountError)}>
-          {(id) => <AmountInput id={id} currency={base} value={amount} invalid={!!amountError} onChange={(e) => setAmount(e.target.value)} />}
+          {(id) => <MoneyInput id={id} currency={base} value={amount} invalid={!!amountError} onChange={(e) => setAmount(e.target.value)} />}
         </Field>
         <Field label={t('common.reason')} required hint={t('sales.validation.minChars', { n: 3 })}>
           {(id, desc) => <Textarea id={id} aria-describedby={desc} rows={3} maxLength={500} value={reason} onChange={(e) => setReason(e.target.value)} />}
