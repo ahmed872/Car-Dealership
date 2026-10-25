@@ -39,6 +39,12 @@ export default tseslint.config(
     },
   },
   {
+    // CommonJS tooling (electron-builder hooks are loaded with require).
+    files: ['**/*.cjs'],
+    languageOptions: { sourceType: 'commonjs' },
+    rules: { '@typescript-eslint/no-require-imports': 'off' },
+  },
+  {
     // Desktop start-up pages run in the browser; the smoke test passes callbacks to page.evaluate.
     files: ['apps/desktop/src/renderer/**/*.js', 'apps/desktop/test/**/*.mjs'],
     languageOptions: { globals: { ...globals.node, ...globals.browser } },
