@@ -1,6 +1,6 @@
 # Execution Status
 
-**Current phase:** All phases (0–8) complete. Final reports written; Arabic user guide being finalised.
+**Current phase:** All phases (0–8) complete. Final reports and the Arabic user guide delivered.
 **Last completed tasks (2026-10-25):**
 - Shared MoneyInput/PercentInput fixed in the UI kit; local wrappers removed.
 - Privacy: erasure of showroom-visitor data and optional inquiry retention (D-053).
@@ -8,8 +8,10 @@
 - Second restore drill on the 21-migration schema: 31/31 checks passed (OPERATIONS §10).
 - Final adversarial audit: A1–A6 fixed with regression tests (D-054); API suite 389 passed, 2 skipped.
 - `docs/READINESS_REPORT.md` and `docs/FINAL_REPORT.md` written.
+- Arabic user guide: `docs/user-guide/AutoHub-Pro-User-Guide-AR.pdf` (139 pages, 145 screenshots of the
+  running app); two untranslated labels it exposed were fixed.
 
-**In progress:** Arabic user guide PDF with real screenshots (`docs/user-guide/`).
+**In progress:** nothing.
 
 **Exact next tasks (outside this plan; need owner action or credentials):**
 1. Go-live checklist in `docs/READINESS_REPORT.md` §5 (deployment, load test, CI observed on GitHub).
