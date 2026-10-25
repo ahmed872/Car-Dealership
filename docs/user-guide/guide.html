@@ -1,0 +1,1280 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>دليل المستخدم — أوتوهب برو</title>
+<style>
+@font-face { font-family: 'Plex Arabic'; font-weight: 300; src: url(assets/fonts/ibm-plex-sans-arabic-arabic-300-normal.woff2) format('woff2'); unicode-range: U+0600-06FF, U+0750-077F, U+0870-088E, U+0890-0891, U+0897-08E1, U+08E3-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FE74, U+FE76-FEFC; }
+@font-face { font-family: 'Plex Arabic'; font-weight: 400; src: url(assets/fonts/ibm-plex-sans-arabic-arabic-400-normal.woff2) format('woff2'); unicode-range: U+0600-06FF, U+0750-077F, U+0870-088E, U+0890-0891, U+0897-08E1, U+08E3-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FE74, U+FE76-FEFC; }
+@font-face { font-family: 'Plex Arabic'; font-weight: 500; src: url(assets/fonts/ibm-plex-sans-arabic-arabic-500-normal.woff2) format('woff2'); unicode-range: U+0600-06FF, U+0750-077F, U+0870-088E, U+0890-0891, U+0897-08E1, U+08E3-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FE74, U+FE76-FEFC; }
+@font-face { font-family: 'Plex Arabic'; font-weight: 600; src: url(assets/fonts/ibm-plex-sans-arabic-arabic-600-normal.woff2) format('woff2'); unicode-range: U+0600-06FF, U+0750-077F, U+0870-088E, U+0890-0891, U+0897-08E1, U+08E3-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FE74, U+FE76-FEFC; }
+@font-face { font-family: 'Plex Arabic'; font-weight: 700; src: url(assets/fonts/ibm-plex-sans-arabic-arabic-700-normal.woff2) format('woff2'); unicode-range: U+0600-06FF, U+0750-077F, U+0870-088E, U+0890-0891, U+0897-08E1, U+08E3-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FE74, U+FE76-FEFC; }
+@font-face { font-family: 'Plex Arabic'; font-weight: 300; src: url(assets/fonts/ibm-plex-sans-arabic-latin-300-normal.woff2) format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: 'Plex Arabic'; font-weight: 400; src: url(assets/fonts/ibm-plex-sans-arabic-latin-400-normal.woff2) format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: 'Plex Arabic'; font-weight: 500; src: url(assets/fonts/ibm-plex-sans-arabic-latin-500-normal.woff2) format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: 'Plex Arabic'; font-weight: 600; src: url(assets/fonts/ibm-plex-sans-arabic-latin-600-normal.woff2) format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: 'Plex Arabic'; font-weight: 700; src: url(assets/fonts/ibm-plex-sans-arabic-latin-700-normal.woff2) format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+
+:root {
+  --ink: #111827; --muted: #5b6472; --line: #e3e6eb; --brand: #f59e0b; --brand-strong: #b45309;
+  --navy: #0f172a; --soft: #fff7e6; --info: #eef4ff; --info-line: #c7d7fe; --warn: #fff1f0; --warn-line: #fecaca;
+  --ok: #ecfdf3; --ok-line: #bbf7d0; --bg: #ffffff;
+}
+@page { size: A4; }
+* { box-sizing: border-box; }
+html { background: var(--bg); }
+body {
+  margin: 0; color: var(--ink); background: var(--bg);
+  font-family: 'Plex Arabic', 'DejaVu Sans', sans-serif; font-size: 10.6pt; line-height: 1.75;
+  -webkit-print-color-adjust: exact; print-color-adjust: exact;
+}
+.wrap { max-width: 182mm; margin: 0 auto; }
+@media screen { .wrap { padding: 16px; } }
+h1, h2, h3, h4 { line-height: 1.4; break-after: avoid; page-break-after: avoid; position: relative; }
+h1 {
+  break-before: page; page-break-before: always; margin: 0 0 6mm; padding: 6mm 7mm; border-radius: 4mm;
+  background: var(--navy); color: #fff; font-size: 20pt; font-weight: 700;
+}
+h1 small { display: block; font-size: 10pt; font-weight: 400; color: #cbd5e1; margin-top: 1mm; }
+h2 { font-size: 14.5pt; font-weight: 700; color: var(--navy); margin: 8mm 0 2.5mm; padding-bottom: 1.5mm; border-bottom: 2px solid var(--brand); }
+h3 { font-size: 12pt; font-weight: 600; color: var(--brand-strong); margin: 5.5mm 0 1.5mm; }
+h4 { font-size: 10.8pt; font-weight: 600; margin: 4mm 0 1mm; }
+p { margin: 0 0 2.5mm; }
+ul, ol { margin: 0 0 3mm; padding-inline-start: 6mm; }
+li { margin-bottom: 1mm; }
+b, strong { font-weight: 600; }
+.ui { font-weight: 600; color: var(--brand-strong); white-space: nowrap; }
+.ui::before { content: '«'; } .ui::after { content: '»'; }
+.pm { position: absolute; font-size: 1px; color: transparent; line-height: 0; }
+h1 .pm { color: var(--navy); } h2 .pm, h3 .pm { color: #fff; }
+.ltr { direction: ltr; unicode-bidi: isolate; display: inline-block; }
+
+figure.shot { margin: 3mm 0 4mm; break-inside: avoid; page-break-inside: avoid; text-align: center; }
+figure.shot .frame { position: relative; display: inline-block; max-width: 100%; border: 1px solid var(--line); overflow: visible; }
+figure.shot img { display: block; width: 100%; height: auto; }
+figure.shot figcaption { margin-top: 1.5mm; font-size: 8.8pt; color: var(--muted); }
+.hl { position: absolute; border: 1.6px solid var(--brand); border-radius: 4px; background: rgba(245,158,11,.06); pointer-events: none; }
+.mk {
+  position: absolute; transform: translate(-50%, -50%); width: 5.2mm; height: 5.2mm; border-radius: 50%;
+  background: #e11d48; color: #fff; font: 700 8pt/5.2mm 'Plex Arabic', sans-serif; text-align: center;
+  border: 1.2px solid #fff;
+}
+ol.co { list-style: none; padding: 0; margin: 0 0 4mm; counter-reset: co; }
+ol.co > li { counter-increment: co; position: relative; padding-inline-start: 8mm; margin-bottom: 1.6mm; break-inside: avoid; }
+ol.co > li::before {
+  content: counter(co); position: absolute; inset-inline-start: 0; top: .5mm; width: 5.2mm; height: 5.2mm; border-radius: 50%;
+  background: #e11d48; color: #fff; font: 700 8pt/5.2mm 'Plex Arabic', sans-serif; text-align: center;
+}
+.box { border: 1px solid var(--line); border-radius: 2.5mm; padding: 2.5mm 4mm; margin: 2.5mm 0 3.5mm; break-inside: avoid; font-size: 10pt; }
+.box > b:first-child { display: block; margin-bottom: .8mm; }
+.tip { background: var(--ok); border-color: var(--ok-line); }
+.note { background: var(--info); border-color: var(--info-line); }
+.warn { background: var(--warn); border-color: var(--warn-line); }
+.acct { background: var(--soft); border-color: #fde4b0; }
+.who { display: inline-block; background: #f1f5f9; border: 1px solid var(--line); border-radius: 99px; padding: 0 3mm; font-size: 9pt; color: #334155; margin: 0 0 2.5mm; }
+table { width: 100%; border-collapse: collapse; margin: 2mm 0 4mm; font-size: 9.6pt; break-inside: auto; }
+th, td { border: 1px solid var(--line); padding: 1.4mm 2.4mm; text-align: start; vertical-align: top; }
+th { background: #f8fafc; font-weight: 600; }
+tr { break-inside: avoid; }
+.missing { color: #b91c1c; font-weight: 600; }
+.steps { counter-reset: st; list-style: none; padding: 0; }
+.steps > li { counter-increment: st; position: relative; padding-inline-start: 10mm; margin-bottom: 2mm; }
+.steps > li::before { content: counter(st); position: absolute; inset-inline-start: 0; top: 0; width: 7mm; height: 7mm; border-radius: 2mm; background: var(--navy); color: #fff; font-weight: 700; text-align: center; line-height: 7mm; font-size: 9.5pt; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 5mm; align-items: start; }
+
+/* Table of contents */
+.toc { break-after: page; }
+.toc h1.tt { break-before: auto; }
+.toc ol { list-style: none; padding: 0; margin: 0; columns: 1; }
+.toc li { margin: 0; }
+.toc li a { display: flex; align-items: baseline; gap: 2mm; color: inherit; text-decoration: none; }
+.toc li.l1 { font-weight: 700; margin-top: 2.6mm; font-size: 10.8pt; color: var(--navy); }
+.toc li.l2 { padding-inline-start: 6mm; font-size: 9.6pt; color: #374151; line-height: 1.6; }
+.toc .dots { flex: 1; border-bottom: 1px dotted #b6bcc6; transform: translateY(-1.2mm); }
+.toc .p { min-width: 8mm; text-align: left; font-variant-numeric: tabular-nums; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<section class="toc">
+  <h1 class="tt" style="break-before:auto">المحتويات<small>أرقام الصفحات تبدأ من الصفحة التالية للغلاف</small></h1>
+  <ol><li class="l1"><a href="#h1"><span class="t">مقدمة ومفاهيم أساسية</span><span class="dots"></span><span class="p">4</span></a></li><li class="l2"><a href="#h2"><span class="t">عن هذا الدليل</span><span class="dots"></span><span class="p">4</span></a></li><li class="l2"><a href="#h3"><span class="t">الشركة والفروع</span><span class="dots"></span><span class="p">4</span></a></li><li class="l2"><a href="#h4"><span class="t">الأدوار والصلاحيات</span><span class="dots"></span><span class="p">4</span></a></li><li class="l2"><a href="#h5"><span class="t">الموافقات وفصل المهام</span><span class="dots"></span><span class="p">5</span></a></li><li class="l2"><a href="#h6"><span class="t">العملة والضريبة وأسعار الصرف</span><span class="dots"></span><span class="p">5</span></a></li><li class="l2"><a href="#h7"><span class="t">الأموال والقيود المحاسبية</span><span class="dots"></span><span class="p">6</span></a></li><li class="l2"><a href="#h8"><span class="t">دورة حياة السيارة</span><span class="dots"></span><span class="p">6</span></a></li><li class="l1"><a href="#h9"><span class="t">تسجيل الدخول واختيار الشركة والدعوات</span><span class="dots"></span><span class="p">8</span></a></li><li class="l2"><a href="#h10"><span class="t">صفحة تسجيل الدخول</span><span class="dots"></span><span class="p">8</span></a></li><li class="l2"><a href="#h11"><span class="t">اختيار الشركة</span><span class="dots"></span><span class="p">8</span></a></li><li class="l2"><a href="#h12"><span class="t">دعوات الانضمام</span><span class="dots"></span><span class="p">9</span></a></li><li class="l2"><a href="#h13"><span class="t">واجهة النظام: القائمة الجانبية والشريط العلوي</span><span class="dots"></span><span class="p">10</span></a></li><li class="l2"><a href="#h14"><span class="t">حسابي وتغيير كلمة المرور</span><span class="dots"></span><span class="p">11</span></a></li><li class="l2"><a href="#h15"><span class="t">العمل من الجوال</span><span class="dots"></span><span class="p">11</span></a></li><li class="l1"><a href="#h16"><span class="t">لوحة التحكم</span><span class="dots"></span><span class="p">13</span></a></li><li class="l1"><a href="#h17"><span class="t">التشغيل: طلبات الموافقة والتنبيهات</span><span class="dots"></span><span class="p">17</span></a></li><li class="l2"><a href="#h18"><span class="t">طلبات الموافقة</span><span class="dots"></span><span class="p">17</span></a></li><li class="l2"><a href="#h19"><span class="t">التنبيهات</span><span class="dots"></span><span class="p">18</span></a></li><li class="l1"><a href="#h20"><span class="t">المبيعات</span><span class="dots"></span><span class="p">21</span></a></li><li class="l2"><a href="#h21"><span class="t">الحجوزات</span><span class="dots"></span><span class="p">21</span></a></li><li class="l2"><a href="#h22"><span class="t">عمليات البيع</span><span class="dots"></span><span class="p">25</span></a></li><li class="l2"><a href="#h23"><span class="t">التقسيط</span><span class="dots"></span><span class="p">34</span></a></li><li class="l2"><a href="#h24"><span class="t">العمولات</span><span class="dots"></span><span class="p">38</span></a></li><li class="l1"><a href="#h25"><span class="t">العملاء</span><span class="dots"></span><span class="p">41</span></a></li><li class="l2"><a href="#h26"><span class="t">قائمة العملاء</span><span class="dots"></span><span class="p">41</span></a></li><li class="l2"><a href="#h27"><span class="t">إضافة عميل وتعديله</span><span class="dots"></span><span class="p">42</span></a></li><li class="l2"><a href="#h28"><span class="t">ملف العميل (العميل 360)</span><span class="dots"></span><span class="p">44</span></a></li><li class="l2"><a href="#h29"><span class="t">الفرص البيعية ومسار المبيعات</span><span class="dots"></span><span class="p">46</span></a></li><li class="l2"><a href="#h30"><span class="t">متابعاتي</span><span class="dots"></span><span class="p">50</span></a></li><li class="l2"><a href="#h31"><span class="t">المواعيد وتجارب القيادة</span><span class="dots"></span><span class="p">51</span></a></li><li class="l2"><a href="#h32"><span class="t">طلبات السيارات (رغبات العملاء)</span><span class="dots"></span><span class="p">55</span></a></li><li class="l2"><a href="#h33"><span class="t">استفسارات المعرض</span><span class="dots"></span><span class="p">58</span></a></li><li class="l1"><a href="#h34"><span class="t">المخزون</span><span class="dots"></span><span class="p">60</span></a></li><li class="l2"><a href="#h35"><span class="t">قائمة السيارات</span><span class="dots"></span><span class="p">60</span></a></li><li class="l2"><a href="#h36"><span class="t">إضافة سيارة وتعديلها</span><span class="dots"></span><span class="p">61</span></a></li><li class="l2"><a href="#h37"><span class="t">ملف السيارة (السيارة 360)</span><span class="dots"></span><span class="p">63</span></a></li><li class="l2"><a href="#h38"><span class="t">الفحص الفني</span><span class="dots"></span><span class="p">69</span></a></li><li class="l2"><a href="#h39"><span class="t">نقل السيارات بين الفروع</span><span class="dots"></span><span class="p">71</span></a></li><li class="l2"><a href="#h40"><span class="t">الجرد الفعلي</span><span class="dots"></span><span class="p">71</span></a></li><li class="l2"><a href="#h41"><span class="t">أوامر العمل</span><span class="dots"></span><span class="p">72</span></a></li><li class="l2"><a href="#h42"><span class="t">توصيات المخزون الراكد</span><span class="dots"></span><span class="p">75</span></a></li><li class="l1"><a href="#h43"><span class="t">المشتريات</span><span class="dots"></span><span class="p">77</span></a></li><li class="l2"><a href="#h44"><span class="t">عمليات الشراء</span><span class="dots"></span><span class="p">77</span></a></li><li class="l2"><a href="#h45"><span class="t">الموردون</span><span class="dots"></span><span class="p">80</span></a></li><li class="l2"><a href="#h46"><span class="t">مستحقات الموردين</span><span class="dots"></span><span class="p">82</span></a></li><li class="l2"><a href="#h47"><span class="t">مدفوعات الموردين</span><span class="dots"></span><span class="p">84</span></a></li><li class="l2"><a href="#h48"><span class="t">توزيع التكاليف المشتركة</span><span class="dots"></span><span class="p">86</span></a></li><li class="l1"><a href="#h49"><span class="t">المالية والمحاسبة</span><span class="dots"></span><span class="p">88</span></a></li><li class="l2"><a href="#h50"><span class="t">الخزائن والحسابات البنكية</span><span class="dots"></span><span class="p">88</span></a></li><li class="l2"><a href="#h51"><span class="t">التحويلات بين الحسابات</span><span class="dots"></span><span class="p">90</span></a></li><li class="l2"><a href="#h52"><span class="t">المقبوضات (سندات القبض)</span><span class="dots"></span><span class="p">93</span></a></li><li class="l2"><a href="#h53"><span class="t">المبالغ المستردة</span><span class="dots"></span><span class="p">94</span></a></li><li class="l2"><a href="#h54"><span class="t">المصروفات التشغيلية</span><span class="dots"></span><span class="p">95</span></a></li><li class="l2"><a href="#h55"><span class="t">دفتر الأستاذ (الحسابات العامة)</span><span class="dots"></span><span class="p">99</span></a></li><li class="l2"><a href="#h56"><span class="t">إغلاق يومية الخزينة</span><span class="dots"></span><span class="p">104</span></a></li><li class="l1"><a href="#h57"><span class="t">التقارير</span><span class="dots"></span><span class="p">106</span></a></li><li class="l1"><a href="#h58"><span class="t">المعرض الرقمي</span><span class="dots"></span><span class="p">110</span></a></li><li class="l2"><a href="#h59"><span class="t">صفحة الإعلانات</span><span class="dots"></span><span class="p">110</span></a></li><li class="l2"><a href="#h60"><span class="t">محرر الإعلان</span><span class="dots"></span><span class="p">111</span></a></li><li class="l2"><a href="#h61"><span class="t">الصفحة العامة للزوار</span><span class="dots"></span><span class="p">113</span></a></li><li class="l1"><a href="#h62"><span class="t">الإعدادات والإدارة</span><span class="dots"></span><span class="p">116</span></a></li><li class="l2"><a href="#h63"><span class="t">بيانات الشركة والإعدادات</span><span class="dots"></span><span class="p">116</span></a></li><li class="l2"><a href="#h64"><span class="t">الفروع</span><span class="dots"></span><span class="p">119</span></a></li><li class="l2"><a href="#h65"><span class="t">المستخدمون</span><span class="dots"></span><span class="p">120</span></a></li><li class="l2"><a href="#h66"><span class="t">الأدوار والصلاحيات</span><span class="dots"></span><span class="p">121</span></a></li><li class="l2"><a href="#h67"><span class="t">سجل التدقيق</span><span class="dots"></span><span class="p">123</span></a></li><li class="l2"><a href="#h68"><span class="t">حماية البيانات</span><span class="dots"></span><span class="p">124</span></a></li><li class="l2"><a href="#h69"><span class="t">مراحل المبيعات</span><span class="dots"></span><span class="p">125</span></a></li><li class="l2"><a href="#h70"><span class="t">الموظفون وسياسات العمولة</span><span class="dots"></span><span class="p">126</span></a></li><li class="l2"><a href="#h71"><span class="t">التكاملات</span><span class="dots"></span><span class="p">128</span></a></li><li class="l2"><a href="#h72"><span class="t">إدارة المنصة (لمدير المنصة فقط)</span><span class="dots"></span><span class="p">129</span></a></li><li class="l1"><a href="#h73"><span class="t">مسارات عمل كاملة خطوة بخطوة</span><span class="dots"></span><span class="p">131</span></a></li><li class="l2"><a href="#h74"><span class="t">من شراء سيارة حتى بيعها نقدًا</span><span class="dots"></span><span class="p">131</span></a></li><li class="l2"><a href="#h75"><span class="t">بيع بالتقسيط وتحصيل قسط</span><span class="dots"></span><span class="p">131</span></a></li><li class="l2"><a href="#h76"><span class="t">حجز بعربون ثم إلغاؤه واسترداد العربون</span><span class="dots"></span><span class="p">132</span></a></li><li class="l2"><a href="#h77"><span class="t">إغلاق يومية الخزينة</span><span class="dots"></span><span class="p">132</span></a></li><li class="l2"><a href="#h78"><span class="t">تحويل بعملة أجنبية</span><span class="dots"></span><span class="p">133</span></a></li><li class="l1"><a href="#h79"><span class="t">أسئلة شائعة ورسائل الأخطاء</span><span class="dots"></span><span class="p">134</span></a></li><li class="l2"><a href="#h80"><span class="t">أسئلة شائعة</span><span class="dots"></span><span class="p">134</span></a></li><li class="l2"><a href="#h81"><span class="t">رسائل الأخطاء الشائعة</span><span class="dots"></span><span class="p">135</span></a></li><li class="l1"><a href="#h82"><span class="t">حدود النظام الحالية</span><span class="dots"></span><span class="p">137</span></a></li><li class="l2"><a href="#h83"><span class="t">التكاملات الخارجية</span><span class="dots"></span><span class="p">137</span></a></li><li class="l2"><a href="#h84"><span class="t">المبيعات والمالية</span><span class="dots"></span><span class="p">137</span></a></li><li class="l2"><a href="#h85"><span class="t">عام</span><span class="dots"></span><span class="p">137</span></a></li></ol>
+</section>
+<h1 id="h1"><span class="pm">QQ001QQ</span>مقدمة ومفاهيم أساسية<small>ما الذي يقدّمه أوتوهب برو، وكيف تُنظَّم الشركة والفروع والصلاحيات والأموال فيه</small></h1>
+
+<h2 id="h2"><span class="pm">QQ002QQ</span>عن هذا الدليل</h2>
+<p><b>أوتوهب برو</b> نظام متكامل لإدارة معارض السيارات: من شراء السيارة وفحصها وتجهيزها، إلى عرضها وحجزها وبيعها نقدًا أو بالتقسيط، وتحصيل الأموال، وحساب العمولات، وإغلاق الخزينة، والتقارير المحاسبية. يعمل النظام في متصفح الإنترنت على الحاسوب والجوال، وواجهته متاحة بالعربية (من اليمين إلى اليسار) وبالإنجليزية.</p>
+<p>يشرح هذا الدليل كل صفحة في القائمة الجانبية، والأزرار والحقول المهمة في كل صفحة، والنوافذ التي تفتحها الأزرار، وما يحدث عند استخدامها، بما في ذلك أثرها المحاسبي بلغة مبسطة. الصور مأخوذة من التطبيق نفسه وهو يعمل على بيانات تجريبية لمعرض مختلَق اسمه <b>«معرض الواحة للسيارات»</b> في الرياض وجدة؛ كل الأسماء وأرقام الجوال والشركات في الصور غير حقيقية.</p>
+<div class="box note"><b>كيف تقرأ الصور؟</b>الدوائر الحمراء المرقّمة على الصور تشير إلى عناصر يشرحها الدليل في القائمة المرقّمة التي تلي الصورة مباشرة. أسماء الأزرار والصفحات مكتوبة بين علامتي «» كما تظهر في الشاشة تمامًا، مثل <span class="ui">تأكيد البيع</span>.</div>
+<p>قد لا ترى بعض الصفحات أو الأزرار المشروحة هنا؛ فالنظام يُظهر لكل مستخدم ما تسمح به صلاحيات دوره فقط (انظر «الأدوار والصلاحيات» أدناه). ويتحقق الخادم من الصلاحية مرة أخرى عند تنفيذ أي عملية، فإخفاء الزر ليس هو الحماية الوحيدة.</p>
+
+<h2 id="h3"><span class="pm">QQ003QQ</span>الشركة والفروع</h2>
+<p><b>الشركة</b> هي المعرض أو مجموعة المعارض المشتركة في النظام، ولها بيانات وإعدادات مستقلة تمامًا عن أي شركة أخرى: لا يرى مستخدمو شركة أي بيانات لشركة أخرى. تُحدَّد للشركة عند إنشائها <b>السوق</b> (مصر أو السعودية أو الإمارات) و<b>العملة الأساسية</b> (الجنيه المصري أو الريال السعودي أو الدرهم الإماراتي)، ولا يمكن تغيير العملة الأساسية بعد ذلك.</p>
+<p><b>الفروع</b> هي مواقع المعرض (مثل فرع الرياض وفرع جدة). كل سيارة وعميل وحساب خزينة ومصروف يتبع فرعًا. لكل مستخدم أحد خيارين:</p>
+<ul>
+  <li><b>الوصول إلى كل الفروع</b>: يرى بيانات الشركة كلها، ويحق له فتح الصفحات التي تشمل الشركة كلها مثل دفتر الأستاذ وسجل التدقيق وحماية البيانات.</li>
+  <li><b>فروع محددة</b>: يرى ويعمل على بيانات فروعه فقط. وإذا حاول فتح مستند من فرع آخر ظهرت رسالة «هذا المستند يتبع فرعًا ليست لديك صلاحية عليه».</li>
+</ul>
+<p>يمكن أن يكون للشخص الواحد حساب في أكثر من شركة (مثلًا مدير يعمل لدى معرضين)؛ عندها يختار الشركة بعد الدخول، ويستطيع التبديل بينها من قائمة المستخدم (انظر الفصل التالي).</p>
+
+<h2 id="h4"><span class="pm">QQ004QQ</span>الأدوار والصلاحيات</h2>
+<p>الصلاحية هي إذن بعمل محدد، مثل «اعتماد الخصومات» أو «إغلاق يومية الخزينة». تُجمع الصلاحيات في <b>أدوار</b>، ويُسند لكل مستخدم دور واحد في الشركة. يأتي النظام بثمانية أدوار أساسية جاهزة، ويستطيع المالك إنشاء أدوار مخصصة (في الأمثلة: دور «أمين الصندوق»).</p>
+<table>
+  <tr><th>الدور</th><th>ما يفعله عادة</th><th>أقصى خصم دون اعتماد</th></tr>
+  <tr><td><b>مالك الشركة</b></td><td>كل الصلاحيات دائمًا، بما فيها الإعدادات والأدوار والتكاملات وإعادة فتح أيام الخزينة.</td><td>100٪</td></tr>
+  <tr><td><b>مدير الفرع</b></td><td>كل العمليات اليومية والاعتمادات، عدا إعدادات الشركة والأدوار والتكاملات والاشتراك وإعادة فتح يوم خزينة مغلق وسياسات العمولة وحماية البيانات وترحيل الأرصدة الافتتاحية.</td><td>15٪</td></tr>
+  <tr><td><b>مدير المبيعات</b></td><td>العملاء والفرص والمواعيد والحجوزات والمبيعات واعتماد الخصومات وتأكيد البيع والتسليم والتحصيل والمعرض الرقمي وتقارير التشغيل.</td><td>7٪</td></tr>
+  <tr><td><b>مندوب مبيعات</b></td><td>عملاؤه وفرصه ومواعيده، وإنشاء الحجوزات ومسودات البيع، وعرض عمولاته.</td><td>3٪</td></tr>
+  <tr><td><b>محاسب</b></td><td>الموردون والتكاليف ومدفوعات الموردين والمقبوضات والاستردادات والتقسيط والخزائن والتحويلات وإغلاق اليومية والمصروفات ودفتر الأستاذ والعمولات والتقارير المالية وسجل التدقيق.</td><td>0٪</td></tr>
+  <tr><td><b>مدير المخزون</b></td><td>إضافة السيارات وتعديلها وحالاتها وصورها ومستنداتها والتسعير والفحص والنقل والجرد والموردين وعمليات الشراء والتكاليف وأوامر العمل والمعرض الرقمي.</td><td>0٪</td></tr>
+  <tr><td><b>فاحص فني</b></td><td>عرض السيارات، وإدارة صورها، وإجراء الفحوصات، وأوامر العمل.</td><td>0٪</td></tr>
+  <tr><td><b>مدقق (قراءة فقط)</b></td><td>الاطلاع على كل شيء دون أي تعديل.</td><td>0٪</td></tr>
+</table>
+<p>«أقصى خصم» هو أكبر خصم يمنحه صاحب الدور على سعر العرض دون الحاجة إلى اعتماد؛ إذا تجاوزه تنتظر عملية البيع اعتماد مستخدم آخر لديه صلاحية «اعتماد الخصومات».</p>
+
+<h2 id="h5"><span class="pm">QQ005QQ</span>الموافقات وفصل المهام</h2>
+<p>العمليات الحساسة ماليًا تمر بمرحلتين: <b>مُنشئ</b> يسجّلها، و<b>معتمِد</b> يراجعها ويعتمدها. وتُطبّق قاعدة <b>الفصل بين المُنشئ والمعتمِد</b>: لا يستطيع أحد اعتماد طلب أنشأه أو عدّله أو أرسله بنفسه، حتى لو كان يملك صلاحية الاعتماد؛ وتظهر له عبارة «بانتظار معتمد آخر». العمليات التي تحتاج اعتمادًا:</p>
+<ul>
+  <li>عمليات شراء السيارات، وتكاليف السيارات (إن أدخلها من لا يملك صلاحية اعتمادها)، والمصروفات التشغيلية (بنفس الشرط).</li>
+  <li>أوامر العمل عند انتهائها (لترحيل تكاليفها على السيارة).</li>
+  <li>خصم بيع يتجاوز حد البائع، أو بيع بسعر أقل من الحد الأدنى للسيارة.</li>
+  <li>طلبات استرداد المبالغ للعملاء.</li>
+  <li>فروقات الخزينة عند إغلاق اليومية (يلزم صاحب صلاحية «اعتماد فروقات الخزينة»).</li>
+</ul>
+<p>تتجمع الطلبات المنتظرة في صفحة <span class="ui">طلبات الموافقة</span>، ويظهر عددها في لوحة التحكم (بطاقة «طلبات بانتظار موافقتك») لكل من يحق له القرار حسب صلاحياته وفروعه.</p>
+
+<h2 id="h6"><span class="pm">QQ006QQ</span>العملة والضريبة وأسعار الصرف</h2>
+<ul>
+  <li><b>العملة الأساسية</b> هي عملة الدفاتر والتقارير (في الأمثلة: الريال السعودي <span class="ltr">SAR</span>). كل مبلغ بعملة أخرى يُحوَّل إليها بسعر الصرف المسجّل في العملية.</li>
+  <li><b>العملات الأجنبية</b>: لا يقبل النظام مبلغًا بعملة أجنبية إلا إذا حدّد مدير النظام لها <b>سعرًا مرجعيًا</b> في إعدادات الشركة (في الأمثلة: 1 دولار = 3.75 ريال)، ويجب أن يبقى السعر المُدخل في كل عملية ضمن <b>نسبة الانحراف المسموح بها</b> (افتراضيًا ±2٪)؛ يظهر النطاق المسموح أسفل حقل سعر الصرف.</li>
+  <li><b>الضريبة</b>: يحدد نظام الضريبة في إعدادات الشركة: بدون ضريبة، أو ضريبة على كامل السعر (في الأمثلة 15٪ والأسعار شاملة الضريبة)، أو ضريبة على هامش الربح. يحسب النظام الضريبة في عرض السعر والفاتورة. هذه أداة حساب وليست اعتمادًا للامتثال الضريبي أو الفوترة الإلكترونية لأي جهة.</li>
+  <li><b>التقريب</b>: كل المبالغ بخانتين عشريتين، وتُقرَّب حسب قاعدة الشركة (تجاري أو بنكي) في مواضع محددة فقط.</li>
+</ul>
+
+<h2 id="h7"><span class="pm">QQ007QQ</span>الأموال والقيود المحاسبية</h2>
+<p>لا يحتاج المستخدم إلى إدخال قيود يومية بنفسه: كل عملية مالية (شراء، تكلفة، مصروف، تحصيل، سداد، تحويل، بيع، عمولة، إغلاق خزينة) <b>تُرحِّل قيدها المحاسبي المتوازن تلقائيًا</b> في اللحظة نفسها، وكل حركة نقدية تُسجَّل في دفتر الخزينة وفي دفتر الأستاذ معًا. وتنطبق القواعد التالية في كل النظام:</p>
+<ul>
+  <li><b>لا حذف للحركات المالية</b>: التصحيح يكون بـ<b>قيد عكسي</b> (زر «عكس» أو «إلغاء») يُبقي الأصل في السجل للاطلاع.</li>
+  <li><b>العربون والدفعات المقدمة التزام وليست إيرادًا</b>: يُسجَّل العربون كالتزام على المعرض لصالح العميل (حساب «دفعات مقدمة من العملاء») حتى يُطبَّق على البيع أو يُرد أو يُصادر.</li>
+  <li><b>الإيراد يُعترف به عند التسليم</b> (الإعداد الموصى به): تبقى مبالغ البيع دفعات مقدمة حتى تسليم السيارة.</li>
+  <li><b>تكلفة السيارة</b> = سعر الشراء المعتمد + كل التكاليف المرحّلة عليها (نقل، إصلاح، تجهيز…)، وتتحول إلى «تكلفة المبيعات» عند الاعتراف بالبيع.</li>
+  <li><b>الأيام المغلقة</b>: بعد إغلاق يومية خزينة لا تُقبل أي حركة على ذلك الحساب بتاريخ ذلك اليوم أو ما قبله.</li>
+</ul>
+<table>
+  <tr><th>الرمز</th><th>الحساب</th><th>الرمز</th><th>الحساب</th></tr>
+  <tr><td>1100</td><td>النقدية والبنوك</td><td>3000</td><td>رأس المال / الأرصدة الافتتاحية</td></tr>
+  <tr><td>1200</td><td>ذمم العملاء المدينة</td><td>4000</td><td>إيراد بيع السيارات</td></tr>
+  <tr><td>1300</td><td>مخزون السيارات</td><td>4100</td><td>إيراد التقسيط (الفوائد والرسوم)</td></tr>
+  <tr><td>2000</td><td>ذمم الموردين</td><td>4200</td><td>إيرادات أخرى (مثل العربون المُصادَر)</td></tr>
+  <tr><td>2100</td><td>دفعات مقدمة وعرابين العملاء</td><td>4300</td><td>أرباح/خسائر فروق العملة</td></tr>
+  <tr><td>2200</td><td>الضريبة المستحقة</td><td>5000</td><td>تكلفة السيارات المباعة</td></tr>
+  <tr><td>2300</td><td>عمولات مستحقة للموظفين</td><td>6000</td><td>المصروفات التشغيلية</td></tr>
+  <tr><td>2400</td><td>إيراد تقسيط مؤجل</td><td>6100 / 6200</td><td>مصروف العمولات / زيادة وعجز الخزينة</td></tr>
+</table>
+
+<h2 id="h8"><span class="pm">QQ008QQ</span>دورة حياة السيارة</h2>
+<p>لكل سيارة <b>حالة</b> تظهر كشارة ملونة في كل الشاشات. بعض الحالات يغيّرها المستخدم يدويًا بزر <span class="ui">تغيير الحالة</span>، وبعضها لا تضعه إلا العمليات نفسها (الحجز والبيع والتسليم والإرجاع).</p>
+<table>
+  <tr><th>الحالة</th><th>المعنى</th><th>من يضعها</th></tr>
+  <tr><td>واردة حديثًا</td><td>دخلت المخزون للتو (عادة عبر عملية شراء).</td><td>الشراء أو الإضافة</td></tr>
+  <tr><td>في انتظار الفحص / تحت الفحص</td><td>تنتظر الفحص الفني أو يجري فحصها.</td><td>يدويًا</td></tr>
+  <tr><td>قيد التجهيز / الصيانة</td><td>في الورشة أو التلميع.</td><td>يدويًا</td></tr>
+  <tr><td>جاهزة للعرض</td><td>انتهى تجهيزها ولم تُطرح للبيع بعد.</td><td>يدويًا</td></tr>
+  <tr><td>متاحة للبيع</td><td>يمكن حجزها وبيعها ونشرها في المعرض الرقمي. يشترط النظام فحصًا معتمدًا قبلها (إذا فُعّل الإعداد).</td><td>يدويًا</td></tr>
+  <tr><td>محجوزة</td><td>عليها حجز ساري لعميل.</td><td>الحجز فقط</td></tr>
+  <tr><td>قيد إتمام البيع</td><td>توجد عملية بيع لم تُؤكَّد بعد.</td><td>البيع فقط</td></tr>
+  <tr><td>مباعة / تم التسليم</td><td>تأكّد البيع / سُلّمت للعميل.</td><td>البيع والتسليم فقط</td></tr>
+  <tr><td>مرتجعة</td><td>أعادها العميل بعد التسليم.</td><td>الإرجاع فقط</td></tr>
+  <tr><td>مستبعدة من المخزون</td><td>خرجت نهائيًا (مثلًا إلغاء الشراء أو شطب بعد الجرد).</td><td>يدويًا بسبب، أو إلغاء الشراء</td></tr>
+</table>
+
+<h1 id="h9"><span class="pm">QQ009QQ</span>تسجيل الدخول واختيار الشركة والدعوات<small>الدخول إلى النظام، والتنقل في الواجهة، وإعدادات حسابك الشخصي</small></h1>
+
+<h2 id="h10"><span class="pm">QQ010QQ</span>صفحة تسجيل الدخول</h2>
+<p>افتح عنوان النظام الذي زوّدك به مدير الشركة في المتصفح (يفضّل أحدث إصدار من Chrome أو Edge أو Safari). تظهر صفحة الدخول:</p>
+<figure class="shot" id="fig-auth-login"><div class="frame" style="width:100.0%"><img src="images/auth-login.jpg" alt="صفحة تسجيل الدخول"><span class="hl" style="left:11.057942708333334%;top:45.55555555555556%;width:26.666666666666668%;height:4.222222222222222%"></span><span class="mk" style="left:37.724609375%;top:45.55555555555556%">1</span><span class="hl" style="left:11.057942708333334%;top:54.46006944444445%;width:26.666666666666668%;height:4.222222222222222%"></span><span class="mk" style="left:37.724609375%;top:54.46006944444445%">2</span><span class="hl" style="left:11.057942708333334%;top:60.46006944444444%;width:26.666666666666668%;height:5.333333333333334%"></span><span class="mk" style="left:37.724609375%;top:60.46006944444444%">3</span><span class="hl" style="left:2.7777777777777777%;top:3.5555555555555554%;width:6.360677083333334%;height:4%"></span><span class="mk" style="left:9.13845486111111%;top:3.5555555555555554%">4</span></div><figcaption>شكل 1: صفحة تسجيل الدخول</figcaption></figure>
+<ol class="co">
+  <li><b>البريد الإلكتروني</b>: البريد الذي أنشأ به المدير حسابك.</li>
+  <li><b>كلمة المرور</b>: كلمة المرور المبدئية التي سلّمك إياها المدير، أو التي غيّرتها لاحقًا.</li>
+  <li><span class="ui">دخول</span>: يتحقق من البيانات ويفتح لوحة التحكم. عند الخطأ تظهر رسالة «البريد الإلكتروني أو كلمة المرور غير صحيحة». وبعد محاولات كثيرة متتالية يطلب منك النظام الانتظار قليلًا («طلبات كثيرة جدًا»).</li>
+  <li><span class="ui">English</span> / <span class="ui">العربية</span>: يبدّل لغة الواجهة واتجاهها، ويتذكر المتصفح اختيارك.</li>
+</ol>
+<div class="box note"><b>الأمان</b>الاتصال مشفّر، وتنتهي الجلسة تلقائيًا بعد فترة من عدم النشاط؛ عندها يطلب منك النظام الدخول مرة أخرى ويعيدك إلى الصفحة نفسها. لا تشارك كلمة مرورك مع أحد: كل عملية في النظام تُسجَّل باسم من نفّذها في سجل التدقيق.</div>
+
+<h2 id="h11"><span class="pm">QQ011QQ</span>اختيار الشركة</h2>
+<p>إذا كان حسابك مرتبطًا بأكثر من شركة تظهر بعد الدخول صفحة <span class="ui">اختر الشركة</span>؛ اضغط على الشركة التي تريد العمل عليها. تستطيع لاحقًا التبديل بين الشركات من قائمة المستخدم ← <span class="ui">تبديل الشركة</span>، وكل شركة تعرض بياناتها وصلاحياتك فيها فقط.</p>
+<figure class="shot" id="fig-auth-select-company-2"><div class="frame" style="width:38.1%"><img src="images/auth-select-company-2.jpg" alt="صفحة اختيار الشركة لمستخدم يعمل في شركتين"></div><figcaption>شكل 2: صفحة اختيار الشركة لمستخدم يعمل في شركتين</figcaption></figure>
+
+<h2 id="h12"><span class="pm">QQ012QQ</span>دعوات الانضمام</h2>
+<p>عندما يضيف مدير شركة أخرى بريدك الإلكتروني المسجّل مسبقًا في النظام، لا يحصل على أي صلاحية في حسابك تلقائيًا؛ بل تصلك <b>دعوة انضمام</b> تظهر في صفحة اختيار الشركة وفي قائمة المستخدم (<span class="ui">دعوات معلّقة</span>). لا تتغير كلمة مرورك ولا بياناتك بسبب الدعوة.</p>
+<figure class="shot" id="fig-auth-select-company"><div class="frame" style="width:42.5%"><img src="images/auth-select-company.jpg" alt="دعوة انضمام معلّقة من شركة أخرى، وأسفلها الشركة الحالية"><span class="hl" style="left:23.79375%;top:65.85858585858585%;width:56.206250000000004%;height:4.539141414141414%"></span><span class="mk" style="left:80%;top:65.85858585858585%">1</span><span class="hl" style="left:40.278124999999996%;top:43.13762626262626%;width:43.721875%;height:4.539141414141414%"></span><span class="mk" style="left:84%;top:43.13762626262626%">2</span><span class="hl" style="left:28.09375%;top:45.40719696969697%;width:9.784374999999999%;height:6.4646464646464645%"></span><span class="mk" style="left:37.878125000000004%;top:45.40719696969697%">3</span><span class="hl" style="left:16%;top:45.40719696969697%;width:10.49375%;height:6.4646464646464645%"></span><span class="mk" style="left:26.49375%;top:45.40719696969697%">4</span></div><figcaption>شكل 3: دعوة انضمام معلّقة من شركة أخرى، وأسفلها الشركة الحالية</figcaption></figure>
+<ol class="co">
+  <li>الشركة الحالية التي أنت عضو فيها (النقطة الخضراء تعني أنها الشركة النشطة الآن).</li>
+  <li>الشركة التي دعتك، مع الدور الذي ستحصل عليه وتاريخ الدعوة.</li>
+  <li><span class="ui">قبول</span>: تصبح عضوًا في الشركة الداعية بالدور المذكور، وتظهر ضمن شركاتك.</li>
+  <li><span class="ui">رفض</span>: تُرفض الدعوة ولا يحصل أي تغيير على حسابك.</li>
+</ol>
+<div class="box warn"><b>تنبيه</b>لا تنتهي صلاحية الدعوات تلقائيًا، ولا تستطيع الشركة الداعية سحبها؛ تبقى معلّقة حتى تقبلها أو ترفضها.</div>
+
+<h2 id="h13"><span class="pm">QQ013QQ</span>واجهة النظام: القائمة الجانبية والشريط العلوي</h2>
+<figure class="shot" id="fig-shell-overview"><div class="frame" style="width:100.0%"><img src="images/shell-overview.jpg" alt="الواجهة العامة: القائمة الجانبية يمين الشاشة والشريط العلوي"><span class="hl" style="left:82.5%;top:7.111111111111111%;width:16.666666666666664%;height:6.354166666666666%"></span><span class="mk" style="left:98.5%;top:7.111111111111111%">1</span><span class="hl" style="left:82.5%;top:17.359375%;width:16.666666666666664%;height:4.102430555555555%"></span><span class="mk" style="left:98.5%;top:17.359375%">2</span><span class="hl" style="left:24.30230034722222%;top:1.6111111111111112%;width:2.361111111111111%;height:3.7777777777777777%"></span><span class="mk" style="left:26.663411458333336%;top:2%">3</span><span class="hl" style="left:17.82009548611111%;top:1.4913194444444444%;width:5.926649305555555%;height:4.015625%"></span><span class="mk" style="left:23.746744791666664%;top:2%">4</span><span class="hl" style="left:14.903428819444445%;top:1.6111111111111112%;width:2.361111111111111%;height:3.7777777777777777%"></span><span class="mk" style="left:17.264539930555557%;top:2%">5</span><span class="hl" style="left:1.6666666666666667%;top:1.0555555555555556%;width:12.681206597222221%;height:4.888888888888889%"></span><span class="mk" style="left:14.34787326388889%;top:2%">6</span></div><figcaption>شكل 4: الواجهة العامة: القائمة الجانبية يمين الشاشة والشريط العلوي</figcaption></figure>
+<ol class="co">
+  <li><b>بطاقة الشركة</b>: اسم الشركة الحالية وسوقها وعملتها الأساسية.</li>
+  <li><b>القائمة الجانبية</b>: مجموعات الصفحات (التشغيل، المبيعات، العملاء، المخزون، المشتريات، المالية، الإدارة). لا تظهر إلا الصفحات المسموح بها لدورك، والصفحة المفتوحة مميّزة بلون أفتح.</li>
+  <li><b>جرس التنبيهات</b>: الرقم الأحمر عدد التنبيهات غير المقروءة (انظر فصل «التشغيل»).</li>
+  <li><b>تبديل اللغة</b> بين العربية والإنجليزية.</li>
+  <li><b>المظهر</b>: تبديل بين الوضع الفاتح والداكن.</li>
+  <li><b>قائمة المستخدم</b>: اسمك ودورك؛ اضغط لفتح القائمة.</li>
+</ol>
+<div class="two">
+<div><figure class="shot" id="fig-shell-user-menu"><div class="frame" style="width:44.9%"><img src="images/shell-user-menu.jpg" alt="قائمة المستخدم"></div><figcaption>شكل 5: قائمة المستخدم</figcaption></figure></div>
+<div>
+<p>تحتوي قائمة المستخدم على:</p>
+<ul>
+  <li><span class="ui">حسابي</span>: بيانات عضويتك وتغيير كلمة المرور.</li>
+  <li><span class="ui">دعوات معلّقة</span>: تظهر فقط إذا كانت لديك دعوات، وتفتح صفحة الدعوات.</li>
+  <li><span class="ui">تبديل الشركة</span>: تظهر فقط إذا كنت عضوًا في أكثر من شركة.</li>
+  <li><span class="ui">تسجيل الخروج</span>: ينهي الجلسة على هذا الجهاز.</li>
+</ul>
+</div>
+</div>
+
+<h2 id="h14"><span class="pm">QQ014QQ</span>حسابي وتغيير كلمة المرور</h2>
+<figure class="shot" id="fig-shell-account"><div class="frame" style="width:100.0%"><img src="images/shell-account.jpg" alt="صفحة «حسابي»"></div><figcaption>شكل 6: صفحة «حسابي»</figcaption></figure>
+<p>تعرض البطاقة اليمنى اسمك وبريدك والشركة ودورك و<b>أقصى خصم مسموح</b> لك والفروع المسموح بها. ولتغيير كلمة المرور أدخل <b>كلمة المرور الحالية</b> ثم <b>الجديدة</b> (10 أحرف على الأقل وتحتوي على حرف ورقم) وأكّدها، واضغط <span class="ui">تغيير كلمة المرور</span>. بعد التغيير يُسجَّل خروجك تلقائيًا من الأجهزة الأخرى. إذا نسيت كلمة المرور فاطلب من مدير الشركة <span class="ui">إعادة تعيين كلمة المرور</span> من صفحة المستخدمين.</p>
+
+<h2 id="h15"><span class="pm">QQ015QQ</span>العمل من الجوال</h2>
+<p>الواجهة متجاوبة وتعمل على شاشة الجوال: تختفي القائمة الجانبية وتُفتح بزر القائمة (☰) في الشريط العلوي، وتتحول الجداول والبطاقات إلى عمود واحد. هذا مناسب لموظف المبيعات في ساحة المعرض (البحث عن سيارة، تسجيل تواصل، حجز موعد، بدء تجربة قيادة).</p>
+<div class="two">
+<figure class="shot mobile" id="fig-mobile-dashboard"><div class="frame" style="width:80.0%"><img src="images/mobile-dashboard.jpg" alt="لوحة التحكم على الجوال"></div><figcaption>شكل 7: لوحة التحكم على الجوال</figcaption></figure>
+<figure class="shot mobile" id="fig-mobile-menu"><div class="frame" style="width:80.0%"><img src="images/mobile-menu.jpg" alt="القائمة الجانبية مفتوحة على الجوال"></div><figcaption>شكل 8: القائمة الجانبية مفتوحة على الجوال</figcaption></figure>
+</div>
+
+<h1 id="h16"><span class="pm">QQ016QQ</span>لوحة التحكم<small>نظرة عامة سريعة على المبيعات والمخزون والعملاء والمالية</small></h1>
+<span class="who">تظهر لكل من يملك صلاحية «عرض لوحة التحكم»؛ وتختلف المؤشرات حسب صلاحيات الدور</span>
+<p>هي أول صفحة بعد الدخول (<span class="ui">لوحة التحكم</span> في مجموعة «التشغيل»). تجمع أهم الأرقام لفترة تختارها، مقسمة إلى أربعة أقسام: المبيعات، والمخزون، والعملاء المحتملون والمواعيد، والمالية. كل الأرقام محسوبة من العمليات المسجلة فعلًا ومن دفتر الأستاذ، ولا تُدخل يدويًا.</p>
+<figure class="shot" id="fig-dash-owner"><div class="frame" style="width:79.5%"><img src="images/dash-owner.jpg" alt="لوحة التحكم كما يراها المالك (كل الفروع)"><span class="hl" style="left:89.2936862244898%;top:12.671528194361128%;width:6.284545068027211%;height:2.039592081583683%"></span><span class="mk" style="left:95.578231292517%;top:12.671528194361128%">1</span><span class="hl" style="left:55.44350552721088%;top:12.431576184763047%;width:17.006802721088434%;height:2.459508098380324%"></span><span class="mk" style="left:72.45030824829932%;top:12.431576184763047%">2</span><span class="hl" style="left:68.11224489795919%;top:20.484965506898618%;width:23.299319727891156%;height:1.2081958608278345%"></span><span class="mk" style="left:91.41156462585033%;top:20.484965506898618%">3</span><span class="hl" style="left:2.7210884353741496%;top:17.443386322735453%;width:5.172459608843537%;height:1.2081958608278345%"></span><span class="mk" style="left:7.893548044217686%;top:17.443386322735453%">4</span><span class="hl" style="left:68.11224489795919%;top:52.355466406718655%;width:23.299319727891156%;height:1.2081958608278345%"></span><span class="mk" style="left:91.41156462585033%;top:52.355466406718655%">5</span><span class="hl" style="left:4.166666666666666%;top:92.37964907018596%;width:23.299319727891156%;height:1.2081958608278345%"></span><span class="mk" style="left:27.465986394557824%;top:92.37964907018596%">6</span></div><figcaption>شكل 9: لوحة التحكم كما يراها المالك (كل الفروع)</figcaption></figure>
+<ol class="co">
+  <li><b>الفترة</b>: <span class="ui">هذا الشهر</span> أو <span class="ui">الشهر الماضي</span> أو <span class="ui">فترة مخصصة</span> (تظهر عندها خانتا «من» و«إلى»). يظهر بجانبها نص الفترة ووقت آخر تحديث.</li>
+  <li><b>الفرع</b>: <span class="ui">كل الفروع</span> أو فرع محدد. يظهر هذا الاختيار لمن يملك الوصول إلى كل الفروع؛ أما المستخدم المقيّد بفروع فيرى أرقام فروعه فقط.</li>
+  <li><b>قسم المبيعات</b>: <b>صافي الإيراد</b> (الإيراد المعترف به في الفترة قبل الضريبة)، و<b>السيارات المباعة</b> (بعد خصم المرتجعات)، و<b>مجمل الربح</b>، وعدد <b>مسودات البيع</b> وما هو <b>بانتظار الاعتماد</b> و<b>بانتظار التسليم</b>، ورسم بياني لصافي الإيراد في آخر 6 أشهر.</li>
+  <li><span class="ui">عرض التقرير</span>: ينقلك إلى التقرير المفصّل الخاص بالقسم (المبيعات والربحية، تقييم المخزون، تحويل العملاء المحتملين).</li>
+  <li><b>قسم المخزون</b>: السيارات في المخزون، والمتاحة للبيع، والمحجوزة أو قيد البيع، وعدد السيارات الأقدم من حد الركود (60 يومًا) والحد الحرج (90 يومًا) حسب إعدادات الشركة، و<b>قيمة المخزون بالتكلفة</b>.</li>
+  <li><b>قسم المالية</b>: رصيد الخزائن والبنوك، وإجمالي الذمم المدينة، والأقساط المتأخرة وخطط التقسيط المتأخرة، و<b>دفعات مقدمة من العملاء</b> (العرابين والدفعات قبل التسليم)، و<b>طلبات بانتظار موافقتك</b> مع تفصيلها حسب النوع.</li>
+</ol>
+<p>قسم <b>العملاء المحتملون والمواعيد</b> يعرض الفرص المفتوحة، والفرص الجديدة في الفترة، والصفقات الناجحة، و<b>نسبة التحويل</b> (الناجحة من الفرص الجديدة)، والمتابعات المستحقة، ومواعيد اليوم.</p>
+
+<h3>لوحة التحكم لمندوب المبيعات</h3>
+<p>يرى مندوب المبيعات أقسام المبيعات والعملاء بشارة <b>«أرقامك الشخصية فقط»</b>: أي أن الأرقام تخص عملياته وعملاءه وحده. ولا يظهر له قسم المالية لأنه لا يملك صلاحيات عرض الخزينة والتقارير المالية.</p>
+<figure class="shot" id="fig-dash-rep"><div class="frame" style="width:80.8%"><img src="images/dash-rep.jpg" alt="لوحة التحكم لمندوبة المبيعات: أرقام شخصية فقط"></div><figcaption>شكل 10: لوحة التحكم لمندوبة المبيعات: أرقام شخصية فقط</figcaption></figure>
+<div class="box tip"><b>نصيحة</b>اجعل لوحة التحكم بداية يومك: ابدأ بـ«طلبات بانتظار موافقتك» و«متابعات مستحقة» و«مواعيد اليوم»، ثم راجع السيارات الراكدة أسبوعيًا.</div>
+<div class="box note"><b>ملاحظة</b>بطاقة «دفعات مقدمة من العملاء» تظهر فقط لمن يملك الوصول إلى كل الفروع، لأن عرابين الحجوزات تُسجَّل على مستوى العميل لا الفرع.</div>
+
+<h1 id="h17"><span class="pm">QQ017QQ</span>التشغيل: طلبات الموافقة والتنبيهات<small>صندوق القرارات اليومي للمديرين، وتنبيهات الموظفين</small></h1>
+
+<h2 id="h18"><span class="pm">QQ018QQ</span>طلبات الموافقة</h2>
+<span class="who">تظهر لمن يملك أي صلاحية اعتماد (الشراء، التكاليف، المصروفات، أوامر العمل، الاستردادات، الخصومات، البيع دون الحد الأدنى، فروقات الخزينة) أو صلاحية «عرض طلبات الموافقة»</span>
+<p>تجمع هذه الصفحة كل المستندات التي تنتظر قرارك أنت تحديدًا، حسب صلاحياتك وفروعك؛ فمدير المبيعات مثلًا لا يرى إلا طلبات الخصم، والمحاسب يرى التكاليف والمصروفات والاستردادات.</p>
+<figure class="shot" id="fig-appr-inbox"><div class="frame" style="width:100.0%"><img src="images/appr-inbox.jpg" alt="صفحة طلبات الموافقة"><span class="hl" style="left:89.17410714285714%;top:19.23263888888889%;width:6.659226190476191%;height:4.666666666666667%"></span><span class="mk" style="left:95.83333333333334%;top:19.23263888888889%">1</span><span class="hl" style="left:87.49601403061224%;top:28.08159722222222%;width:9.697863520408163%;height:9.777777777777779%"></span><span class="mk" style="left:97.1938775510204%;top:28.08159722222222%">2</span><span class="hl" style="left:79.7313456632653%;top:34.13715277777778%;width:6.4041241496598635%;height:1.7777777777777777%"></span><span class="mk" style="left:86.13546981292517%;top:34.13715277777778%">3</span><span class="hl" style="left:10.669111394557824%;top:31.192708333333336%;width:6.556919642857142%;height:3.5555555555555554%"></span><span class="mk" style="left:17.226031037414966%;top:31.192708333333336%">4</span><span class="hl" style="left:4.166666666666666%;top:31.192708333333336%;width:6.162308673469387%;height:3.5555555555555554%"></span><span class="mk" style="left:10.328975340136054%;top:31.192708333333336%">5</span></div><figcaption>شكل 11: صفحة طلبات الموافقة</figcaption></figure>
+<ol class="co">
+  <li><b>تبويبات الأنواع</b>: <span class="ui">الكل</span> ثم تبويب لكل نوع (شراء سيارة، تكلفة سيارة، مصروف، أمر عمل، خصم بيع…) مع عدد الطلبات فيه.</li>
+  <li><b>النوع والبيان</b>: شارة نوع الطلب، ثم ملخص المستند (رقمه ومبلغه). يظهر البيان بالصيغة التي سجّلها النظام عند فتح الطلب، وقد يكون بالإنجليزية.</li>
+  <li><span class="ui">فتح المستند</span>: يفتح صفحة المستند الأصلي لمراجعته كاملًا قبل القرار (يُنصح به دائمًا للمبالغ الكبيرة).</li>
+  <li><span class="ui">اعتماد</span>: يفتح نافذة تأكيد صغيرة فيها ملخص الطلب وحقل <b>ملاحظة (اختياري)</b>. عند التأكيد تُرحَّل القيود المحاسبية الخاصة بالمستند فورًا (مثلًا: اعتماد شراء سيارة يُرحّل قيمتها إلى المخزون وذمم الموردين).</li>
+  <li><span class="ui">رفض</span>: يطلب <b>السبب</b> إلزاميًا، ولا يُرحَّل المستند، ويظهر السبب لمقدّم الطلب. في أوامر العمل يكون الزر <span class="ui">إعادة للتنفيذ</span> فيعود الأمر إلى «قيد التنفيذ» لتصحيح بنوده.</li>
+</ol>
+<div class="two">
+<div><figure class="shot" id="fig-appr-dialog"><div class="frame" style="width:77.3%"><img src="images/appr-dialog.jpg" alt="نافذة الاعتماد من صندوق الموافقات"></div><figcaption>شكل 12: نافذة الاعتماد من صندوق الموافقات</figcaption></figure></div>
+<div>
+<div class="box warn"><b>فصل المهام</b>إذا كنت أنت من قدّم الطلب يظهر بدل الأزرار «بانتظار معتمد آخر»: لا يمكنك اعتماد طلبك ولو كنت تملك الصلاحية.</div>
+<div class="box note"><b>سداد فوري عند الاعتماد</b>الاعتماد من الصندوق لا يسدد المبلغ. إذا أردت الاعتماد والسداد معًا (مثل «اعتماد وسداد» لعملية شراء) فافتح المستند واعتمده من صفحته.</div>
+<p>طلبات <b>الاسترداد</b> تُعتمد هنا ثم تُصرف لاحقًا من صفحة «المبالغ المستردة»، وطلبات <b>الخصم والبيع دون الحد الأدنى</b> تُعتمد ثم يكمل البائع تأكيد البيع.</p>
+</div>
+</div>
+
+<h2 id="h19"><span class="pm">QQ019QQ</span>التنبيهات</h2>
+<span class="who">لكل مستخدم؛ كل شخص يرى تنبيهاته فقط</span>
+<p>جرس التنبيهات في الشريط العلوي يعرض آخر التنبيهات غير المقروءة. اضغط على أي تنبيه لفتح الصفحة المتعلقة به، أو <span class="ui">تعليم الكل كمقروء</span>، أو <span class="ui">عرض كل التنبيهات</span> لفتح صفحة التنبيهات الكاملة.</p>
+<figure class="shot" id="fig-shell-notifications-bell"><div class="frame" style="width:100.0%"><img src="images/shell-notifications-bell.jpg" alt="قائمة جرس التنبيهات"></div><figcaption>شكل 13: قائمة جرس التنبيهات</figcaption></figure>
+<p>يرسل النظام تنبيهًا داخليًا في الحالات التالية:</p>
+<ul>
+  <li>إسناد <b>عميل</b> أو <b>فرصة بيعية</b> أو <b>موعد / تجربة قيادة</b> إليك، وتذكير قبل الموعد بقليل.</li>
+  <li>حلول <b>موعد متابعة</b> فرصة بيعية مسندة إليك.</li>
+  <li><b>حجز</b> ينتهي خلال 24 ساعة، أو انتهى بالفعل.</li>
+  <li><b>قسط</b> مستحق قريبًا أو متأخر.</li>
+  <li>دخول <b>سيارة مطابقة</b> لطلب أحد عملائك (طلبات السيارات).</li>
+  <li><b>استفسار</b> أو طلب تجربة قيادة جديد من المعرض الرقمي (لمن يوزّع الفرص البيعية).</li>
+</ul>
+<p>تذكيرات المتابعة والمواعيد وانتهاء الحجوزات والأقساط ومطابقة الطلبات تُنشئها مهام تلقائية تعمل دوريًا في الخلفية، لذلك قد يتأخر ظهورها دقائق قليلة. التنبيهات داخل النظام فقط؛ لا ترسل بريدًا ولا رسائل جوال.</p>
+<figure class="shot" id="fig-shell-notifications-page"><div class="frame" style="width:100.0%"><img src="images/shell-notifications-page.jpg" alt="صفحة التنبيهات: الكل / غير المقروءة"></div><figcaption>شكل 14: صفحة التنبيهات: الكل / غير المقروءة</figcaption></figure>
+
+<h1 id="h20"><span class="pm">QQ020QQ</span>المبيعات<small>الحجوزات، عمليات البيع، التقسيط، العمولات</small></h1>
+<p>تضم مجموعة <b>المبيعات</b> في القائمة الجانبية: <span class="ui">الحجوزات</span>، <span class="ui">عمليات البيع</span>، <span class="ui">التقسيط</span>، <span class="ui">العمولات</span>، و<span class="ui">المعرض الرقمي</span> (يُشرح في فصل مستقل).</p>
+
+<h2 id="h21"><span class="pm">QQ021QQ</span>الحجوزات</h2>
+<span class="who">العرض: «عرض الحجوزات» · الإنشاء: «إنشاء الحجوزات» · استلام العربون: «تحصيل المدفوعات» · الإلغاء والتمديد: صلاحيتان منفصلتان</span>
+<p>الحجز يرفع سيارة <b>متاحة للبيع</b> من البيع لصالح عميل محدد مدة معينة، غالبًا مقابل عربون، حتى يتحول إلى بيع أو يُلغى أو تنتهي مدته. لا يمكن أن يكون للسيارة أكثر من حجز ساري واحد.</p>
+<figure class="shot" id="fig-res-list"><div class="frame" style="width:100.0%"><img src="images/res-list.jpg" alt="قائمة الحجوزات"><span class="hl" style="left:2.7210884353741496%;top:11.565972222222221%;width:9.434789540816327%;height:4.444444444444445%"></span><span class="mk" style="left:12.155877976190476%;top:11.565972222222221%">1</span><span class="hl" style="left:83.59375%;top:30.58159722222222%;width:7.259778911564625%;height:4.666666666666667%"></span><span class="mk" style="left:90.85352891156462%;top:30.58159722222222%">2</span><span class="hl" style="left:57.738095238095234%;top:37.026041666666664%;width:38.095238095238095%;height:4.222222222222222%"></span><span class="mk" style="left:95.83333333333334%;top:37.026041666666664%">3</span></div><figcaption>شكل 15: قائمة الحجوزات</figcaption></figure>
+<ol class="co">
+  <li><span class="ui">حجز جديد</span>: يفتح نافذة إنشاء الحجز.</li>
+  <li><b>التبويبات</b>: نشط، تنتهي قريبًا (خلال 48 ساعة)، تحوّل إلى بيع، منتهٍ، ملغى، الكل. وفي الأعلى بطاقتا «الحجوزات النشطة» و«تنتهي خلال 48 ساعة».</li>
+  <li><b>البحث</b> برقم الحجز أو رقم المخزون أو اسم العميل أو جواله. يعرض الجدول السيارة والعميل وموعد الانتهاء والمتبقي من المدة والعربون المستلم من أصل المطلوب ومسؤول المبيعات.</li>
+</ol>
+
+<h3>نافذة «حجز جديد»</h3>
+<div class="two">
+<div><figure class="shot" id="fig-res-new"><div class="frame" style="width:100.0%"><img src="images/res-new.jpg" alt="نافذة إنشاء حجز"></div><figcaption>شكل 16: نافذة إنشاء حجز</figcaption></figure></div>
+<div>
+<ul>
+  <li><b>السيارة</b>: ابحث برقم المخزون أو الماركة أو الموديل؛ تظهر السيارات المتاحة للبيع فقط.</li>
+  <li><b>العميل</b> (إلزامي) و<b>الفرصة البيعية</b> (اختياري؛ إذا اخترتها يُستخدم عميلها ويُربط الحجز بها).</li>
+  <li><b>مدة الحجز (أيام)</b>: الافتراضي من إعدادات الشركة (7 أيام)، ويظهر تاريخ الانتهاء التقريبي أسفلها.</li>
+  <li><b>السعر المتفق عليه</b> (اختياري): إن كان أقل من الحد الأدنى للسيارة يرفضه النظام إلا باعتماد مدير.</li>
+  <li><b>العربون المطلوب</b>: إن تُرك فارغًا يصبح المبلغ المستلم الآن هو العربون المطلوب.</li>
+  <li><b>سياسة رد العربون</b>: قابل للرد بالكامل، أو غير قابل للرد، أو رد جزئي (مع النسبة). تحدد ما يحدث للعربون عند الإلغاء.</li>
+  <li><b>استلام العربون الآن</b>: عند تفعيله تظهر حقول الصندوق أو الحساب البنكي والمبلغ وطريقة الدفع والمرجع؛ فيُسجَّل <b>سند قبض</b> ويدخل المبلغ الخزينة.</li>
+  <li><span class="ui">تأكيد الحجز</span>: تصبح السيارة «محجوزة» فورًا.</li>
+</ul>
+</div>
+</div>
+<div class="box acct"><b>الأثر المحاسبي</b>يُسجَّل العربون كالتزام على الشركة لصالح العميل (مدين النقدية 1100 / دائن دفعات مقدمة من العملاء 2100) وليس إيرادًا. يتحول إلى جزء من ثمن السيارة عند تأكيد البيع، أو يُرد للعميل، أو يُصادر فيصبح «إيرادًا آخر» (4200).</div>
+
+<h3>صفحة الحجز</h3>
+<figure class="shot" id="fig-res-active"><div class="frame" style="width:97.2%"><img src="images/res-active.jpg" alt="حجز نشط بعربون مستلم على دفعتين"><span class="hl" style="left:21.314306972789115%;top:11.619758432087512%;width:10.73953018707483%;height:3.646308113035551%"></span><span class="mk" style="left:32.053837159863946%;top:11.619758432087512%">1</span><span class="hl" style="left:13.051392431972788%;top:11.619758432087512%;width:7.582642431972789%;height:3.646308113035551%"></span><span class="mk" style="left:20.634034863945576%;top:11.619758432087512%">2</span><span class="hl" style="left:2.7210884353741496%;top:11.619758432087512%;width:9.650031887755102%;height:3.646308113035551%"></span><span class="mk" style="left:12.371120323129253%;top:11.619758432087512%">3</span><span class="hl" style="left:4.506802721088436%;top:37.217980856882406%;width:25.34013605442177%;height:2.917046490428441%"></span><span class="mk" style="left:29.846938775510207%;top:37.217980856882406%">4</span></div><figcaption>شكل 17: حجز نشط بعربون مستلم على دفعتين</figcaption></figure>
+<ol class="co">
+  <li><span class="ui">إضافة عربون</span>: استلام دفعة إضافية على العربون (سند قبض جديد)، حتى اكتمال العربون المطلوب.</li>
+  <li><span class="ui">تمديد</span>: يمدد الحجز عددًا من الأيام (1–90 في كل مرة، وبحد أقصى 180 يومًا للحجز كله) مع ذكر السبب الذي يُحفظ في سجل التدقيق.</li>
+  <li><span class="ui">إلغاء الحجز</span>: تعود السيارة «متاحة»، ويُسوّى العربون حسب ما تختاره في النافذة.</li>
+  <li><b>بطاقة العربون</b>: المطلوب والمستلم والمحتجز لصالح العميل، مع تذكير بأن العربون التزام وليس إيرادًا.</li>
+</ol>
+<p>أسفل الصفحة جدول <b>سندات القبض (العربون)</b> مع زر <span class="ui">إلغاء السند</span> لكل سند (يعكس القيد ويُخرج المبلغ من الخزينة)، وجدول <b>طلبات الاسترداد</b> المرتبطة بالحجز.</p>
+<div class="two">
+<div><figure class="shot" id="fig-res-cancel"><div class="frame" style="width:99.4%"><img src="images/res-cancel.jpg" alt="نافذة إلغاء الحجز وتسوية العربون"></div><figcaption>شكل 18: نافذة إلغاء الحجز وتسوية العربون</figcaption></figure></div>
+<div>
+<p><b>ماذا يحدث للعربون؟</b></p>
+<ul>
+  <li><b>حسب سياسة الحجز</b>: يُرد أو يُصادر وفق السياسة المتفق عليها.</li>
+  <li><b>رد العربون كاملًا</b> أو <b>مصادرة العربون كاملًا</b>: خياران يخالفان السياسة، ومتاحان فقط لمن يملك صلاحية «اعتماد الاسترداد».</li>
+</ul>
+<p>يعرض الملخص المحتجز حاليًا وما سيُرد وما سيُصادر. السبب إلزامي.</p>
+<div class="box note"><b>الاسترداد ليس فوريًا</b>المبلغ المردود لا يخرج من الخزينة عند الإلغاء؛ يُنشأ <b>طلب استرداد</b> بانتظار اعتماد مسؤول آخر، ثم يُصرف من صفحة «المبالغ المستردة».</div>
+</div>
+</div>
+<div class="two">
+<div><figure class="shot" id="fig-res-extend"><div class="frame" style="width:77.3%"><img src="images/res-extend.jpg" alt="نافذة تمديد الحجز"></div><figcaption>شكل 19: نافذة تمديد الحجز</figcaption></figure></div>
+<div><p>نافذة <b>التمديد</b> تعرض موعد الانتهاء الحالي والجديد قبل التأكيد، وتطلب عدد أيام التمديد والسبب.</p></div>
+</div>
+<figure class="shot" id="fig-res-cancelled"><div class="frame" style="width:97.6%"><img src="images/res-cancelled.jpg" alt="حجز ملغى: العربون أصبح طلب استرداد مصروفًا"></div><figcaption>شكل 20: حجز ملغى: العربون أصبح طلب استرداد مصروفًا</figcaption></figure>
+<p>عند <b>انتهاء مدة الحجز</b> دون بيع أو إلغاء، تعود السيارة متاحة تلقائيًا ويبقى العربون محتجزًا لصالح العميل؛ تظهر في صفحة الحجز رسالة تطلب منك إما طلب استرداده أو تطبيقه على عملية بيع. ويصل لمسؤول المبيعات تنبيه قبل الانتهاء بـ24 ساعة وعند الانتهاء. ويمكن الحجز أيضًا من تبويب <span class="ui">الحجز</span> في صفحة السيارة.</p>
+
+<h2 id="h22"><span class="pm">QQ022QQ</span>عمليات البيع</h2>
+<span class="who">العرض: «عرض المبيعات» (المندوب يرى مبيعاته) · الإنشاء: «إنشاء المبيعات» · التأكيد والتسليم والإلغاء والإرجاع: صلاحيات منفصلة</span>
+<p>عملية البيع تمر بمراحل واضحة، وتظهر حالتها كشارة في القائمة وفي صفحة العملية:</p>
+<table>
+  <tr><th>الحالة</th><th>المعنى وما يمكن فعله</th></tr>
+  <tr><td>مسودة</td><td>عرض سعر قابل للتعديل. السيارة تصبح «قيد إتمام البيع». يمكن تسجيل دفعات مقدمة.</td></tr>
+  <tr><td>بانتظار اعتماد السعر</td><td>الخصم تجاوز حد البائع أو السعر أقل من الحد الأدنى؛ تنتظر اعتماد مستخدم آخر.</td></tr>
+  <tr><td>سعر معتمد</td><td>اعتُمد السعر، ويمكن تأكيد البيع.</td></tr>
+  <tr><td>مؤكدة</td><td>السيارة «مباعة»، والسعر والضريبة والتكلفة مثبتة، وجدول الأقساط منشأ. يجري التحصيل وإصدار المستندات.</td></tr>
+  <tr><td>مُسلَّمة</td><td>سُلّمت السيارة واعتُرف بالإيراد وتكلفة المبيعات (في الإعداد الافتراضي).</td></tr>
+  <tr><td>ملغاة / مرتجعة</td><td>أُلغيت قبل التسليم، أو أُرجعت السيارة بعده؛ تُعكس القيود ويصبح المقبوض رصيدًا للعميل.</td></tr>
+</table>
+<figure class="shot" id="fig-sale-list"><div class="frame" style="width:100.0%"><img src="images/sale-list.jpg" alt="قائمة عمليات البيع"><span class="hl" style="left:2.7210884353741496%;top:11.565972222222221%;width:12.34454719387755%;height:4.444444444444445%"></span><span class="mk" style="left:15.0656356292517%;top:11.565972222222221%">1</span><span class="hl" style="left:59.360384778911566%;top:20.288194444444443%;width:36.47294855442177%;height:4.222222222222222%"></span><span class="mk" style="left:95.83333333333334%;top:20.288194444444443%">2</span></div><figcaption>شكل 21: قائمة عمليات البيع</figcaption></figure>
+<ol class="co">
+  <li><span class="ui">عملية بيع جديدة</span>: يفتح نموذج البيع.</li>
+  <li><b>البحث والتصفية</b>: برقم العملية أو العميل أو رقم المخزون أو الشاسيه، وحسب الحالة وطريقة البيع، و<span class="ui">مبيعاتي فقط</span>. يعرض الجدول الإجمالي و<b>المقبوض</b> لكل عملية.</li>
+</ol>
+
+<h3>نموذج «عملية بيع جديدة»</h3>
+<figure class="shot" id="fig-sale-new"><div class="frame" style="width:89.4%"><img src="images/sale-new.jpg" alt="نموذج البيع بالتقسيط مع ملخص الحساب المباشر"><span class="hl" style="left:38.52040816326531%;top:18.821407095610343%;width:56.97278911564626%;height:2.285027059530968%"></span><span class="mk" style="left:95.49319727891157%;top:18.821407095610343%">1</span><span class="hl" style="left:67.68707482993197%;top:29.172617257967527%;width:27.806122448979593%;height:2.285027059530968%"></span><span class="mk" style="left:95.49319727891157%;top:29.172617257967527%">2</span><span class="hl" style="left:67.68707482993197%;top:41.47154990980157%;width:27.806122448979593%;height:2.285027059530968%"></span><span class="mk" style="left:95.49319727891157%;top:41.47154990980157%">3</span><span class="hl" style="left:38.52040816326531%;top:45.92133944678292%;width:56.97278911564626%;height:1.2111019242333134%"></span><span class="mk" style="left:95.49319727891157%;top:45.92133944678292%">4</span><span class="hl" style="left:23.25813137755102%;top:12.295174383644017%;width:9.990167942176871%;height:1.3980757666867107%"></span><span class="mk" style="left:33.24829931972789%;top:12.295174383644017%">5</span><span class="hl" style="left:36.734693877551024%;top:96.17408298256164%;width:10.254570578231291%;height:2.4052916416115453%"></span><span class="mk" style="left:46.98926445578231%;top:96.17408298256164%">6</span></div><figcaption>شكل 22: نموذج البيع بالتقسيط مع ملخص الحساب المباشر</figcaption></figure>
+<ol class="co">
+  <li><b>السيارة</b>: تُباع السيارات المتاحة، أو المحجوزة للعميل نفسه فقط (يُحوَّل عربونه إلى البيع عند التأكيد). تظهر بطاقة السيارة بحالتها وسعر العرض.</li>
+  <li><b>العميل</b> و<b>تاريخ البيع</b>. ويظهر لمن يملك صلاحية «توزيع الفرص البيعية» حقل <b>مندوب المبيعات</b> للبيع باسم مندوب آخر.</li>
+  <li><b>السعر المتفق عليه</b>: شامل الضريبة أو قبلها حسب إعدادات الشركة (مذكور أسفل الحقل).</li>
+  <li><b>طريقة البيع</b>: <b>نقدًا</b> (يُسدَّد كامل السعر قبل التسليم)، أو <b>تقسيط داخلي</b> (دفعة مقدمة + طريقة حساب الفائدة: ثابتة / رصيد متناقص / بدون فوائد + نسبة الفائدة السنوية + عدد الأقساط + دورية السداد + تاريخ أول قسط + رسوم إدارية اختيارية تُوزَّع على الأقساط)، أو <b>تمويل خارجي</b> (اسم جهة التمويل ورقم المرجع والمبلغ الذي ستدفعه للمعرض).</li>
+  <li><b>ملخص الحساب</b>: يُحدَّث فورًا: سعر العرض، والخصم ونسبته، والصافي قبل الضريبة، والضريبة، والإجمالي، والدفعة المقدمة، والمبلغ الممول، و<b>المستحق قبل التسليم</b>، وجدول الأقساط المقترح. ويبيّن إن كان السعر ضمن صلاحياتك أو <b>يتطلب اعتماد السعر</b>.</li>
+  <li><span class="ui">حفظ عملية البيع</span>: تُحفظ كمسودة (أو بانتظار اعتماد السعر).</li>
+</ol>
+<p><b>سيارات الاستبدال</b>: زر <span class="ui">إضافة سيارة استبدال</span> يسجّل سيارة العميل القديمة وقيمتها المتفق عليها (حتى 3 سيارات)؛ تُخصم القيمة من المستحق على العميل، وتدخل السيارة المخزون بحالة «واردة حديثًا» وبتكلفة تساوي القيمة المتفق عليها عند تأكيد البيع.</p>
+<div class="box warn"><b>التقسيط الداخلي</b>يجب تفعيل «وحدة التقسيط الداخلي» من إعدادات الشركة أولًا، وإلا يرفض النظام هذه الطريقة. وإذا غطّت الدفعة المقدمة السعر كاملًا يطلب منك النظام اختيار البيع النقدي.</div>
+
+<h3>صفحة عملية البيع: اعتماد السعر</h3>
+<figure class="shot" id="fig-sale-pending"><div class="frame" style="width:100.0%"><img src="images/sale-pending.jpg" alt="عملية بخصم يتجاوز حد المندوبة، كما يراها مدير المبيعات"><span class="hl" style="left:71.54549319727892%;top:10.67471590909091%;width:10.13499149659864%;height:2%"></span><span class="mk" style="left:81.68048469387756%;top:10.67471590909091%">1</span><span class="hl" style="left:70.41214923469387%;top:16.678977272727273%;width:10.472470238095239%;height:3.6363636363636362%"></span><span class="mk" style="left:80.88461947278913%;top:16.678977272727273%">2</span><span class="hl" style="left:81.56489158163265%;top:16.678977272727273%;width:7.356770833333333%;height:3.6363636363636362%"></span><span class="mk" style="left:88.92166241496598%;top:16.678977272727273%">3</span></div><figcaption>شكل 23: عملية بخصم يتجاوز حد المندوبة، كما يراها مدير المبيعات</figcaption></figure>
+<ol class="co">
+  <li>تنبيه <b>بانتظار اعتماد السعر</b> مع السبب (تجاوز حد الخصم أو أقل من الحد الأدنى) ومن طلبه ومتى.</li>
+  <li><span class="ui">اعتماد السعر</span>: لمن يملك صلاحية اعتماد الخصومات (أو البيع دون الحد الأدنى)، مع ملاحظة اختيارية. لا يستطيع البائع نفسه اعتماده.</li>
+  <li><span class="ui">رفض</span>: تعود العملية مسودة مع السبب؛ يستطيع البائع تعديل السعر (فيُعاد طلب الاعتماد) أو إلغاء العملية.</li>
+</ol>
+<p>في رأس الصفحة أيضًا: <span class="ui">تعديل</span> (قبل التأكيد فقط)، و<span class="ui">تسجيل دفعة</span>، و<span class="ui">قرار التمويل</span> (للتمويل الخارجي: تسجيل موافقة أو رفض جهة التمويل؛ لا يمكن التسليم قبل الموافقة)، و<span class="ui">إلغاء العملية</span>. وتعرض البطاقات العلوية: الإجمالي، والمقبوض للعملية (دفعات + قيمة الاستبدال + العربون)، والمتبقي قبل التسليم، والذمة بعد الاعتراف بالإيراد.</p>
+
+<h3>تأكيد البيع</h3>
+<div class="two">
+<div><figure class="shot" id="fig-sale-confirm-dialog"><div class="frame" style="width:99.4%"><img src="images/sale-confirm-dialog.jpg" alt="نافذة تأكيد البيع"></div><figcaption>شكل 24: نافذة تأكيد البيع</figcaption></figure></div>
+<div><p>زر <span class="ui">تأكيد البيع</span> (صلاحية «تأكيد المبيعات») يعرض ما سيحدث: تصبح السيارة «مباعة» ولا يمكن بيعها لعميل آخر، ويُثبَّت السعر والضريبة بتكلفة السيارة الحالية، ويُنشأ جدول الأقساط ويُثبَّت (للتقسيط)، وتدخل سيارات الاستبدال المخزون، ويُحوَّل عربون الحجز إلى العملية. تبقى المبالغ المقبوضة <b>دفعات مقدمة</b> حتى الاعتراف بالإيراد. وإذا كان للبائع سياسة عمولة تُنشأ عمولته «متوقعة».</p></div>
+</div>
+
+<h3>التحصيل والمستندات والتسليم</h3>
+<figure class="shot" id="fig-sale-awaiting"><div class="frame" style="width:100.0%"><img src="images/sale-awaiting.jpg" alt="عملية مؤكدة تنتظر التسليم (مدفوع جزء من الثمن)"><span class="hl" style="left:26.012436224489793%;top:12.139880952380953%;width:10.690369897959185%;height:3.8095238095238098%"></span><span class="mk" style="left:36.702806122448976%;top:12.139880952380953%">1</span><span class="hl" style="left:2.7210884353741496%;top:12.139880952380953%;width:11.10889668367347%;height:3.8095238095238098%"></span><span class="mk" style="left:13.829985119047619%;top:12.139880952380953%">2</span><span class="hl" style="left:14.510257227891158%;top:12.139880952380953%;width:10.821906887755102%;height:3.8095238095238098%"></span><span class="mk" style="left:25.33216411564626%;top:12.139880952380953%">3</span></div><figcaption>شكل 25: عملية مؤكدة تنتظر التسليم (مدفوع جزء من الثمن)</figcaption></figure>
+<ol class="co">
+  <li><span class="ui">تسجيل دفعة</span>: سند قبض على العملية من خزينة أو حساب بنكي.</li>
+  <li><span class="ui">تسليم السيارة</span>: يتحقق من شروط التسليم قبل التنفيذ.</li>
+  <li><span class="ui">إصدار مستند</span>: عقد البيع أو الفاتورة أو محضر التسليم.</li>
+  <li><span class="ui">إلغاء العملية</span>: متاح قبل التسليم (إلغاء المؤكدة يحتاج صلاحية خاصة).</li>
+</ol>
+<div class="two">
+<div><figure class="shot" id="fig-sale-payment-dialog"><div class="frame" style="width:99.4%"><img src="images/sale-payment-dialog.jpg" alt="نافذة تسجيل دفعة"></div><figcaption>شكل 26: نافذة تسجيل دفعة</figcaption></figure></div>
+<div>
+<p><b>تسجيل دفعة</b>: اختر <b>حساب النقدية / البنك</b>، واكتب <b>المبلغ</b> (افتراضيًا المتبقي على المستند)، و<b>طريقة الدفع</b> (نقدًا، تحويل بنكي، بطاقة، شيك، شركة تمويل، أخرى)، و<b>المرجع</b> و<b>تاريخ الاستلام</b>. إذا كان الحساب بعملة أجنبية يظهر حقل سعر الصرف والمعادل بالعملة الأساسية.</p>
+<div class="box acct"><b>الأثر المحاسبي</b>قبل الاعتراف بالإيراد تُسجَّل الدفعة مقدمًا على العملية (مدين النقدية / دائن دفعات مقدمة 2100) ولا تُعد إيرادًا. بعد الاعتراف تُخصم من ذمة العميل مباشرة (دائن ذمم العملاء 1200).</div>
+<p>لا يمكن التسجيل بتاريخ يوم خزينة مغلق. ولكل دفعة زر <span class="ui">إلغاء</span> في جدول الدفعات (قيد عكسي).</p>
+</div>
+</div>
+<div class="two">
+<div><figure class="shot" id="fig-sale-approve-dialog"><div class="frame" style="width:99.4%"><img src="images/sale-approve-dialog.jpg" alt="نافذة اعتماد سعر عملية البيع"></div><figcaption>شكل 27: نافذة اعتماد سعر عملية البيع</figcaption></figure></div>
+<div><figure class="shot" id="fig-sale-document-dialog"><div class="frame" style="width:77.3%"><img src="images/sale-document-dialog.jpg" alt="نافذة إصدار مستند"></div><figcaption>شكل 28: نافذة إصدار مستند</figcaption></figure></div>
+</div>
+<p><b>المستندات</b>: <span class="ui">إصدار مستند</span> يختار نوع المستند (عقد البيع، الفاتورة، محضر التسليم) و<b>لغة المستند</b>. يُحفظ المستند بأرقام متسلسلة كما هو وقت الإصدار ولا يتأثر بأي تعديل لاحق، ويُفتح بزر <span class="ui">PDF</span>. يمكن إلغاء مستند قبل التسليم فقط ثم إصدار غيره. <b>المستندات تجارية وليست فاتورة إلكترونية معتمدة</b> لدى أي جهة ضريبية.</p>
+<div class="two">
+<div><figure class="shot" id="fig-sale-deliver-dialog"><div class="frame" style="width:99.4%"><img src="images/sale-deliver-dialog.jpg" alt="نافذة التسليم: الشروط غير مستوفاة"></div><figcaption>شكل 29: نافذة التسليم: الشروط غير مستوفاة</figcaption></figure></div>
+<div>
+<p><b>تسليم السيارة</b> يشترط: إصدار <b>الفاتورة</b>، وسداد <b>المستحق قبل التسليم</b> (أو الدفعة المقدمة للتقسيط)، وموافقة جهة التمويل للتمويل الخارجي. تعرض النافذة الشروط الناقصة؛ ويوجد فيها زر <span class="ui">إصدار الفاتورة</span> مباشرة.</p>
+<p>من يملك صلاحية «التسليم مع وجود رصيد مستحق» يستطيع <span class="ui">تسليم برصيد مستحق</span> مع كتابة السبب (يُسجَّل في سجل التدقيق ويبقى الرصيد ذمة على العميل). ويمكن تسجيل قراءة العداد عند التسليم.</p>
+<div class="box acct"><b>الأثر المحاسبي عند التسليم</b>يُعترف بالإيراد: ذمة العميل بالإجمالي، مقابل الإيراد الصافي (4000) والضريبة المستحقة (2200)؛ وتُنقل تكلفة السيارة من المخزون (1300) إلى تكلفة المبيعات (5000)؛ وتُطبَّق المبالغ المقبوضة مقدمًا على الذمة. وفي التقسيط تُسجَّل الفوائد والرسوم إيرادًا مؤجلًا (2400) يُعترف به مع تحصيل كل قسط.</div>
+</div>
+</div>
+<h3>صفحة عملية مُسلَّمة</h3>
+<figure class="shot" id="fig-sale-cash"><div class="frame" style="width:79.0%"><img src="images/sale-cash.jpg" alt="عملية بيع نقدي مُسلَّمة"><span class="hl" style="left:52.12585034013606%;top:11.11243206521739%;width:19.727891156462583%;height:0.8695652173913043%"></span><span class="mk" style="left:71.85374149659864%;top:11.11243206521739%">1</span><span class="hl" style="left:22.1234587585034%;top:17.742866847826086%;width:6.8731398809523805%;height:1.263586956521739%"></span><span class="mk" style="left:28.996598639455783%;top:17.742866847826086%">2</span><span class="hl" style="left:71.68234481292517%;top:27.880434782608692%;width:23.810852465986397%;height:1.263586956521739%"></span><span class="mk" style="left:95.49319727891157%;top:27.880434782608692%">3</span><span class="hl" style="left:22.393176020408163%;top:48.995414402173914%;width:6.6034226190476195%;height:1.263586956521739%"></span><span class="mk" style="left:28.996598639455783%;top:48.995414402173914%">4</span><span class="hl" style="left:23.058832908163264%;top:60.11888586956522%;width:5.937765731292517%;height:1.263586956521739%"></span><span class="mk" style="left:28.996598639455783%;top:60.11888586956522%">5</span><span class="hl" style="left:2.7210884353741496%;top:6.927649456521739%;width:10.627923044217686%;height:2.1739130434782608%"></span><span class="mk" style="left:13.349011479591837%;top:6.927649456521739%">6</span></div><figcaption>شكل 30: عملية بيع نقدي مُسلَّمة</figcaption></figure>
+<ol class="co">
+  <li><b>البطاقات العلوية</b>: الإجمالي، والمقبوض للعملية، والمتبقي قبل التسليم، والذمة بعد الاعتراف بالإيراد وتاريخه.</li>
+  <li><b>تفاصيل السعر</b>: سعر العرض، والحد الأدنى، والسعر المتفق عليه، والخصم ونسبته، والصافي، والضريبة، والإجمالي.</li>
+  <li><b>المستندات</b> الصادرة وحالتها وروابط PDF.</li>
+  <li><b>التكلفة والربح</b>: تكلفة السيارة عند التأكيد، وتكلفة المبيعات المرحَّلة، ومجمل الربح. (تظهر لمن يملك صلاحية عرض التكلفة والربح.)</li>
+  <li><b>عمولة البائع</b>: مبلغها وأساس احتسابها وشرط استحقاقها وحالتها، مع رابط لصفحة العمولات.</li>
+  <li><span class="ui">إرجاع السيارة</span>: للعمليات المُسلَّمة فقط (لا تُلغى المُسلَّمة).</li>
+</ol>
+<div class="two">
+<div><figure class="shot" id="fig-sale-return-dialog"><div class="frame" style="width:77.3%"><img src="images/sale-return-dialog.jpg" alt="نافذة إرجاع السيارة"></div><figcaption>شكل 31: نافذة إرجاع السيارة</figcaption></figure></div>
+<div><p><b>الإرجاع</b> (صلاحية «معالجة المرتجعات») يعيد السيارة إلى المخزون بحالة «مرتجعة» وبتكلفتها، ويعكس الإيراد والضريبة وتكلفة المبيعات وخطة التقسيط إن وُجدت، ويجعل كل المقبوض <b>رصيدًا للعميل قابلًا للاسترداد</b>، ويصدر إشعارًا دائنًا مرتبطًا بالفاتورة، ويعكس عمولة البائع أو يستردها منه. السبب إلزامي.</p>
+<p><b>الإلغاء قبل التسليم</b> يعيد السيارة «متاحة» (أو محجوزة)، ويلغي سيارات الاستبدال المسجلة، ويعكس القيود، ويلغي العقد ويصدر إشعارًا دائنًا إن صدرت الفاتورة. يبقى المقبوض رصيدًا للعميل يُرد بطلب استرداد معتمد.</p></div>
+</div>
+
+<h2 id="h23"><span class="pm">QQ023QQ</span>التقسيط</h2>
+<span class="who">العرض: «عرض خطط التقسيط» · التحصيل: «تحصيل الأقساط» · السداد المبكر: «السداد المبكر»</span>
+<p>تُنشأ خطة التقسيط تلقائيًا عند تأكيد عملية بيع بالتقسيط، وتكون «مجدولة (قبل التسليم)» ثم تصبح «نشطة» بعد التسليم، ويبدأ تحصيل الأقساط عندها. صفحة <span class="ui">التقسيط</span> تعرض الخطط مع المتبقي والمتأخر والقسط القادم، مع خيار <span class="ui">المتأخرة فقط</span>.</p>
+<figure class="shot" id="fig-sale-inst"><div class="frame" style="width:89.5%"><img src="images/sale-inst.jpg" alt="عملية بيع بالتقسيط مُسلَّمة: تفاصيل السعر والمبلغ الممول وخطة التقسيط"></div><figcaption>شكل 32: عملية بيع بالتقسيط مُسلَّمة: تفاصيل السعر والمبلغ الممول وخطة التقسيط</figcaption></figure>
+<figure class="shot" id="fig-inst-list"><div class="frame" style="width:79.0%"><img src="images/inst-list.jpg" alt="قائمة خطط التقسيط"></div><figcaption>شكل 33: قائمة خطط التقسيط</figcaption></figure>
+<figure class="shot" id="fig-inst-plan"><div class="frame" style="width:100.0%"><img src="images/inst-plan.jpg" alt="صفحة خطة التقسيط"><span class="hl" style="left:2.7210884353741496%;top:10.988685344827587%;width:10.933514030612244%;height:3.4482758620689653%"></span><span class="mk" style="left:13.654602465986395%;top:10.988685344827587%">1</span><span class="hl" style="left:77.80080782312925%;top:75.234375%;width:17.692389455782312%;height:2.004310344827586%"></span><span class="mk" style="left:95.49319727891157%;top:75.234375%">2</span><span class="hl" style="left:86.86357355442176%;top:26.419719827586206%;width:8.629623724489797%;height:2.004310344827586%"></span><span class="mk" style="left:95.49319727891157%;top:26.419719827586206%">3</span></div><figcaption>شكل 34: صفحة خطة التقسيط</figcaption></figure>
+<ol class="co">
+  <li><span class="ui">تحصيل قسط</span>: سند قبض يُوزَّع تلقائيًا على أقدم الأقساط غير المسددة، حسب ترتيب التوزيع (الرسوم ← الفائدة ← الأصل).</li>
+  <li><b>جدول الأقساط</b>: لكل قسط تاريخ استحقاقه وأصله وفائدته ورسومه والمسدد والمتبقي وحالته (مستحق، مسدد جزئيًا، متأخر، مسدد، متنازل عنه).</li>
+  <li><b>السداد المبكر</b>: اختر «حتى تاريخ» و<b>سياسة الفوائد المستقبلية</b> (إسقاط كل الفوائد المستقبلية، أو احتساب فائدة الفترة الحالية فقط، أو احتساب كل الفوائد المتبقية) فيُحسب مبلغ السداد والفوائد المتنازل عنها؛ ثم <span class="ui">سداد مبكر للخطة</span> من حساب بالعملة الأساسية بالمبلغ المعروض تمامًا.</li>
+</ol>
+<div class="box note"><b>غرامات التأخير</b>لا يحتسب النظام غرامات تأخير حاليًا. ويُرسل تنبيهًا لمسؤول المبيعات قبل استحقاق القسط وعند تأخره.</div>
+<figure class="shot" id="fig-inst-collect"><div class="frame" style="width:49.0%"><img src="images/inst-collect.jpg" alt="نافذة تحصيل قسط"></div><figcaption>شكل 35: نافذة تحصيل قسط</figcaption></figure>
+
+<h2 id="h24"><span class="pm">QQ024QQ</span>العمولات</h2>
+<span class="who">«عرض جميع العمولات» أو «عرض عمولاتي» · الاعتماد: «اعتماد العمولات» · الصرف: «صرف العمولات»</span>
+<p>تُحسب عمولة البائع تلقائيًا من <b>سياسة العمولة</b> المسندة إليه (انظر فصل الإعدادات)، وتمر بالحالات: <b>متوقعة</b> (عند تأكيد البيع) ← <b>مستحقة</b> (عند التسليم أو عند سداد كامل الثمن حسب السياسة) ← <b>معتمدة</b> ← <b>مصروفة</b>. وإذا أُلغي البيع أو أُرجع تُعكس العمولة («معكوسة»)، أو تُسترد من الموظف إن كانت قد صُرفت («مستردة من الموظف»).</p>
+<figure class="shot" id="fig-comm-list"><div class="frame" style="width:100.0%"><img src="images/comm-list.jpg" alt="صفحة العمولات كما تراها المحاسبة"><span class="hl" style="left:4.166666666666666%;top:54.37499999999999%;width:9.531781462585034%;height:3.5555555555555554%"></span><span class="mk" style="left:13.6984481292517%;top:54.37499999999999%">1</span><span class="hl" style="left:4.166666666666666%;top:61.15277777777778%;width:6.726987670068027%;height:3.5555555555555554%"></span><span class="mk" style="left:10.893654336734695%;top:61.15277777777778%">2</span></div><figcaption>شكل 36: صفحة العمولات كما تراها المحاسبة</figcaption></figure>
+<ol class="co">
+  <li><span class="ui">صرف العمولة</span>: للعمولة المعتمدة؛ اختر حسابًا بالعملة الأساسية وطريقة الدفع وتاريخ الصرف.</li>
+  <li><span class="ui">اعتماد</span>: للعمولة المستحقة؛ يعتمدها مستخدم غير صاحبها («لا يمكنك اعتماد عمولتك»).</li>
+</ol>
+<div class="box acct"><b>الأثر المحاسبي</b>عند الاستحقاق: مصروف عمولات (6100) مقابل عمولات مستحقة للموظف (2300). وعند الصرف: تُسدَّد المستحقات من الخزينة.</div>
+<p>يرى مندوب المبيعات في الصفحة نفسها عمولاته فقط («عمولاتك على عمليات البيع»):</p>
+<figure class="shot" id="fig-comm-own"><div class="frame" style="width:79.0%"><img src="images/comm-own.jpg" alt="صفحة العمولات كما تراها مندوبة المبيعات"></div><figcaption>شكل 37: صفحة العمولات كما تراها مندوبة المبيعات</figcaption></figure>
+
+<h1 id="h25"><span class="pm">QQ025QQ</span>العملاء<small>العملاء، الفرص البيعية، المتابعات، المواعيد وتجارب القيادة، طلبات السيارات، استفسارات المعرض</small></h1>
+<p>تضم مجموعة <b>العملاء</b> في القائمة الجانبية: <span class="ui">العملاء</span>، <span class="ui">الفرص البيعية</span>، <span class="ui">متابعاتي</span>، <span class="ui">المواعيد</span>، <span class="ui">طلبات السيارات</span>، <span class="ui">استفسارات المعرض</span>.</p>
+<div class="box note"><b>من يرى أي عميل؟</b>مندوب المبيعات يرى العملاء المسندين إليه والعملاء الذين أضافهم فقط. ومن يملك صلاحية «عرض عملاء جميع الموظفين» (مدير المبيعات، مدير الفرع، المحاسب) يرى كل عملاء فروعه.</div>
+
+<h2 id="h26"><span class="pm">QQ026QQ</span>قائمة العملاء</h2>
+<span class="who">العرض: «عرض العملاء» · الإضافة والتعديل: «إدارة العملاء»</span>
+<figure class="shot" id="fig-cust-list"><div class="frame" style="width:100.0%"><img src="images/cust-list.jpg" alt="قائمة العملاء"><span class="hl" style="left:2.7210884353741496%;top:11.565972222222221%;width:9.988839285714286%;height:4.444444444444445%"></span><span class="mk" style="left:12.709927721088436%;top:11.565972222222221%">1</span><span class="hl" style="left:76.18516156462584%;top:25.84375%;width:19.648171768707485%;height:4.222222222222222%"></span><span class="mk" style="left:95.83333333333334%;top:25.84375%">2</span></div><figcaption>شكل 38: قائمة العملاء</figcaption></figure>
+<ol class="co">
+  <li><span class="ui">عميل جديد</span>: يفتح نموذج إضافة عميل.</li>
+  <li><b>البحث</b> بالاسم أو الجوال أو البريد أو <b>رقم الهوية الكامل</b>، مع التصفية حسب نوع العميل (فرد/شركة) والفرع ومسؤول المبيعات والترتيب، و<span class="ui">عملائي فقط</span>. التبويبات: النشطون، غير النشطين، الكل.</li>
+</ol>
+<p>يعرض الجدول لكل عميل نوعه وجواله ومسؤول المبيعات وعدد <b>الفرص المفتوحة</b> و<b>آخر تواصل</b> والفرع. اضغط على الاسم لفتح ملف العميل.</p>
+
+<h2 id="h27"><span class="pm">QQ027QQ</span>إضافة عميل وتعديله</h2>
+<figure class="shot" id="fig-cust-new"><div class="frame" style="width:99.0%"><img src="images/cust-new.jpg" alt="نموذج إضافة عميل"><span class="hl" style="left:54.93197278911565%;top:29.357849251603707%;width:16.75170068027211%;height:2.70848182466144%"></span><span class="mk" style="left:71.68367346938776%;top:29.357849251603707%">1</span><span class="hl" style="left:12.71125637755102%;top:13.005612972202425%;width:18.836362670068027%;height:1.6571632216678547%"></span><span class="mk" style="left:31.547619047619047%;top:13.005612972202425%">2</span><span class="hl" style="left:10.097789115646258%;top:41.91910192444761%;width:21.44982993197279%;height:2.851033499643621%"></span><span class="mk" style="left:31.547619047619047%;top:41.91910192444761%">3</span></div><figcaption>شكل 39: نموذج إضافة عميل</figcaption></figure>
+<p>النموذج مقسم إلى أقسام:</p>
+<ul>
+  <li><b>البيانات الأساسية</b>: نوع العميل (فرد أو شركة؛ للشركة يظهر اسم الشركة واسم الشخص المسؤول)، الاسم الكامل، مصدر العميل (زيارة المعرض، اتصال، واتساب، الموقع، المعرض الرقمي، توصية، وسائل التواصل، منصات الإعلانات، حملة، أخرى)، لغة التواصل.</li>
+  <li><b>بيانات التواصل</b>: الجوال (يُقبل بالصيغة المحلية مثل 0501234567)، واتساب، هاتف إضافي، البريد، المدينة، العنوان.</li>
+  <li><b>الهوية والبيانات الرسمية</b>: رقم الهوية / الإقامة (يُحفظ مشفّرًا ويظهر منه آخر 4 أرقام فقط، ولا يتكرر بين عميلين)، الجنسية، تاريخ الميلاد، السجل التجاري، الرقم الضريبي.</li>
+  <li><b>الإسناد والملاحظات</b>: الفرع، مسؤول المبيعات (لمن يحق له الإسناد)، الوسوم (مثل VIP، أسطول)، ملاحظات، و<b>موافقة على الرسائل التسويقية</b>.</li>
+</ul>
+<p>بطاقة <b>التحقق من التكرار</b> تبحث تلقائيًا أثناء الكتابة عن عملاء بالبيانات نفسها: إذا تطابق <b>رقم الهوية</b> يُمنع الحفظ ويُطلب فتح ملف العميل الموجود؛ وإذا تطابق <b>الجوال</b> فقط (كأفراد عائلة يتشاركون رقمًا) يمكنك المتابعة بعد تأكيد «أؤكد أنه عميل مختلف»، ويُسجَّل هذا التأكيد في سجل التدقيق.</p>
+
+<h2 id="h28"><span class="pm">QQ028QQ</span>ملف العميل (العميل 360)</h2>
+<figure class="shot" id="fig-cust-360"><div class="frame" style="width:89.3%"><img src="images/cust-360.jpg" alt="ملف العميل: كل ما يخصه في صفحة واحدة"><span class="hl" style="left:24.88972151360544%;top:8.859080188679245%;width:11.587213010204081%;height:2.6954177897574128%"></span><span class="mk" style="left:36.476934523809526%;top:8.859080188679245%">1</span><span class="hl" style="left:10.908269557823129%;top:8.859080188679245%;width:13.301179846938776%;height:2.6954177897574128%"></span><span class="mk" style="left:24.209449404761905%;top:8.859080188679245%">2</span><span class="hl" style="left:2.7210884353741496%;top:8.859080188679245%;width:7.506909013605442%;height:2.6954177897574128%"></span><span class="mk" style="left:10.227997448979592%;top:8.859080188679245%">3</span><span class="hl" style="left:20.582217261904763%;top:38.73715464959569%;width:3.535554846938776%;height:1.078167115902965%"></span><span class="mk" style="left:24.11777210884354%;top:38.73715464959569%">4</span><span class="hl" style="left:4.506802721088436%;top:69.26276111859838%;width:10.069887329931973%;height:2.15633423180593%"></span><span class="mk" style="left:14.576690051020408%;top:69.26276111859838%">5</span><span class="hl" style="left:20.256696428571427%;top:94.8207968328841%;width:9.590242346938775%;height:2.15633423180593%"></span><span class="mk" style="left:29.846938775510207%;top:94.8207968328841%">6</span></div><figcaption>شكل 40: ملف العميل: كل ما يخصه في صفحة واحدة</figcaption></figure>
+<ol class="co">
+  <li><span class="ui">تسجيل تواصل</span>: مكالمة أو واتساب أو زيارة… (انظر النافذة أدناه).</li>
+  <li><span class="ui">فرصة بيعية جديدة</span> لهذا العميل.</li>
+  <li><span class="ui">تعديل</span> بيانات العميل.</li>
+  <li><span class="ui">إظهار</span>: يكشف رقم الهوية كاملًا لمن يملك صلاحية «عرض أرقام الهوية»؛ ويُسجَّل كل اطلاع في سجل التدقيق.</li>
+  <li><span class="ui">تغيير المسؤول</span> (أو <span class="ui">إسناد</span>): ينقل العميل إلى مسؤول مبيعات آخر، ويصله تنبيه.</li>
+  <li><span class="ui">إيقاف العميل</span>: يخفيه من القوائم النشطة ويمنع تسجيل فرص أو تواصل جديد له (يبقى سجله كاملًا ويمكن <span class="ui">إعادة التفعيل</span>). لا يمكن إيقاف عميل له حجز ساري.</li>
+</ol>
+<p>البطاقات العلوية: الفرص المفتوحة، الحجوزات السارية، آخر تواصل وعدد مرات التواصل، و<b>رصيد دفعات مقدمة</b> (مبالغ مستلمة لم تُخصص بعد). والتبويبات: <b>سجل التواصل</b> (مع تصفية حسب النوع)، <b>الفرص البيعية</b>، <b>الحجوزات</b>، <b>المقبوضات</b>، <b>المواعيد</b>، <b>طلبات السيارات</b>.</p>
+<div class="two">
+<div><figure class="shot" id="fig-cust-interaction"><div class="frame" style="width:99.4%"><img src="images/cust-interaction.jpg" alt="نافذة تسجيل تواصل"></div><figcaption>شكل 41: نافذة تسجيل تواصل</figcaption></figure></div>
+<div>
+<p><b>تسجيل تواصل</b>: اختر <b>نوع التواصل</b> (مكالمة، واتساب، رسالة نصية، بريد، زيارة، اجتماع، ملاحظة، تجربة قيادة، عرض سعر) و<b>الاتجاه</b> (وارد/صادر) و<b>وقت التواصل</b> (لا يقبل وقتًا مستقبليًا)، واكتب <b>ملخص التواصل</b> و<b>النتيجة</b>.</p>
+<p>يمكن ربط التواصل بـ<b>فرصة بيعية</b> وتحديد <b>المتابعة القادمة</b> فيتحدّث موعد متابعة الفرصة، أو اختيار «تمت المتابعة — إلغاء موعد المتابعة الحالي».</p>
+<p class="box tip"><b>نصيحة</b>سجّل كل اتصال فور انتهائه؛ هكذا يرى زملاؤك والمدير تاريخ العميل كاملًا إذا انتقل لمندوب آخر.</p>
+</div>
+</div>
+
+<h2 id="h29"><span class="pm">QQ029QQ</span>الفرص البيعية ومسار المبيعات</h2>
+<span class="who">العرض: «عرض الفرص البيعية» · الإنشاء والنقل: «إدارة الفرص البيعية» · الإسناد لغيرك: «توزيع الفرص البيعية»</span>
+<p><b>الفرصة البيعية</b> هي اهتمام عميل محدد بالشراء: لها مصدر وميزانية وسيارة مطلوبة ومرحلة في <b>مسار المبيعات</b>. المراحل الافتراضية: جديد ← تم التواصل ← مؤهل ← تجربة قيادة ← تفاوض ← محجوز / عربون ← تم البيع (ربح) أو خسارة. لكل مرحلة احتمالية إغلاق، ويمكن تخصيصها من <span class="ui">مراحل المبيعات</span> في الإعدادات.</p>
+<figure class="shot" id="fig-lead-board"><div class="frame" style="width:100.0%"><img src="images/lead-board.jpg" alt="لوحة المراحل (Kanban)"><span class="hl" style="left:6.642512077294686%;top:10.409375%;width:7.522833635265701%;height:4%"></span><span class="mk" style="left:14.165345712560388%;top:10.409375%">1</span><span class="hl" style="left:14.829596920289855%;top:10.801562500000001%;width:4.4034948671497585%;height:3.2140625%"></span><span class="mk" style="left:19.233091787439612%;top:10.801562500000001%">2</span><span class="hl" style="left:6.642512077294686%;top:24.709375%;width:86.71497584541062%;height:1.6%"></span><span class="mk" style="left:93.35748792270532%;top:24.709375%">3</span></div><figcaption>شكل 42: لوحة المراحل (Kanban)</figcaption></figure>
+<ol class="co">
+  <li><span class="ui">فرصة جديدة</span>: اختر العميل ثم تفاصيل اهتمامه (الفرع، المصدر، السيارة المطلوبة، الميزانية من/إلى، طريقة الدفع المفضلة، تاريخ الإغلاق المتوقع، موعد المتابعة، الاهتمامات). المندوب تُسند الفرصة إليه تلقائيًا.</li>
+  <li><b>طريقة العرض</b>: <span class="ui">لوحة المراحل</span> أو <span class="ui">قائمة</span> (جدول قابل للبحث مع «متابعات مستحقة»).</li>
+  <li><b>السحب والإفلات</b>: اسحب بطاقة الفرصة إلى عمود مرحلة أخرى لنقلها، أو استخدم قائمة الإجراءات (⋮) في البطاقة. تعرض رأس كل عمود عدد الفرص ومجموع الميزانيات والاحتمالية.</li>
+</ol>
+<p>يمكن التصفية حسب الفرع والمصدر ومسؤول المبيعات و<span class="ui">فرصي فقط</span>. تظهر على البطاقة تاريخ المتابعة بالأحمر إذا تأخر.</p>
+<figure class="shot" id="fig-lead-list"><div class="frame" style="width:86.2%"><img src="images/lead-list.jpg" alt="الفرص البيعية بعرض القائمة"></div><figcaption>شكل 43: الفرص البيعية بعرض القائمة</figcaption></figure>
+<figure class="shot" id="fig-lead-detail"><div class="frame" style="width:100.0%"><img src="images/lead-detail.jpg" alt="صفحة الفرصة البيعية"><span class="hl" style="left:28.61660289115646%;top:12.473315939278939%;width:11.058407738095239%;height:3.795066413662239%"></span><span class="mk" style="left:39.6750106292517%;top:12.473315939278939%">1</span><span class="hl" style="left:15.195843962585034%;top:12.473315939278939%;width:12.740486819727892%;height:3.795066413662239%"></span><span class="mk" style="left:27.936330782312922%;top:12.473315939278939%">2</span><span class="hl" style="left:2.7210884353741496%;top:12.473315939278939%;width:11.794483418367346%;height:3.795066413662239%"></span><span class="mk" style="left:14.515571853741497%;top:12.473315939278939%">3</span><span class="hl" style="left:4.506802721088436%;top:61.35851518026565%;width:9.18765943877551%;height:3.0360531309297913%"></span><span class="mk" style="left:13.694462159863946%;top:61.35851518026565%">4</span></div><figcaption>شكل 44: صفحة الفرصة البيعية</figcaption></figure>
+<ol class="co">
+  <li><span class="ui">نقل إلى مرحلة</span>: اختيار مرحلة مفتوحة أخرى مع ملاحظة.</li>
+  <li><span class="ui">تسجيل كبيع ناجح</span>: يغلق الفرصة كربح. (تُغلق تلقائيًا كربح عند تأكيد عملية بيع مرتبطة بها.)</li>
+  <li><span class="ui">تسجيل كخسارة</span>: يطلب <b>سبب الخسارة</b> (السعر، اشترى من مكان آخر، رُفض التمويل، لا يرد، بيعت السيارة، غيّر رأيه، غير مؤهل، سبب آخر) وتفاصيل إضافية. يمكن لاحقًا <span class="ui">إعادة فتح</span> الفرصة ما لم ترتبط بعملية بيع.</li>
+  <li><span class="ui">تحديد موعد</span> / <span class="ui">إعادة الجدولة</span>: موعد المتابعة القادمة.</li>
+</ol>
+<p>شريط التقدّم أعلى الصفحة يبين موقع الفرصة في المسار. والتبويبات: نظرة عامة (مع <span class="ui">تعديل</span>)، سجل المراحل، التواصل، الحجوزات. وفي الجانب: بيانات العميل، والمتابعة القادمة، ومسؤول المبيعات مع زر <span class="ui">إسناد</span>، وحالة السيارة المطلوبة.</p>
+<div class="two">
+<div><figure class="shot" id="fig-lead-lost"><div class="frame" style="width:77.3%"><img src="images/lead-lost.jpg" alt="نافذة تسجيل الخسارة"></div><figcaption>شكل 45: نافذة تسجيل الخسارة</figcaption></figure></div>
+<div><figure class="shot" id="fig-lead-new"><div class="frame" style="width:100.0%"><img src="images/lead-new.jpg" alt="نافذة فرصة بيعية جديدة"></div><figcaption>شكل 46: نافذة فرصة بيعية جديدة</figcaption></figure></div>
+</div>
+
+<h2 id="h30"><span class="pm">QQ030QQ</span>متابعاتي</h2>
+<span class="who">لكل من يملك «عرض الفرص البيعية»؛ يعرض الفرص المسندة إليك فقط</span>
+<p>قائمة عمل يومية بالفرص المسندة إليك والمستحقة المتابعة حتى نهاية اليوم، مقسمة إلى <b>متأخرة</b> و<b>مستحقة اليوم</b>. لكل فرصة زر <span class="ui">تسجيل تواصل</span>، وأزرار سريعة لتأجيل المتابعة: <span class="ui">غدًا</span>، <span class="ui">بعد يومين</span>، <span class="ui">بعد 3 أيام</span>، <span class="ui">بعد أسبوع</span>.</p>
+<figure class="shot" id="fig-follow-ups"><div class="frame" style="width:86.2%"><img src="images/follow-ups.jpg" alt="صفحة متابعاتي لمندوبة المبيعات"></div><figcaption>شكل 47: صفحة متابعاتي لمندوبة المبيعات</figcaption></figure>
+
+<h2 id="h31"><span class="pm">QQ031QQ</span>المواعيد وتجارب القيادة</h2>
+<span class="who">العرض: «عرض المواعيد» · الحجز والإدارة: «إدارة المواعيد وتجارب القيادة»</span>
+<figure class="shot" id="fig-appt-calendar"><div class="frame" style="width:100.0%"><img src="images/appt-calendar.jpg" alt="تقويم المواعيد (عرض أسبوعي)"><span class="hl" style="left:2.7210884353741496%;top:9.755740393626992%;width:9.91576318027211%;height:3.748828491096532%"></span><span class="mk" style="left:12.636851615646258%;top:9.755740393626992%">1</span><span class="hl" style="left:13.317123724489797%;top:9.755740393626992%;width:10.065901360544217%;height:3.748828491096532%"></span><span class="mk" style="left:23.383025085034014%;top:9.755740393626992%">2</span><span class="hl" style="left:88.14439838435374%;top:16.784793814432987%;width:4.287574404761905%;height:2.999062792877226%"></span><span class="mk" style="left:92.43197278911565%;top:16.784793814432987%">3</span><span class="hl" style="left:9.55436862244898%;top:16.964913308341142%;width:6.392166241496598%;height:2.6373594189315837%"></span><span class="mk" style="left:15.946534863945578%;top:16.964913308341142%">4</span></div><figcaption>شكل 48: تقويم المواعيد (عرض أسبوعي)</figcaption></figure>
+<ol class="co">
+  <li><span class="ui">موعد جديد</span>: زيارة، متابعة، تسليم سيارة، فحص، أخرى.</li>
+  <li><span class="ui">تجربة قيادة</span>: موعد من نوع تجربة قيادة مع السيارة ورخصة السائق.</li>
+  <li><span class="ui">اليوم</span> وسهما الفترة السابقة/التالية للتنقل في التقويم.</li>
+  <li><b>طريقة العرض</b>: أسبوع أو يوم. والتصفية حسب الفرع والنوع والحالة، و<span class="ui">مواعيدي فقط</span>، و<span class="ui">إظهار الملغاة</span>.</li>
+</ol>
+<p>الأوقات بتوقيت الشركة. انقر على خانة فارغة في التقويم لحجز موعد في ذلك الوقت. مواعيد الزملاء التي لا يحق لك رؤية تفاصيلها تظهر مخططة باسم «مشغول».</p>
+<div class="two">
+<div><figure class="shot" id="fig-appt-testdrive-new"><div class="frame" style="width:100.0%"><img src="images/appt-testdrive-new.jpg" alt="نافذة حجز تجربة قيادة"></div><figcaption>شكل 49: نافذة حجز تجربة قيادة</figcaption></figure></div>
+<div>
+<p><b>حقول الموعد</b>: نوع الموعد، الفرع، <b>العميل أو الفرصة</b> (بتبديل «عميل / فرصة بيعية»؛ مع الفرصة يُستخدم عميلها)، السيارة، التاريخ، من/إلى، الموظف المسؤول (يُبلَّغ بالموعد ويُمنع الحجز المتداخل له)، العنوان، الملاحظات.</p>
+<p><b>تجربة القيادة</b> تتطلب عميلًا وسيارة <b>متاحة</b> (أو محجوزة للعميل نفسه) في فرع الموعد، ولا تتداخل مع تجربة أخرى للسيارة نفسها. يمكن إدخال <b>رقم رخصة القيادة وتاريخ انتهائها</b> الآن أو عند بدء التجربة، وهي إلزامية قبل تسليم المفتاح، ويُرفض الحجز إذا كانت الرخصة تنتهي قبل الموعد. لا يمكن حجز موعد في وقت مضى، وأقصى مدة 12 ساعة.</p>
+</div>
+</div>
+<figure class="shot" id="fig-appt-new"><div class="frame" style="width:62.0%"><img src="images/appt-new.jpg" alt="نافذة حجز موعد (زيارة)"></div><figcaption>شكل 50: نافذة حجز موعد (زيارة)</figcaption></figure>
+<h3>صفحة الموعد وإجراءاته</h3>
+<figure class="shot" id="fig-appt-upcoming"><div class="frame" style="width:100.0%"><img src="images/appt-upcoming.jpg" alt="تجربة قيادة مؤكدة لم تبدأ بعد"><span class="hl" style="left:38.043420493197274%;top:14.163194444444443%;width:9.667304421768709%;height:4.444444444444445%"></span><span class="mk" style="left:47.710724914965986%;top:14.163194444444443%">1</span><span class="hl" style="left:23.082748724489797%;top:14.163194444444443%;width:14.280399659863946%;height:4.444444444444445%"></span><span class="mk" style="left:37.36314838435374%;top:14.163194444444443%">2</span><span class="hl" style="left:13.584183673469388%;top:14.163194444444443%;width:8.818292942176871%;height:4.444444444444445%"></span><span class="mk" style="left:22.402476615646258%;top:14.163194444444443%">3</span><span class="hl" style="left:2.7210884353741496%;top:14.163194444444443%;width:10.1828231292517%;height:4.444444444444445%"></span><span class="mk" style="left:12.90391156462585%;top:14.163194444444443%">4</span></div><figcaption>شكل 51: تجربة قيادة مؤكدة لم تبدأ بعد</figcaption></figure>
+<ol class="co">
+  <li><span class="ui">بدء التجربة</span>: يُتاح قبل الموعد بـ30 دقيقة كحد أقصى. يطلب <b>قراءة العداد عند الخروج</b> (لا تقل عن آخر قراءة للسيارة) والتحقق من الرخصة، ثم <span class="ui">تسليم السيارة وبدء التجربة</span>.</li>
+  <li><span class="ui">إعادة جدولة / تعديل</span>: تغيير الوقت يعيد الموعد إلى «مجدول» حتى يُؤكَّد مع العميل مجددًا.</li>
+  <li><span class="ui">لم يحضر</span>: بعد وقت بدء الموعد؛ يُضاف إلى سجل العميل.</li>
+  <li><span class="ui">إلغاء الموعد</span>: مع السبب.</li>
+</ol>
+<p>وللمواعيد غير التجارب: <span class="ui">تأكيد الموعد</span> (بعد تأكيد العميل حضوره) و<span class="ui">إتمام الموعد</span>. عند عودة السيارة من التجربة اضغط <span class="ui">إنهاء التجربة</span> وسجّل <b>قراءة العداد عند العودة</b> و<b>النتيجة</b> (انطباع العميل والخطوة التالية)؛ تُحسب المسافة المقطوعة وتُضاف التجربة إلى سجل تواصل العميل وقراءات عداد السيارة.</p>
+<figure class="shot" id="fig-appt-detail"><div class="frame" style="width:100.0%"><img src="images/appt-detail.jpg" alt="تجربة قيادة مكتملة: العداد عند الخروج والعودة والمسافة والنتيجة"></div><figcaption>شكل 52: تجربة قيادة مكتملة: العداد عند الخروج والعودة والمسافة والنتيجة</figcaption></figure>
+
+<h2 id="h32"><span class="pm">QQ032QQ</span>طلبات السيارات (رغبات العملاء)</h2>
+<span class="who">العرض: «عرض العملاء» · الإضافة: «إدارة العملاء»</span>
+<p>عندما يبحث عميل عن سيارة غير موجودة في المخزون، سجّل <b>طلب سيارة</b> بمواصفاتها: الماركة، الموديل، سنة الصنع من/إلى، أقصى سعر، أقصى عدد كيلومترات، نوع الهيكل، الوقود، ناقل الحركة، اللون، وتاريخ انتهاء الطلب (اختياري). يجب تحديد معيار واحد على الأقل. يتحقق النظام دوريًا من السيارات الجديدة المتاحة ويُبلغ مسؤول العميل فور وجود سيارة مطابقة.</p>
+<figure class="shot" id="fig-wish-new"><div class="frame" style="width:100.0%"><img src="images/wish-new.jpg" alt="نموذج طلب سيارة جديد"></div><figcaption>شكل 53: نموذج طلب سيارة جديد</figcaption></figure>
+<figure class="shot" id="fig-wish-list"><div class="frame" style="width:86.2%"><img src="images/wish-list.jpg" alt="قائمة طلبات العملاء للسيارات"></div><figcaption>شكل 54: قائمة طلبات العملاء للسيارات</figcaption></figure>
+<figure class="shot" id="fig-wish-detail"><div class="frame" style="width:100.0%"><img src="images/wish-detail.jpg" alt="طلب سيارة مع السيارة المطابقة له"><span class="hl" style="left:27.794164540816325%;top:35.363247863247864%;width:9.376328656462585%;height:3.418803418803419%"></span><span class="mk" style="left:37.170493197278915%;top:35.363247863247864%">1</span><span class="hl" style="left:22.23373724489796%;top:35.363247863247864%;width:5.220291241496599%;height:3.418803418803419%"></span><span class="mk" style="left:27.45402848639456%;top:35.363247863247864%">2</span><span class="hl" style="left:13.41012967687075%;top:14.045806623931622%;width:9.12919855442177%;height:4.273504273504273%"></span><span class="mk" style="left:22.539328231292515%;top:14.045806623931622%">3</span><span class="hl" style="left:2.7210884353741496%;top:14.045806623931622%;width:10.008769132653061%;height:4.273504273504273%"></span><span class="mk" style="left:12.729857568027212%;top:14.045806623931622%">4</span></div><figcaption>شكل 55: طلب سيارة مع السيارة المطابقة له</figcaption></figure>
+<ol class="co">
+  <li><span class="ui">تحقق من التطابق</span>: يعرض جدولًا بكل معيار والمطلوب والنتيجة (مطابق / غير مطابق). وفي بطاقة «فحص سيارة من المخزون» يمكن البحث عن أي سيارة لمعرفة سبب عدم مطابقتها.</li>
+  <li><span class="ui">استبعاد</span>: يخفي سيارة من المطابقات النشطة لهذا الطلب (يبقى السجل محفوظًا).</li>
+  <li><span class="ui">تم التنفيذ</span>: يسجّل أن العميل حصل على السيارة، مع ربط السيارة التي اشتراها اختياريًا.</li>
+  <li><span class="ui">إلغاء الطلب</span>: لن يُطابَق مع السيارات الجديدة بعده.</li>
+</ol>
+<p>ويظهر في صفحة كل سيارة تبويب <span class="ui">عملاء مهتمون</span> بالعملاء الذين تطابق طلباتهم النشطة هذه السيارة، للتواصل معهم.</p>
+
+<h2 id="h33"><span class="pm">QQ033QQ</span>استفسارات المعرض</h2>
+<span class="who">لمن يملك «توزيع الفرص البيعية»</span>
+<p>تصل هنا الاستفسارات وطلبات تجربة القيادة التي يرسلها الزوار من صفحة المعرض الرقمي العامة. ينشئ النظام تلقائيًا لكل استفسار <b>عميلًا</b> (أو يستخدم العميل الموجود بنفس الجوال) و<b>فرصة بيعية</b> بمصدر «المعرض الرقمي»، ويرسل تنبيهًا.</p>
+<figure class="shot" id="fig-inquiries"><div class="frame" style="width:100.0%"><img src="images/inquiries.jpg" alt="صفحة استفسارات المعرض"><span class="hl" style="left:78.14891581632652%;top:21.82986111111111%;width:10.685055272108844%;height:4.666666666666667%"></span><span class="mk" style="left:88.83397108843538%;top:21.82986111111111%">1</span><span class="hl" style="left:12.053571428571429%;top:36.06770833333333%;width:7.767325680272109%;height:2.0625%"></span><span class="mk" style="left:19.82089710884354%;top:36.06770833333333%">2</span></div><figcaption>شكل 56: صفحة استفسارات المعرض</figcaption></figure>
+<ol class="co">
+  <li>التبويبات: <span class="ui">الكل</span>، <span class="ui">تحتاج مراجعة</span> (لم يُربط تلقائيًا، مثلًا لأن الجوال يطابق أكثر من عميل أو يخص عميلًا موقوفًا؛ اربطه يدويًا بـ<span class="ui">البحث عن العميل</span>)، <span class="ui">مرتبطة بفرصة بيعية</span>.</li>
+  <li><span class="ui">فتح الفرصة البيعية</span> و<span class="ui">ملف العميل</span> للمتابعة.</li>
+</ol>
+<div class="box warn"><b>تنبيه</b>بيانات التواصل في الاستفسارات يكتبها الزائر بنفسه ولم يتم التحقق منها. الطلب المكرر من نفس الرقم لنفس السيارة خلال 24 ساعة يُضاف إلى السجل الأول.</div>
+
+<h1 id="h34"><span class="pm">QQ034QQ</span>المخزون<small>السيارات وملف السيارة 360، الفحص الفني، نقل السيارات، الجرد، أوامر العمل، المخزون الراكد</small></h1>
+<p>تضم مجموعة <b>المخزون</b>: <span class="ui">السيارات</span>، <span class="ui">نقل السيارات</span>، <span class="ui">الجرد</span>، <span class="ui">أوامر العمل</span>، <span class="ui">توصيات المخزون الراكد</span>.</p>
+
+<h2 id="h35"><span class="pm">QQ035QQ</span>قائمة السيارات</h2>
+<span class="who">العرض: «عرض السيارات» · الإضافة: «إضافة سيارات» · التكلفة والربح تظهر لمن يملك «عرض التكلفة والربح»</span>
+<figure class="shot" id="fig-veh-grid"><div class="frame" style="width:100.0%"><img src="images/veh-grid.jpg" alt="قائمة السيارات بالعرض الشبكي"><span class="hl" style="left:2.7210884353741496%;top:11.565972222222221%;width:10.310374149659864%;height:4.444444444444445%"></span><span class="mk" style="left:13.031462585034015%;top:11.565972222222221%">1</span><span class="hl" style="left:49.650563350340136%;top:25.84375%;width:46.1827699829932%;height:4.222222222222222%"></span><span class="mk" style="left:95.83333333333334%;top:25.84375%">2</span><span class="hl" style="left:88.44201743197279%;top:19.23263888888889%;width:7.391315901360544%;height:4.666666666666667%"></span><span class="mk" style="left:95.83333333333334%;top:19.23263888888889%">3</span><span class="hl" style="left:4.421768707482993%;top:26.399305555555557%;width:2.380952380952381%;height:3.111111111111111%"></span><span class="mk" style="left:6.802721088435375%;top:26.399305555555557%">4</span></div><figcaption>شكل 57: قائمة السيارات بالعرض الشبكي</figcaption></figure>
+<ol class="co">
+  <li><span class="ui">إضافة سيارة</span>: إضافة سيارة مباشرة (لسيارة مشتراة من مورد استخدم «عمليات الشراء» بدلًا منها لتُسجَّل تكلفتها).</li>
+  <li><b>البحث</b> برقم المخزون أو الشاسيه أو اللوحة أو الماركة أو الموديل.</li>
+  <li><b>النطاق</b>: <span class="ui">في المخزون</span> (غير المسلَّمة وغير المستبعدة)، <span class="ui">المباعة</span>، <span class="ui">الكل</span>. ومع التصفية: الحالة، والترتيب (الأحدث دخولًا، الأقدم في المخزون، السعر، سنة الصنع)، وزر <span class="ui">التصفية</span> لمزيد من المعايير: الفرع، الماركة، سنة الصنع من/إلى، السعر من/إلى، الوقود، ناقل الحركة، نوع الهيكل، والراكدة (تنبيه/حرجة).</li>
+  <li>التبديل بين <span class="ui">عرض شبكي</span> (بطاقات بالصورة الرئيسية) و<span class="ui">عرض جدولي</span>.</li>
+</ol>
+<p>تعرض كل بطاقة الحالة، والاسم والفئة، ورقم المخزون، والعداد، و<b>أيام في المخزون</b>، والسعر (أو «بدون سعر»)، والفرع.</p>
+<figure class="shot" id="fig-veh-table"><div class="frame" style="width:100.0%"><img src="images/veh-table.jpg" alt="قائمة السيارات بالعرض الجدولي"></div><figcaption>شكل 58: قائمة السيارات بالعرض الجدولي</figcaption></figure>
+
+<h2 id="h36"><span class="pm">QQ036QQ</span>إضافة سيارة وتعديلها</h2>
+<figure class="shot" id="fig-veh-new"><div class="frame" style="width:93.2%"><img src="images/veh-new.jpg" alt="نموذج إضافة سيارة (الأقسام الأولى)"></div><figcaption>شكل 59: نموذج إضافة سيارة (الأقسام الأولى)</figcaption></figure>
+<p>أقسام النموذج:</p>
+<ul>
+  <li><b>البيانات الأساسية</b>: الفرع، الحالة (جديدة / مستعملة / مستعملة معتمدة)، الماركة والموديل (زر <b>+</b> لإضافة ماركة أو موديل غير موجود في الكتالوج)، الفئة، سنة الصنع، <b>رقم الشاسيه (VIN)</b> مع زر <span class="ui">فك رقم الهيكل</span> (إذا فُعّل التكامل؛ يقترح الماركة والموديل والسنة من قاعدة بيانات أمريكية)، وخيار «رقم شاسيه غير قياسي» للسيارات القديمة أو المحلية، ورقم المحرك. ينبّه النظام إذا كانت خانة التحقق في رقم الشاسيه لا تتطابق، ويرفض رقمًا موجودًا لسيارة أخرى في المخزون.</li>
+  <li><b>التسجيل واللوحة</b>: رقم اللوحة، جهة/إمارة اللوحة، سنة التسجيل.</li>
+  <li><b>المواصفات الفنية</b>: نوع الهيكل، الوقود، ناقل الحركة، نظام الدفع، سعة المحرك، السلندرات، القوة الحصانية، الأبواب، المقاعد، اللون الخارجي والداخلي.</li>
+  <li><b>العداد والمنشأ</b>: قراءة العداد ووحدته (كم/ميل)، المواصفات (خليجي، وكالة محلية، أمريكي…)، بلد المنشأ.</li>
+  <li><b>الملكية والمستندات والضمان</b>: حالة الملكية (ملك المعرض، أمانة/عمولة، بانتظار نقل الملكية، ممولة)، حالة المستندات، نوع الضمان (يظهر عنوان هذا الحقل في النسخة الحالية بنص تقني «vehicles.warrantyType» بدل اسمه العربي)، الضمان حتى، تاريخ الاستحواذ، <b>الحالة المبدئية</b>.</li>
+  <li><b>الموقع والملاحظات</b>: الموقع داخل المعرض (مثل «صف C-6»)، وملاحظات داخلية لا تظهر للعملاء.</li>
+  <li><b>الكماليات</b>: اختر بالضغط على الأزرار (الراحة، الأمان، التقنية، الخارجية، الداخلية…).</li>
+</ul>
+
+<h2 id="h37"><span class="pm">QQ037QQ</span>ملف السيارة (السيارة 360)</h2>
+<p>كل ما يخص السيارة في صفحة واحدة: البيانات، الصور، المستندات، الفحوصات، الأسعار، السجل، التكاليف، أوامر العمل، الحجز، العملاء المهتمون، المبيعات، إعلان المعرض.</p>
+<figure class="shot" id="fig-veh-360"><div class="frame" style="width:100.0%"><img src="images/veh-360.jpg" alt="ملف السيارة — تبويب «نظرة عامة»"><span class="hl" style="left:46.941432823129254%;top:10.160765895953757%;width:7.676977040816327%;height:3.8535645472061653%"></span><span class="mk" style="left:54.61840986394558%;top:10.160765895953757%">1</span><span class="hl" style="left:36.39721513605442%;top:10.160765895953757%;width:9.863945578231291%;height:3.8535645472061653%"></span><span class="mk" style="left:46.261160714285715%;top:10.160765895953757%">2</span><span class="hl" style="left:24.242665816326532%;top:10.160765895953757%;width:11.474277210884354%;height:3.8535645472061653%"></span><span class="mk" style="left:35.71694302721088%;top:10.160765895953757%">3</span><span class="hl" style="left:12.818877551020408%;top:10.160765895953757%;width:10.743516156462585%;height:3.8535645472061653%"></span><span class="mk" style="left:23.562393707482993%;top:10.160765895953757%">4</span><span class="hl" style="left:2.7210884353741496%;top:10.160765895953757%;width:9.41751700680272%;height:3.8535645472061653%"></span><span class="mk" style="left:12.138605442176871%;top:10.160765895953757%">5</span><span class="hl" style="left:2.7210884353741496%;top:38.29178709055876%;width:94.5578231292517%;height:4.142581888246628%"></span><span class="mk" style="left:97.27891156462584%;top:38.29178709055876%">6</span></div><figcaption>شكل 60: ملف السيارة — تبويب «نظرة عامة»</figcaption></figure>
+<ol class="co">
+  <li><span class="ui">تعديل</span>: تعديل بيانات السيارة (لا يمكن التعديل بعد البيع أو التسليم أو الاستبعاد).</li>
+  <li><span class="ui">تغيير الحالة</span>: يعرض فقط الحالات المسموح الانتقال إليها يدويًا من الحالة الحالية؛ والاستبعاد من المخزون يتطلب سببًا وصلاحية خاصة.</li>
+  <li><span class="ui">تحديث الأسعار</span>: سعر العرض، والحد الأدنى للبيع (يتطلب صلاحية «تحديد الحد الأدنى للبيع»)، وهامش الربح المستهدف، وسبب التعديل.</li>
+  <li><span class="ui">نقل لفرع آخر</span>: يبدأ عملية نقل إلى فرع آخر (لا يمكن نقل سيارة محجوزة أو مباعة).</li>
+  <li><span class="ui">بدء فحص</span>: يفتح فحصًا فنيًا جديدًا (انظر «الفحص الفني»).</li>
+  <li><b>التبويبات</b>: يظهر منها ما تسمح به صلاحياتك.</li>
+</ol>
+<p>في رأس الصفحة: الحالة، وسعر العرض، والعداد (مع رابط <span class="ui">تعديل</span> لتسجيل قراءة عداد جديدة؛ القراءة الأقل من السابقة تتطلب ذكر السبب)، وأيام في المخزون، ورقم المخزون، والفرع والموقع، ورقم الشاسيه. وتعرض «نظرة عامة» المواصفات الفنية والملكية والضمان وقراءات العداد والكماليات.</p>
+<div class="two">
+<div><figure class="shot" id="fig-veh-status-dialog"><div class="frame" style="width:77.3%"><img src="images/veh-status-dialog.jpg" alt="نافذة تغيير الحالة"></div><figcaption>شكل 61: نافذة تغيير الحالة</figcaption></figure><figure class="shot" id="fig-veh-transfer-dialog"><div class="frame" style="width:77.3%"><img src="images/veh-transfer-dialog.jpg" alt="نافذة نقل السيارة"></div><figcaption>شكل 62: نافذة نقل السيارة</figcaption></figure></div>
+<div><figure class="shot" id="fig-veh-pricing-dialog"><div class="frame" style="width:77.3%"><img src="images/veh-pricing-dialog.jpg" alt="نافذة تسعير السيارة"></div><figcaption>شكل 63: نافذة تسعير السيارة</figcaption></figure>
+<div class="box warn"><b>متى تصبح السيارة «متاحة للبيع»؟</b>إذا كان إعداد «إلزام الفحص قبل العرض للبيع» مفعلًا، يرفض النظام جعلها متاحة قبل اعتماد فحص لها. والحجز والبيع والتسليم والإرجاع لا تُضبط من هذه النافذة؛ تضعها عملياتها فقط.</div></div>
+</div>
+
+<h3>تبويبات ملف السيارة</h3>
+<p><b>الصور والفيديو</b>: اسحب الملفات أو اضغط <span class="ui">رفع صور أو فيديو</span> (JPG، PNG، WEBP، MP4، MOV) مع اختيار التصنيف (عام، ضرر، فحص، قبل الإصلاح، بعد الإصلاح، مستند). لكل صورة: <span class="ui">تعيين كرئيسية</span>، و<b>ظاهرة للعملاء / داخلية</b> (صور التصنيف «عام» فقط يمكن إظهارها في المعرض الرقمي)، وتقديم/تأخير الترتيب، والحذف. تُزال بيانات الموقع الجغرافي من الصور تلقائيًا عند الرفع.</p>
+<figure class="shot" id="fig-veh-tab-media"><div class="frame" style="width:100.0%"><img src="images/veh-tab-media.jpg" alt="تبويب الصور والفيديو"></div><figcaption>شكل 64: تبويب الصور والفيديو</figcaption></figure>
+<p><b>المستندات</b>: <span class="ui">إضافة مستند</span> (ملكية، استمارة/رخصة، تأمين، فحص دوري، جمارك، عقد شراء، سجل صيانة، ضمان، أخرى) مع رقم المستند وتاريخي الإصدار والانتهاء والملف (PDF أو صورة). يمكن تمييز المستند بأنه <b>حساس</b> فلا يراه إلا من يملك صلاحية «الاطلاع على المستندات الحساسة». تظهر حالة الصلاحية: ساري، ينتهي قريبًا، منتهي. الحذف يتطلب ذكر السبب.</p>
+<div class="two">
+<figure class="shot" id="fig-veh-tab-documents"><div class="frame" style="width:100.0%"><img src="images/veh-tab-documents.jpg" alt="تبويب المستندات"></div><figcaption>شكل 65: تبويب المستندات</figcaption></figure>
+<figure class="shot" id="fig-veh-tab-history"><div class="frame" style="width:100.0%"><img src="images/veh-tab-history.jpg" alt="تبويب السجل: تاريخ حالات السيارة"></div><figcaption>شكل 66: تبويب السجل: تاريخ حالات السيارة</figcaption></figure>
+</div>
+<p><b>الفحص</b>: كل الفحوصات السابقة برقمها ونوعها ونتيجتها والفاحص، مع زر لبدء أو متابعة الفحص.</p>
+<p><b>التسعير</b>: الأسعار الحالية و<b>سجل الأسعار</b> (كل تغيير بقيمته السابقة والجديدة ومن غيّره والسبب).</p>
+<figure class="shot" id="fig-veh-tab-pricing"><div class="frame" style="width:100.0%"><img src="images/veh-tab-pricing.jpg" alt="تبويب التسعير وسجل الأسعار"></div><figcaption>شكل 67: تبويب التسعير وسجل الأسعار</figcaption></figure>
+<p><b>السجل</b>: تسلسل زمني لكل تغيير في حالة السيارة ومصدره (الشراء، الفحص، البيع، التسليم، النقل…).</p>
+<p><b>التكاليف</b> (صلاحية «عرض تكاليف السيارات»):</p>
+<figure class="shot" id="fig-veh-tab-costs"><div class="frame" style="width:100.0%"><img src="images/veh-tab-costs.jpg" alt="تبويب التكاليف: إجمالي التكلفة والربح المتوقع وبنود التكلفة"></div><figcaption>شكل 68: تبويب التكاليف: إجمالي التكلفة والربح المتوقع وبنود التكلفة</figcaption></figure>
+<ul>
+  <li>بطاقات: <b>إجمالي التكلفة المرحّلة</b>، <b>بانتظار الاعتماد</b> (لا تدخل في التكلفة حتى تُعتمد)، <b>سعر الشراء</b>، <b>تكاليف إضافية</b>، وتكاليف بعد البيع.</li>
+  <li><b>التكلفة حسب البند</b> ونسبتها، و<b>الربح المتوقع عند سعر العرض</b> (الصافي قبل الضريبة − التكلفة المرحّلة = مجمل الربح وهامشه). هذا تقدير مبني على التكاليف المرحّلة حتى الآن.</li>
+  <li>جدول <b>بنود التكلفة</b>: البند، البيان، المورد، المبلغ (وبالعملة الأساسية)، الحالة (بانتظار الاعتماد، مرحّلة، معكوسة، مرفوضة)، السداد (مدفوع/متبقٍ)، والإجراءات: <span class="ui">اعتماد</span> و<span class="ui">رفض</span> للبنود المعلّقة، و<span class="ui">عكس القيد</span> للمرحّلة (سعر الشراء لا يُعكس هنا بل بإلغاء عملية الشراء؛ والبند المسدَّد يلزم إلغاء دفعته أولًا).</li>
+  <li><span class="ui">إضافة تكلفة</span> و<span class="ui">توزيع تكلفة مشتركة</span>.</li>
+</ul>
+<div class="two">
+<div><figure class="shot" id="fig-veh-cost-dialog"><div class="frame" style="width:100.0%"><img src="images/veh-cost-dialog.jpg" alt="نافذة إضافة تكلفة للسيارة"></div><figcaption>شكل 69: نافذة إضافة تكلفة للسيارة</figcaption></figure></div>
+<div>
+<p><b>إضافة تكلفة</b>: بند التكلفة (نقل، صيانة، قطع غيار، سمكرة، تلميع، جمارك، تسجيل…)، تاريخ التكلفة، البيان، المبلغ والعملة (مع سعر الصرف للعملة الأجنبية)، المورد (اتركه فارغًا للمشتريات المباشرة)، ملاحظات، و<b>سداد فوري</b> من خزينة أو حساب بنكي بالعملة الأساسية.</p>
+<p>إذا كنت تملك صلاحية اعتماد التكاليف <b>تُرحَّل التكلفة مباشرة</b>، وإلا تُرسل للاعتماد ولا تُحتسب قبل اعتمادها.</p>
+<div class="box acct"><b>الأثر المحاسبي</b>تكلفة قبل البيع: مدين مخزون السيارات (1300) / دائن ذمم الموردين (2000)، فتزيد تكلفة السيارة. وبعد الاعتراف ببيع السيارة تُحمَّل على تكلفة المبيعات (5000) وتتطلب صلاحية «ترحيل تكاليف بعد البيع».</div>
+</div>
+</div>
+<p><b>أوامر العمل</b>: أوامر العمل الخاصة بالسيارة. <b>الحجز</b>: الحجز الحالي وسجل الحجوزات وزر <span class="ui">حجز لعميل</span> للسيارة المتاحة. <b>عملاء مهتمون</b>: عملاء لديهم طلبات سيارات تطابق هذه السيارة. <b>المبيعات</b>: عمليات بيع السيارة وزر <span class="ui">بيع هذه السيارة</span>. <b>إعلان المعرض</b>: محتوى إعلان المعرض الرقمي ونشره (انظر فصل «المعرض الرقمي»).</p>
+<div class="two">
+<figure class="shot" id="fig-veh-tab-reservation"><div class="frame" style="width:100.0%"><img src="images/veh-tab-reservation.jpg" alt="تبويب الحجز لسيارة محجوزة"></div><figcaption>شكل 70: تبويب الحجز لسيارة محجوزة</figcaption></figure>
+<figure class="shot" id="fig-veh-tab-interested"><div class="frame" style="width:100.0%"><img src="images/veh-tab-interested.jpg" alt="تبويب العملاء المهتمين"></div><figcaption>شكل 71: تبويب العملاء المهتمين</figcaption></figure>
+</div>
+
+<h2 id="h38"><span class="pm">QQ038QQ</span>الفحص الفني</h2>
+<span class="who">العرض: «عرض الفحوصات» · الإجراء: «إجراء الفحوصات» (الفاحص الفني، مدير المخزون)</span>
+<p>يُبدأ الفحص من زر <span class="ui">بدء فحص</span> في ملف السيارة (نوع الفحص: فحص شراء، قبل البيع، دوري، استبدال، مرتجع، أخرى)، ولا يمكن فتح فحصين في الوقت نفسه للسيارة. يفتح نموذج فحص مبني على قالب البنود القياسي:</p>
+<figure class="shot" id="fig-inspection"><div class="frame" style="width:100.0%"><img src="images/inspection.jpg" alt="صفحة الفحص الفني أثناء التنفيذ"></div><figcaption>شكل 72: صفحة الفحص الفني أثناء التنفيذ</figcaption></figure>
+<ul>
+  <li><b>شريط التقدم</b>: عدد البنود المفحوصة من الإجمالي، وتنبيه بعدد <b>البنود الإلزامية</b> (المعلّمة بنجمة) التي لم تُفحص.</li>
+  <li><b>البنود</b> مقسمة حسب الأقسام (المحرك، ناقل الحركة، التبريد، التعليق والتوجيه، الفرامل، الكهرباء…). لكل بند: <b>سليم</b>، <b>ملاحظة</b>، <b>عطل</b>، <b>لا ينطبق</b>، مع الخطورة والملاحظات، وحقل القياس لبعض البنود (مثل ضغط الإطارات أو سماكة الفحمات) مع خيار «تقدير الفني» أو قياس فعلي بجهاز.</li>
+  <li><b>مخطط الهيكل</b>: اضغط على أي جزء من السيارة لتحديد حالته: فابريكا، إعادة دهان، معجون، إصلاح، ضرر، مُستبدل، خدوش، صدمة/طعجة، مع سماكة الطلاء بالميكرون.</li>
+  <li><b>صور توثيقية</b>: <span class="ui">إضافة صورة</span> لتوثيق الملاحظات.</li>
+  <li>أسفل الصفحة: <b>النتيجة العامة</b> (ناجح، ناجح مع ملاحظات، غير ناجح)، الملخص، التوصيات، الحوادث والإصلاحات المعروفة، وقراءة العداد.</li>
+  <li>الأزرار: <span class="ui">حفظ المسودة</span> للمتابعة لاحقًا، و<span class="ui">اعتماد الفحص</span> (بعد الاعتماد لا يمكن تعديله؛ يمكن إجراء فحص جديد لاحقًا)، و<span class="ui">إلغاء الفحص</span>.</li>
+</ul>
+<div class="box warn"><b>قواعد الاعتماد</b>لا يُعتمد الفحص قبل فحص كل البنود الإلزامية، ولا يمكن اعتماده «ناجحًا» وفيه عطل حرج. والنتائج تعكس ملاحظات الفاحص والقياسات المسجّلة فقط ولا تمثل نسبة دقيقة لسلامة السيارة.</div>
+
+<h2 id="h39"><span class="pm">QQ039QQ</span>نقل السيارات بين الفروع</h2>
+<span class="who">العرض: «عرض السيارات» · النقل: «نقل السيارات بين الفروع»</span>
+<p>تُبدأ عملية النقل من زر <span class="ui">نقل لفرع آخر</span> في ملف السيارة، فتبقى السيارة «قيد النقل» حتى يؤكد الفرع المستلم وصولها. صفحة <span class="ui">نقل السيارات</span> تعرض العمليات بتبويبات: قيد النقل، تم الاستلام، ملغي، الكل.</p>
+<figure class="shot" id="fig-inv-transfers"><div class="frame" style="width:57.4%"><img src="images/inv-transfers.jpg" alt="عمليات نقل السيارات"><span class="hl" style="left:10.893654336734695%;top:28.58159722222222%;width:7.732780612244898%;height:3.5555555555555554%"></span><span class="mk" style="left:18.626434948979593%;top:28.58159722222222%">1</span><span class="hl" style="left:4.166666666666666%;top:28.58159722222222%;width:6.386851615646258%;height:3.5555555555555554%"></span><span class="mk" style="left:10.553518282312925%;top:28.58159722222222%">2</span></div><figcaption>شكل 73: عمليات نقل السيارات</figcaption></figure>
+<ol class="co">
+  <li><span class="ui">تأكيد الاستلام</span>: عند وصول السيارة؛ تنتقل إلى الفرع الجديد.</li>
+  <li><span class="ui">إلغاء النقل</span>: تبقى السيارة في فرعها الأصلي.</li>
+</ol>
+<p>أثناء النقل لا يمكن حجز السيارة أو بيعها أو تسجيل شراء عليها.</p>
+
+<h2 id="h40"><span class="pm">QQ040QQ</span>الجرد الفعلي</h2>
+<span class="who">«إجراء الجرد» · تسوية الفروقات: «تسوية فروقات الجرد»</span>
+<p>يقارن الجرد السيارات المسجّلة في فرع بما هو موجود فعلًا في الساحة. اضغط <span class="ui">بدء جرد جديد</span> في صفحة <span class="ui">الجرد</span> واختر الفرع.</p>
+<figure class="shot" id="fig-inv-stockcount"><div class="frame" style="width:100.0%"><img src="images/inv-stockcount.jpg" alt="جرد مفتوح: بطاقات الملخص وخانة المسح وقائمة السيارات"><span class="hl" style="left:29.953231292517007%;top:29.539473684210527%;width:65.88010204081633%;height:3.3333333333333335%"></span><span class="mk" style="left:95.83333333333334%;top:29.539473684210527%">1</span><span class="hl" style="left:4.166666666666666%;top:29.364035087719298%;width:8.099489795918368%;height:3.508771929824561%"></span><span class="mk" style="left:12.266156462585034%;top:29.364035087719298%">2</span><span class="hl" style="left:2.7210884353741496%;top:11.181469298245613%;width:7.549426020408164%;height:3.508771929824561%"></span><span class="mk" style="left:10.270514455782314%;top:11.181469298245613%">3</span></div><figcaption>شكل 74: جرد مفتوح: بطاقات الملخص وخانة المسح وقائمة السيارات</figcaption></figure>
+<ol class="co">
+  <li><b>خانة المسح</b>: امسح الباركود أو اكتب رقم الشاسيه أو رقم المخزون أو اللوحة، مع الموقع داخل المعرض اختياريًا.</li>
+  <li><span class="ui">تسجيل</span>: يظهر «تم العثور على السيارة ✓»، أو «السيارة مسجّلة في فرع آخر»، أو «الرقم غير معروف في النظام — سُجّل كفرق».</li>
+  <li><span class="ui">إنهاء الجرد</span>: ينقله إلى «بانتظار التسوية».</li>
+</ol>
+<p>البطاقات: متوقعة، موجودة، مفقودة، غير متوقعة، لم تُمسح. بعد الإنهاء تُختار لكل فرق <b>القرار</b>: تأكيد، تحديث الموقع، قيد التحقيق، <b>شطب من المخزون</b> (للمفقودة فقط؛ يُرحَّل باقي تكلفتها مصروف تسويات 6300)، تسجيل ملاحظة؛ ثم <span class="ui">تسوية الفروقات</span>.</p>
+
+<h2 id="h41"><span class="pm">QQ041QQ</span>أوامر العمل</h2>
+<span class="who">العرض: «عرض أوامر العمل» · الإدارة: «إدارة أوامر العمل» · الاعتماد: «اعتماد تكاليف أوامر العمل»</span>
+<p>أمر العمل يسجّل أعمال الورشة والتجهيز على سيارة (فحص، إصلاح، صيانة، تلميع وتجهيز، قطع غيار، سمكرة ودهان) وتكاليفها، ويرحّلها على تكلفة السيارة عند اعتماده.</p>
+<figure class="shot" id="fig-wo-list"><div class="frame" style="width:79.0%"><img src="images/wo-list.jpg" alt="قائمة أوامر العمل"></div><figcaption>شكل 75: قائمة أوامر العمل</figcaption></figure>
+<p>دورة الأمر: <b>مفتوح</b> ← <span class="ui">بدء العمل</span> ← <b>قيد التنفيذ</b> ← <span class="ui">إنهاء وإرسال للاعتماد</span> ← <b>بانتظار الاعتماد</b> ← <span class="ui">اعتماد وترحيل التكاليف</span> ← <b>مكتمل ومعتمد</b>. ويمكن للمعتمد <span class="ui">إعادة للتنفيذ</span> مع السبب، أو <span class="ui">إلغاء الأمر</span> قبل الاعتماد.</p>
+<figure class="shot" id="fig-wo-detail"><div class="frame" style="width:100.0%"><img src="images/wo-detail.jpg" alt="أمر عمل قيد التنفيذ"><span class="hl" style="left:35.11904761904761%;top:22.94097222222222%;width:8.035714285714286%;height:3.5555555555555554%"></span><span class="mk" style="left:43.154761904761905%;top:22.94097222222222%">1</span><span class="hl" style="left:12.34454719387755%;top:14.385416666666668%;width:14.122289540816327%;height:4.444444444444445%"></span><span class="mk" style="left:26.466836734693878%;top:14.385416666666668%">2</span><span class="hl" style="left:2.7210884353741496%;top:14.385416666666668%;width:8.943186649659864%;height:4.444444444444445%"></span><span class="mk" style="left:11.664275085034014%;top:14.385416666666668%">3</span></div><figcaption>شكل 76: أمر عمل قيد التنفيذ</figcaption></figure>
+<ol class="co">
+  <li><span class="ui">إضافة بند</span>: النوع (قطعة غيار، أجرة عمل، خدمة، أخرى)، بند التكلفة، البيان، الكمية، سعر الوحدة، الساعات، المورد (إن تُرك فارغًا يُستخدم مورد أمر العمل، أو يُعتبر شراءً مباشرًا). الإجمالي = الكمية × سعر الوحدة. يمكن تعديل البنود وحذفها حتى الإرسال للاعتماد.</li>
+  <li><span class="ui">إنهاء وإرسال للاعتماد</span>: يتطلب بندًا واحدًا على الأقل.</li>
+  <li><span class="ui">إلغاء الأمر</span>: لا تُرحَّل أي تكاليف.</li>
+</ol>
+<p>يعرض <b>الملخص المالي</b> إجمالي البنود والتقدير والفرق عنه، ثم بعد الاعتماد: المرحّل كتكلفة والمدفوع والمتبقي للموردين.</p>
+<div class="two">
+<div><figure class="shot" id="fig-wo-item-dialog"><div class="frame" style="width:99.4%"><img src="images/wo-item-dialog.jpg" alt="نافذة إضافة بند"></div><figcaption>شكل 77: نافذة إضافة بند</figcaption></figure></div>
+<div><figure class="shot" id="fig-wo-approve-dialog"><div class="frame" style="width:99.4%"><img src="images/wo-approve-dialog.jpg" alt="نافذة اعتماد أمر العمل"></div><figcaption>شكل 78: نافذة اعتماد أمر العمل</figcaption></figure>
+<div class="box acct"><b>الأثر المحاسبي</b>عند الاعتماد يتحول كل بند قيمته أكبر من صفر إلى تكلفة مرحّلة على السيارة (من حـ/ المخزون إلى حـ/ الموردين). خيار <b>سداد البنود المباشرة فورًا</b> يسدد البنود التي ليس لها مورد من خزينة بالعملة الأساسية؛ أما بنود الموردين فتبقى مستحقة وتُسدَّد من «مدفوعات الموردين».</div></div>
+</div>
+
+<h2 id="h42"><span class="pm">QQ042QQ</span>توصيات المخزون الراكد</h2>
+<span class="who">لمن يملك «تعديل سعر العرض»</span>
+<p>تعرض السيارات غير المباعة الموجودة في المخزون منذ حد الركود (60 يومًا افتراضيًا) أو أكثر، وتُعدّ <b>حرجة</b> بعد الحد الحرج (90 يومًا). الحدود تُعدَّل من إعدادات الشركة (رابط <span class="ui">تعديل الحدود</span>).</p>
+<figure class="shot" id="fig-inv-aging"><div class="frame" style="width:86.2%"><img src="images/inv-aging.jpg" alt="توصيات المخزون الراكد"></div><figcaption>شكل 79: توصيات المخزون الراكد</figcaption></figure>
+<p>البطاقات: سيارات راكدة، حرجة، بدون سعر عرض، غير منشورة. ولكل سيارة <b>توصيات</b> مبنية على قواعد ثابتة ومبيعات شركتك فقط (وليست بيانات سوق) مع رابط مباشر للإجراء: حدّد سعر عرض، انشرها في المعرض الرقمي، أضف صورًا عامة (3 على الأقل)، راجع السعر (إذا كان أعلى من وسيط 3 مبيعات مماثلة على الأقل).</p>
+
+<h1 id="h43"><span class="pm">QQ043QQ</span>المشتريات<small>شراء السيارات، الموردون، مستحقات الموردين، مدفوعات الموردين، توزيع التكاليف المشتركة</small></h1>
+<p>تضم مجموعة <b>المشتريات</b>: <span class="ui">عمليات الشراء</span>، <span class="ui">الموردون</span>، <span class="ui">مستحقات الموردين</span>، <span class="ui">مدفوعات الموردين</span>، <span class="ui">توزيع التكاليف المشتركة</span>.</p>
+
+<h2 id="h44"><span class="pm">QQ044QQ</span>عمليات الشراء</h2>
+<span class="who">العرض: «عرض عمليات الشراء» · الإنشاء: «إنشاء عمليات شراء» + «إضافة سيارات» · الاعتماد: «اعتماد عمليات الشراء» · الإلغاء: «إلغاء عمليات الشراء»</span>
+<p>عملية الشراء هي الطريقة الصحيحة لإدخال سيارة مشتراة إلى المخزون: تُنشئ السيارة وتربطها بالمورد، وعند اعتمادها تُرحَّل قيمة الشراء إلى تكلفة السيارة وتصبح مستحقة السداد للمورد.</p>
+<figure class="shot" id="fig-acq-list"><div class="frame" style="width:86.2%"><img src="images/acq-list.jpg" alt="قائمة عمليات الشراء"><span class="hl" style="left:2.7210884353741496%;top:11.565972222222221%;width:9.458705357142858%;height:4.444444444444445%"></span><span class="mk" style="left:12.179793792517007%;top:11.565972222222221%">1</span></div><figcaption>شكل 80: قائمة عمليات الشراء</figcaption></figure>
+<p>يعرض الجدول رقم العملية والسيارة والمورد وسعر الشراء والقيمة بالعملة الأساسية و<b>المسدَّد / المتبقي</b> والحالة (مسودة، بانتظار الاعتماد، معتمدة، ملغاة). اضغط <span class="ui">شراء سيارة</span> لعملية جديدة.</p>
+
+<h3>نموذج «شراء سيارة»</h3>
+<figure class="shot" id="fig-acq-new"><div class="frame" style="width:95.4%"><img src="images/acq-new.jpg" alt="نموذج شراء سيارة"></div><figcaption>شكل 81: نموذج شراء سيارة</figcaption></figure>
+<ul>
+  <li><b>بيانات الشراء</b>: الفرع، <b>المورد</b> (بحث، أو زر <b>+</b> لإضافة مورد جديد)، مصدر الشراء (فرد، شركة، مزاد، استيراد، استبدال من عميل، أخرى)، تاريخ الشراء، سعر الشراء، <b>العملة</b> (وعند اختيار عملة أجنبية يظهر سعر الصرف والمعادل بالعملة الأساسية)، طريقة السداد المتفق عليها، <b>تاريخ الاستحقاق</b> (متى يجب السداد للمورد؛ يُستخدم في أعمار المستحقات)، ملاحظات.</li>
+  <li><b>بيانات السيارة</b>: الماركة، الموديل، الفئة، سنة الصنع، رقم الشاسيه، قراءة العداد ووحدته، رقم اللوحة، الألوان، المواصفات، حالة السيارة. تُنشأ السيارة في المخزون بحالة «واردة حديثًا» (قيد الوصول) وتُكمَّل باقي بياناتها من ملف السيارة.</li>
+  <li><b>الاعتماد</b>: خيار <b>إرسال للاعتماد مباشرة</b>؛ وإلا تُحفظ مسودة يمكن تعديلها ثم <span class="ui">إرسال للاعتماد</span> لاحقًا.</li>
+</ul>
+
+<h3>صفحة عملية الشراء والاعتماد</h3>
+<figure class="shot" id="fig-acq-pending"><div class="frame" style="width:100.0%"><img src="images/acq-pending.jpg" alt="عملية شراء بانتظار الاعتماد كما يراها المالك"><span class="hl" style="left:13.108524659863946%;top:11.2804203539823%;width:7.611872874149659%;height:3.5398230088495577%"></span><span class="mk" style="left:20.720397534013603%;top:11.2804203539823%">1</span><span class="hl" style="left:21.400669642857142%;top:11.2804203539823%;width:7.356770833333333%;height:3.5398230088495577%"></span><span class="mk" style="left:28.757440476190478%;top:11.2804203539823%">2</span><span class="hl" style="left:2.7210884353741496%;top:11.2804203539823%;width:9.707164115646258%;height:3.5398230088495577%"></span><span class="mk" style="left:12.428252551020408%;top:11.2804203539823%">3</span></div><figcaption>شكل 82: عملية شراء بانتظار الاعتماد كما يراها المالك</figcaption></figure>
+<ol class="co">
+  <li><span class="ui">اعتماد</span>: يفتح نافذة الاعتماد (أدناه).</li>
+  <li><span class="ui">رفض</span>: تعود العملية مسودة مع سبب الرفض ليعدّلها المنشئ ويعيد إرسالها.</li>
+  <li><span class="ui">إلغاء الشراء</span>: تُلغى العملية وتُستبعد السيارة من المخزون؛ وإن كانت معتمدة يُعكس قيد تكلفة الشراء (بشرط ألا تكون السيارة محجوزة أو مباعة، وألا توجد دفعات للمورد عليها). لا يمكن التراجع عن الإلغاء.</li>
+</ol>
+<p>البطاقات: سعر الشراء، القيمة بالعملة الأساسية، المسدَّد، المتبقي. ثم بيانات الشراء، والسيارة (<span class="ui">فتح ملف السيارة</span>)، والمورد (<span class="ui">فتح ملف المورد</span>)، و<b>نقل الملكية</b> (لم يبدأ / قيد النقل / مكتمل لمتابعة نقل ملكية السيارة باسم المعرض)، والدفعات الموزّعة على العملية، و<b>سجل العملية</b>. تعديل عملية بانتظار الاعتماد يسحب طلب الاعتماد ويعيدها مسودة.</p>
+<div class="two">
+<div><figure class="shot" id="fig-acq-approve-dialog"><div class="frame" style="width:99.4%"><img src="images/acq-approve-dialog.jpg" alt="نافذة اعتماد عملية الشراء"></div><figcaption>شكل 83: نافذة اعتماد عملية الشراء</figcaption></figure></div>
+<div>
+<p>في نافذة الاعتماد: ملاحظة اختيارية، وخيار <b>سداد القيمة كاملة الآن</b> (يتطلب صلاحية «سداد الموردين» وحسابًا بالعملة الأساسية) فيصبح الزر <span class="ui">اعتماد وسداد</span>.</p>
+<div class="box acct"><b>الأثر المحاسبي</b>عند الاعتماد: مدين مخزون السيارات (1300) / دائن ذمم الموردين (2000) بقيمة الشراء بالعملة الأساسية. ومع السداد الفوري تُسجَّل دفعة مورد من الخزينة.</div>
+<div class="box warn"><b>فصل المهام</b>من أنشأ عملية الشراء أو عدّلها أو أرسلها لا يرى زر الاعتماد؛ يعتمدها مستخدم آخر (مثلًا مدير الفرع أو المالك).</div>
+</div>
+</div>
+
+<figure class="shot" id="fig-acq-self"><div class="frame" style="width:73.8%"><img src="images/acq-self.jpg" alt="العملية نفسها كما يراها منشئها: لا يوجد زر اعتماد"></div><figcaption>شكل 84: العملية نفسها كما يراها منشئها: لا يوجد زر اعتماد</figcaption></figure>
+<h2 id="h45"><span class="pm">QQ045QQ</span>الموردون</h2>
+<span class="who">العرض: «عرض الموردين» · الإضافة والتعديل: «إدارة الموردين» · رقم الهوية الكامل: «عرض أرقام هوية الموردين»</span>
+<p>الموردون هم كل من تشتري منه أو تدفع له: معارض وتجار، أفراد، مزادات، مستوردون، ورش، شركات نقل، ملاك عقارات… اضغط <span class="ui">إضافة مورد</span> وأدخل النوع والاسم والهاتف والبريد والرقم الضريبي ورقم الهوية/السجل (يُحفظ مشفّرًا ويظهر منه آخر 4 خانات) والمدينة والعنوان. ينبّه النظام إذا وُجد مورد ببيانات مطابقة.</p>
+<div class="two">
+<div><figure class="shot" id="fig-sup-new"><div class="frame" style="width:100.0%"><img src="images/sup-new.jpg" alt="نافذة إضافة مورد"></div><figcaption>شكل 85: نافذة إضافة مورد</figcaption></figure></div>
+<div><figure class="shot" id="fig-sup-list"><div class="frame" style="width:100.0%"><img src="images/sup-list.jpg" alt="قائمة الموردين"><span class="hl" style="left:2.7210884353741496%;top:11.565972222222221%;width:9.893176020408163%;height:4.444444444444445%"></span><span class="mk" style="left:12.614264455782312%;top:11.565972222222221%">1</span></div><figcaption>شكل 86: قائمة الموردين</figcaption></figure></div>
+</div>
+<figure class="shot" id="fig-sup-detail"><div class="frame" style="width:100.0%"><img src="images/sup-detail.jpg" alt="ملف المورد: الرصيد المستحق وإجمالي المشتريات والمسدَّد"></div><figcaption>شكل 87: ملف المورد: الرصيد المستحق وإجمالي المشتريات والمسدَّد</figcaption></figure>
+<p>في ملف المورد أزرار: <span class="ui">تعديل</span>، <span class="ui">إيقاف المورد</span> (لا يظهر عند تسجيل مشتريات جديدة، وتبقى مستحقاته قابلة للسداد)، <span class="ui">شراء سيارة</span>، <span class="ui">دفعة جديدة لمورد</span>. والتبويبات: البيانات، <b>المستندات المفتوحة</b> (غير المسدَّدة)، عمليات الشراء، الدفعات، <b>كشف الحساب</b>.</p>
+<figure class="shot" id="fig-sup-statement"><div class="frame" style="width:100.0%"><img src="images/sup-statement.jpg" alt="كشف حساب المورد من دفتر الأستاذ"></div><figcaption>شكل 88: كشف حساب المورد من دفتر الأستاذ</figcaption></figure>
+<p>كشف الحساب مأخوذ من حساب الموردين (2000) في دفتر الأستاذ: الرصيد الافتتاحي، ثم كل حركة (شراء، تكلفة، مصروف، دفعة) بمدينها ودائنها والرصيد الجاري، ثم الرصيد الختامي = المستحق للمورد. اترك التاريخين فارغين لعرض كل الحركات. يتطلب الكشف صلاحية الوصول إلى كل الفروع.</p>
+
+<h2 id="h46"><span class="pm">QQ046QQ</span>مستحقات الموردين</h2>
+<span class="who">«سداد الموردين»، أو «عرض الموردين» مع «عرض المدفوعات»</span>
+<figure class="shot" id="fig-ap-open"><div class="frame" style="width:100.0%"><img src="images/ap-open.jpg" alt="المستندات المفتوحة: كل ما هو معتمد ولم يُسدَّد بالكامل"></div><figcaption>شكل 89: المستندات المفتوحة: كل ما هو معتمد ولم يُسدَّد بالكامل</figcaption></figure>
+<p>تبويب <b>المستندات المفتوحة</b> يجمع عمليات الشراء وتكاليف السيارات والمصروفات المعتمدة غير المسدَّدة، الأقدم استحقاقًا أولًا، مع إجمالي المتبقي والمتأخر وعدد أيام التأخير، وزر <span class="ui">سداد</span> لكل مستند يفتح نموذج الدفعة مع اختيار المستند. يمكن التصفية حسب المورد ونوع المستند.</p>
+<figure class="shot" id="fig-ap-aging"><div class="frame" style="width:100.0%"><img src="images/ap-aging.jpg" alt="أعمار المستحقات والمطابقة مع دفتر الأستاذ"></div><figcaption>شكل 90: أعمار المستحقات والمطابقة مع دفتر الأستاذ</figcaption></figure>
+<p>تبويب <b>أعمار المستحقات</b> يوزّع المتبقي لكل مورد على فئات: غير مستحق، 1–30، 31–60، 61–90، أكثر من 90 يومًا، «كما في تاريخ» تختاره (العمر من تاريخ الاستحقاق، أو من تاريخ المستند إن لم يُحدَّد)، ثم يطابق الإجمالي مع حساب الموردين 2000 في الأستاذ العام: <b>متطابق</b> أو <b>يوجد فرق</b>.</p>
+
+<h2 id="h47"><span class="pm">QQ047QQ</span>مدفوعات الموردين</h2>
+<span class="who">العرض: «عرض الموردين» + «عرض المدفوعات» · التسجيل: «سداد الموردين»</span>
+<p>صفحة <span class="ui">مدفوعات الموردين</span> تعرض الدفعات الصادرة وحالتها (مرحَّلة / ملغاة). اضغط <span class="ui">دفعة جديدة لمورد</span>:</p>
+<figure class="shot" id="fig-sp-new"><div class="frame" style="width:100.0%"><img src="images/sp-new.jpg" alt="نموذج دفعة جديدة لمورد"></div><figcaption>شكل 91: نموذج دفعة جديدة لمورد</figcaption></figure>
+<ul>
+  <li><b>المستفيد والحساب</b>: المورد (أو «مشتريات مباشرة (دون مورد)» لتكاليف ومصروفات سُجّلت بلا مورد)، الحساب (خزينة أو بنك) مع رصيده الحالي، تاريخ الدفع، طريقة الدفع، المرجع (رقم الحوالة أو الشيك).</li>
+  <li><b>المبلغ</b> بعملة الحساب (يُحوَّل إلى العملة الأساسية).</li>
+  <li><b>التوزيع على المستندات</b>: تظهر مستندات المورد المفتوحة؛ حدّد ما يُسدَّد من كل منها، أو استخدم <span class="ui">توزيع تلقائي (الأقدم أولًا)</span> و<span class="ui">اجعل المبلغ = مجموع التوزيع</span>. يجب أن يساوي مجموع التوزيع مبلغ الدفعة بالعملة الأساسية تمامًا، ويظهر أسفل النموذج: الدفعة، الموزَّع، الفرق.</li>
+  <li>لمستند بعملة أجنبية يمكن إدخال «المسدَّد بعملة المستند»؛ ويُرحَّل الفرق بين المدفوع والمخصوم من الرصيد إلى <b>فروق العملة</b> (ربح أو خسارة).</li>
+  <li><span class="ui">تسجيل الدفعة</span>. ولا يسمح النظام بسحب الخزينة النقدية على المكشوف («رصيد الصندوق لا يكفي»).</li>
+</ul>
+<div class="box acct"><b>الأثر المحاسبي</b>مدين ذمم الموردين (2000) / دائن النقدية والبنوك (1100)، ويُسجَّل خروج المبلغ في دفتر الخزينة. <span class="ui">إلغاء الدفعة</span> من صفحتها يعيد المبلغ إلى الحساب بقيد عكسي بتاريخ اليوم، وتعود المستندات مستحقة السداد.</div>
+<figure class="shot" id="fig-sp-list"><div class="frame" style="width:79.0%"><img src="images/sp-list.jpg" alt="قائمة مدفوعات الموردين"></div><figcaption>شكل 92: قائمة مدفوعات الموردين</figcaption></figure>
+
+<h2 id="h48"><span class="pm">QQ048QQ</span>توزيع التكاليف المشتركة</h2>
+<span class="who">«تسجيل تكاليف السيارات»</span>
+<p>عندما تصل فاتورة واحدة تخص عدة سيارات (شحن أو تخليص أو نقل)، وزّعها عليها بدقة حتى آخر وحدة نقدية بدل إدخالها يدويًا لكل سيارة:</p>
+<figure class="shot" id="fig-cost-allocate"><div class="frame" style="width:100.0%"><img src="images/cost-allocate.jpg" alt="صفحة توزيع تكلفة مشتركة"></div><figcaption>شكل 93: صفحة توزيع تكلفة مشتركة</figcaption></figure>
+<ul>
+  <li><b>السيارات</b>: أضف من سيارتين إلى 100 سيارة بالبحث.</li>
+  <li><b>طريقة التوزيع</b>: <b>بالتساوي</b>، أو <b>حسب سعر الشراء</b> المرحّل لكل سيارة، أو <b>مبالغ يدوية</b> (يجب أن يساوي مجموعها إجمالي الفاتورة).</li>
+  <li><b>بيانات الفاتورة</b>: بند التكلفة، البيان، الإجمالي والعملة، تاريخ التكلفة، المورد، والسداد الفوري.</li>
+  <li><b>معاينة التوزيع</b> تعرض حصة كل سيارة قبل الحفظ، ثم <span class="ui">توزيع وترحيل</span>. فرق التقريب يُوزَّع على أكبر الكسور. إن لم تكن تملك صلاحية الاعتماد تُرسل الحصص للاعتماد.</li>
+</ul>
+
+<h1 id="h49"><span class="pm">QQ049QQ</span>المالية والمحاسبة<small>الخزائن والبنوك، التحويلات، المصروفات، دفتر الأستاذ، المقبوضات، المبالغ المستردة، إغلاق اليومية</small></h1>
+<p>تضم مجموعة <b>المالية</b>: <span class="ui">الخزينة والبنوك</span>، <span class="ui">التحويلات بين الحسابات</span>، <span class="ui">المصروفات</span>، <span class="ui">دفتر الأستاذ</span>، <span class="ui">المقبوضات</span>، <span class="ui">المبالغ المستردة</span>، <span class="ui">إغلاق اليومية</span>، <span class="ui">التقارير</span> (فصل مستقل).</p>
+
+<h2 id="h50"><span class="pm">QQ050QQ</span>الخزائن والحسابات البنكية</h2>
+<span class="who">العرض: «عرض الخزينة والبنوك» · الإنشاء والتعديل: «إدارة الخزائن والحسابات البنكية» · الرصيد الافتتاحي: «ترحيل الأرصدة الافتتاحية»</span>
+<p>كل مكان تُحفظ فيه الأموال حساب مستقل: <b>خزينة نقدية</b> (صندوق فرع) أو <b>حساب بنكي</b>، بعملته الخاصة. الأرصدة محسوبة مباشرة من <b>دفتر الخزينة</b> ولا تُدخل يدويًا.</p>
+<figure class="shot" id="fig-cash-accounts"><div class="frame" style="width:100.0%"><img src="images/cash-accounts.jpg" alt="الخزائن والحسابات البنكية"><span class="hl" style="left:2.7210884353741496%;top:11.565972222222221%;width:10.594706632653061%;height:4.444444444444445%"></span><span class="mk" style="left:13.315795068027212%;top:11.565972222222221%">1</span><span class="hl" style="left:67.88637329931973%;top:20.12152777777778%;width:23.52519132653061%;height:2.2378472222222223%"></span><span class="mk" style="left:91.41156462585033%;top:20.12152777777778%">2</span></div><figcaption>شكل 94: الخزائن والحسابات البنكية</figcaption></figure>
+<ol class="co">
+  <li><span class="ui">حساب جديد</span> (وبجانبه <span class="ui">تحويل جديد</span>).</li>
+  <li>بطاقات <b>إجمالي النقدية والبنوك</b> و<b>إجمالي الخزائن النقدية</b> و<b>إجمالي الحسابات البنكية</b> بالعملة الأساسية (بالتكلفة الدفترية). الحساب بعملة أجنبية يعرض رصيده بعملته وتحته المعادل بالريال.</li>
+</ol>
+<p>التبويبات: الكل، الخزائن، الحسابات البنكية، مع خيار <span class="ui">إظهار الحسابات الموقوفة</span>. والحساب «على مستوى الشركة» مشترك بين كل الفروع، والحساب المرتبط بفرع يظهر لموظفي ذلك الفرع فقط.</p>
+<div class="two">
+<div><figure class="shot" id="fig-cash-account-new"><div class="frame" style="width:100.0%"><img src="images/cash-account-new.jpg" alt="نافذة إضافة خزينة أو حساب بنكي"></div><figcaption>شكل 95: نافذة إضافة خزينة أو حساب بنكي</figcaption></figure></div>
+<div>
+<p><b>إضافة حساب</b>: نوع الحساب، <b>العملة</b> (لا يمكن تغييرها بعد الإنشاء)، اسم الحساب، الفرع أو «على مستوى الشركة»، وللبنك: اسم البنك ورقم الحساب والآيبان. ثم <b>الرصيد الافتتاحي</b> وتاريخه (اختياري).</p>
+<div class="box acct"><b>الأثر المحاسبي</b>الرصيد الافتتاحي يُسجَّل حركة وارد في دفتر الخزينة مقابل حقوق الملكية (مدين النقدية 1100 / دائن رأس المال 3000). من لا يملك صلاحية الأرصدة الافتتاحية يبدأ الحساب عنده برصيد صفر ويُغذّى بتحويل.</div>
+<p><span class="ui">إيقاف الحساب</span> يمنع استخدامه في أي حركة جديدة؛ ولا يمكن إيقاف حساب رصيده غير صفري (حوّل الرصيد أولًا).</p>
+</div>
+</div>
+<h3>دفتر الخزينة</h3>
+<figure class="shot" id="fig-cash-book"><div class="frame" style="width:81.5%"><img src="images/cash-book.jpg" alt="دفتر الخزينة لحساب «الخزينة الرئيسية — الرياض»"></div><figcaption>شكل 96: دفتر الخزينة لحساب «الخزينة الرئيسية — الرياض»</figcaption></figure>
+<p>اضغط على أي حساب لفتح دفتره: كل الحركات بترتيبها الزمني مع <b>الرصيد الجاري</b>، ورصيد أول المدة وإجمالي الوارد والصادر ورصيد آخر المدة للفترة المختارة. لكل حركة نوعها (رصيد افتتاحي، سداد مورد، تحصيل من عميل، رد مبلغ لعميل، تحويل وارد/صادر، صرف عمولة، زيادة/عجز في الخزينة) والمستند المرتبط ورابط <span class="ui">القيد المحاسبي</span>. وفي الأعلى أزرار: <span class="ui">تحويل جديد</span>، <span class="ui">تعديل</span>، <span class="ui">إيقاف الحساب</span>.</p>
+
+<h2 id="h51"><span class="pm">QQ051QQ</span>التحويلات بين الحسابات</h2>
+<span class="who">العرض: «عرض الخزينة والبنوك» · التنفيذ: «التحويل بين الحسابات»</span>
+<p>لنقل الأموال بين خزائن وحسابات الشركة (مثل سحب نقدية من البنك إلى الخزينة، أو تحويل دولار إلى ريال). يُسجَّل التحويل في دفتري الحسابين وفي قيد محاسبي واحد متوازن.</p>
+<figure class="shot" id="fig-cash-transfers"><div class="frame" style="width:79.0%"><img src="images/cash-transfers.jpg" alt="قائمة التحويلات بين الحسابات"><span class="hl" style="left:2.7210884353741496%;top:11.565972222222221%;width:10.344919217687075%;height:4.444444444444445%"></span><span class="mk" style="left:13.066007653061224%;top:11.565972222222221%">1</span></div><figcaption>شكل 97: قائمة التحويلات بين الحسابات</figcaption></figure>
+<div class="two">
+<div><figure class="shot" id="fig-cash-transfer-new"><div class="frame" style="width:100.0%"><img src="images/cash-transfer-new.jpg" alt="تحويل بين عملتين: من حساب الدولار إلى حساب بالريال"></div><figcaption>شكل 98: تحويل بين عملتين: من حساب الدولار إلى حساب بالريال</figcaption></figure></div>
+<div>
+<ul>
+  <li><b>من حساب</b> و<b>إلى حساب</b> (مع الرصيد المتاح)، <b>التاريخ</b>، <b>المبلغ المحوَّل</b> بعملة حساب المصدر، المرجع، الملاحظات.</li>
+  <li>إذا اختلفت العملتان يظهر <b>سعر الصرف</b> مع النطاق المسموح حول السعر المرجعي، و<b>المبلغ المستلَم</b> الذي يُحسب تلقائيًا (أو يُدخل بالمبلغ الذي وصل فعلًا).</li>
+  <li>لا يُسمح بسحب الخزينة النقدية على المكشوف.</li>
+  <li><span class="ui">تنفيذ التحويل</span>.</li>
+</ul>
+<div class="box acct"><b>فروق العملة</b>في التحويل بين عملتين تُسجَّل أي فروق بين التكلفة الدفترية للمبلغ المحوَّل وقيمته عند الاستلام كأرباح أو خسائر فروق عملة (4300).</div>
+</div>
+</div>
+<figure class="shot" id="fig-cash-transfer-detail"><div class="frame" style="width:100.0%"><img src="images/cash-transfer-detail.jpg" alt="صفحة التحويل: طرفا التحويل والتقييم بالعملة الأساسية"></div><figcaption>شكل 99: صفحة التحويل: طرفا التحويل والتقييم بالعملة الأساسية</figcaption></figure>
+<p>في صفحة التحويل: طرفا التحويل، و<b>التقييم بالعملة الأساسية</b> (التكلفة الدفترية المخصومة من المصدر، والقيمة المستلمة، وفرق العملة)، ورابط القيد، وزر <span class="ui">عكس التحويل</span> (قيد عكسي وحركتان معاكستان بتاريخ اليوم؛ لا يُحذف الأصل ولا يمكن التراجع).</p>
+
+<h2 id="h52"><span class="pm">QQ052QQ</span>المقبوضات (سندات القبض)</h2>
+<span class="who">العرض: «عرض المدفوعات» · التسجيل: «تحصيل المدفوعات» · الإلغاء: «إلغاء المدفوعات»</span>
+<p>كل مبلغ يُستلم من عميل يُسجَّل <b>سند قبض</b>: عرابين الحجز، الدفعات المقدمة، دفعات البيع، الأقساط. تعرض الصفحة كل السندات مع البحث والتصفية حسب الحساب والحالة (مُرحَّل / ملغى)، وزر <span class="ui">إلغاء السند</span>.</p>
+<figure class="shot" id="fig-receipts"><div class="frame" style="width:86.2%"><img src="images/receipts.jpg" alt="قائمة سندات القبض"><span class="hl" style="left:2.7210884353741496%;top:11.565972222222221%;width:12.173150510204081%;height:4.444444444444445%"></span><span class="mk" style="left:14.89423894557823%;top:11.565972222222221%">1</span></div><figcaption>شكل 100: قائمة سندات القبض</figcaption></figure>
+<div class="two">
+<div><figure class="shot" id="fig-receipt-new"><div class="frame" style="width:100.0%"><img src="images/receipt-new.jpg" alt="نافذة تسجيل سند قبض"></div><figcaption>شكل 101: نافذة تسجيل سند قبض</figcaption></figure></div>
+<div>
+<p><b>سند قبض جديد</b> من هذه الصفحة: العميل، و<b>تخصيص المبلغ</b>: <b>رصيد للعميل</b> (دفعة مقدمة تُحفظ لحسابه لاستخدامها لاحقًا أو ردها) أو <b>عربون حجز</b> (يُضاف إلى عربون أحد حجوزاته النشطة، والزيادة تُحفظ رصيدًا له)، ثم الصندوق أو الحساب البنكي، والمبلغ المستلم، وطريقة الدفع، والمرجع، وتاريخ الاستلام.</p>
+<p>أما دفعات البيع والأقساط فتُسجَّل من صفحة عملية البيع وخطة التقسيط.</p>
+<div class="box acct"><b>تذكير</b>كل سند يُقيَّد في دفتر الصندوق والأستاذ العام معًا. العرابين والدفعات المقدمة التزام على المعرض وليست إيرادًا. وإلغاء السند يعكس القيد ويُخرج المبلغ من الحساب، ولا يُسمح به إذا طُبّق المبلغ على بيع أو رُدّ للعميل قبل عكس ذلك.</div>
+</div>
+</div>
+
+<figure class="shot" id="fig-receipt-detail"><div class="frame" style="width:79.0%"><img src="images/receipt-detail.jpg" alt="صفحة سند قبض: بياناته وتخصيص المبلغ"></div><figcaption>شكل 102: صفحة سند قبض: بياناته وتخصيص المبلغ</figcaption></figure>
+<h2 id="h53"><span class="pm">QQ053QQ</span>المبالغ المستردة</h2>
+<span class="who">الطلب: «طلب الاسترداد» · الاعتماد: «اعتماد الاسترداد» · العرض: «عرض المدفوعات»</span>
+<p>الاسترداد يمر بثلاث خطوات: <b>طلب ← اعتماد من مسؤول آخر ← صرف</b>. التبويبات: بانتظار الاعتماد، معتمد، مصروف، مرفوض، مسحوب، الكل.</p>
+<figure class="shot" id="fig-refunds"><div class="frame" style="width:79.0%"><img src="images/refunds.jpg" alt="صفحة المبالغ المستردة"></div><figcaption>شكل 103: صفحة المبالغ المستردة</figcaption></figure>
+<div class="two">
+<div><figure class="shot" id="fig-refund-new"><div class="frame" style="width:99.4%"><img src="images/refund-new.jpg" alt="نافذة طلب استرداد"></div><figcaption>شكل 104: نافذة طلب استرداد</figcaption></figure></div>
+<div>
+<ul>
+  <li><span class="ui">طلب استرداد</span>: <b>مصدر المبلغ</b> (رصيد العميل/دفعة مقدمة، أو عربون حجز منتهٍ أو ملغى، أو رصيد عملية بيع ملغاة أو مرتجعة)، العميل، <b>مبلغ الاسترداد</b> (لا يتجاوز المتاح)، والسبب.</li>
+  <li><span class="ui">اعتماد</span> أو <span class="ui">رفض الطلب</span>: لمستخدم غير مقدم الطلب.</li>
+  <li><span class="ui">صرف</span>: من حساب بالعملة الأساسية، مع طريقة الدفع والمرجع وتاريخ الصرف؛ فيخرج المبلغ من الخزينة (مدين دفعات مقدمة 2100 / دائن النقدية).</li>
+  <li><span class="ui">سحب الطلب</span> قبل الصرف؛ يبقى المبلغ محتجزًا لحساب العميل.</li>
+</ul>
+</div>
+</div>
+
+<h2 id="h54"><span class="pm">QQ054QQ</span>المصروفات التشغيلية</h2>
+<span class="who">العرض: «عرض المصروفات» · التسجيل: «تسجيل المصروفات» · الاعتماد: «اعتماد المصروفات»</span>
+<p>مصروفات المنشأة غير المرتبطة بسيارة: الإيجار، الرواتب، الكهرباء والمياه، التسويق، الوقود، رسوم بنكية… (تكاليف السيارات تُسجَّل على السيارة نفسها لا هنا).</p>
+<figure class="shot" id="fig-expenses"><div class="frame" style="width:100.0%"><img src="images/expenses.jpg" alt="صفحة المصروفات: الملخص حسب البند والشهر ثم القائمة"><span class="hl" style="left:2.7210884353741496%;top:9.195560954063604%;width:11.999096513605442%;height:3.53356890459364%"></span><span class="mk" style="left:14.720184948979592%;top:9.195560954063604%">1</span></div><figcaption>شكل 105: صفحة المصروفات: الملخص حسب البند والشهر ثم القائمة</figcaption></figure>
+<ol class="co"><li><span class="ui">تسجيل مصروف</span>.</li></ol>
+<p>الملخص: إجمالي المصروفات المرحّلة، وعدد ما هو بانتظار الاعتماد (اضغط لعرضها)، وأعلى بند، وتوزيع حسب البند وحسب الشهر. والقائمة قابلة للتصفية حسب الحالة والفرع والبند والفترة، وتعرض حالة السداد لكل مصروف.</p>
+<div class="two">
+<div><figure class="shot" id="fig-expense-new"><div class="frame" style="width:100.0%"><img src="images/expense-new.jpg" alt="نافذة تسجيل مصروف (لمستخدم لا يملك صلاحية الاعتماد)"></div><figcaption>شكل 106: نافذة تسجيل مصروف (لمستخدم لا يملك صلاحية الاعتماد)</figcaption></figure></div>
+<div>
+<p>الحقول: الفرع، بند المصروف، الوصف، المبلغ والعملة، تاريخ المصروف، المورد (اختياري؛ فارغًا = شراء مباشر)، ملاحظات، و<b>السداد الفوري</b> (من حساب بالعملة الأساسية، متاح فقط إذا كان المصروف سيُرحَّل مباشرة).</p>
+<p>إذا كنت تملك صلاحية الاعتماد يُرحَّل المصروف فور تسجيله؛ وإلا يصبح الزر <span class="ui">إرسال للاعتماد</span> ويذهب إلى صندوق الموافقات ولا يُرحَّل أو يُسدَّد قبل اعتماده.</p>
+<div class="box acct"><b>الأثر المحاسبي</b>مدين المصروفات التشغيلية (6000) / دائن ذمم الموردين (2000)، ثم يُسدَّد من «مدفوعات الموردين» أو بالسداد الفوري.</div>
+</div>
+</div>
+<figure class="shot" id="fig-expense-pending"><div class="frame" style="width:100.0%"><img src="images/expense-pending.jpg" alt="مصروف بانتظار الاعتماد كما يراه المعتمد"><span class="hl" style="left:10.75813137755102%;top:13.744028662420382%;width:11.112882653061225%;height:4.246284501061571%"></span><span class="mk" style="left:21.871014030612244%;top:13.744028662420382%">1</span><span class="hl" style="left:2.7210884353741496%;top:13.744028662420382%;width:7.356770833333333%;height:4.246284501061571%"></span><span class="mk" style="left:10.077859268707483%;top:13.744028662420382%">2</span></div><figcaption>شكل 107: مصروف بانتظار الاعتماد كما يراه المعتمد</figcaption></figure>
+<ol class="co">
+  <li><span class="ui">اعتماد وترحيل</span>: يُرحَّل المصروف ويصبح مستحق السداد.</li>
+  <li><span class="ui">رفض</span>: لا يُرحَّل ويُغلق طلب الموافقة.</li>
+</ol>
+<p>في صفحة المصروف المرحّل: المبلغ والقيمة بالعملة الأساسية والمسدَّد والمتبقي، ودفعات السداد، والقيود المحاسبية، وزر <span class="ui">سداد المتبقي</span>، وزر <span class="ui">عكس المصروف</span> (قيد عكسي بتاريخ اليوم؛ يجب إلغاء دفعات السداد أولًا).</p>
+<figure class="shot" id="fig-expense-posted"><div class="frame" style="width:100.0%"><img src="images/expense-posted.jpg" alt="مصروف مرحّل ومسدَّد"></div><figcaption>شكل 108: مصروف مرحّل ومسدَّد</figcaption></figure>
+
+<h2 id="h55"><span class="pm">QQ055QQ</span>دفتر الأستاذ (الحسابات العامة)</h2>
+<span class="who">«عرض دفتر الأستاذ» + الوصول إلى كل الفروع (المحاسب، المالك، مدير الفرع)</span>
+<p>كل المبالغ بالعملة الأساسية. الصفحة مقسمة إلى تبويبات:</p>
+<figure class="shot" id="fig-ledger-accounts"><div class="frame" style="width:86.2%"><img src="images/ledger-accounts.jpg" alt="دليل الحسابات مع الأرصدة"></div><figcaption>شكل 109: دليل الحسابات مع الأرصدة</figcaption></figure>
+<ul>
+  <li><b>دليل الحسابات</b>: كل حساب برمزه ونوعه (أصول، التزامات، حقوق ملكية، إيرادات، مصروفات) وإجمالي المدين والدائن والرصيد الطبيعي، «حتى تاريخ» تختاره، ورابط <span class="ui">كشف الحساب</span>.</li>
+  <li><b>ميزان المراجعة</b>: الرصيد الافتتاحي والحركة المدينة والدائنة والرصيد الختامي لكل حساب في فترة، مع التأكد أن إجمالي المدين = إجمالي الدائن (شارة «متوازن»)، وخيار إخفاء الحسابات بلا رصيد، والتصفية حسب الفرع.</li>
+  <li><b>دفتر اليومية</b>: كل القيود المرحّلة بأطرافها، مع التصفية حسب الحساب والمصدر (شراء، مصروف، تحصيل، بيع، تحويل…) والفترة والفرع، ورابط <span class="ui">فتح المستند</span>.</li>
+  <li><b>كشف حساب</b>: اختر حسابًا لعرض رصيده الافتتاحي وكل حركة مع الرصيد الجاري والختامي.</li>
+  <li><b>قائمة الدخل</b>: الإيرادات − تكلفة المبيعات = مجمل الربح، − المصروفات = صافي الربح أو الخسارة (الافتراضي من بداية السنة حتى اليوم).</li>
+  <li><b>الميزانية العمومية</b>: الأصول = الالتزامات + حقوق الملكية (مع أرباح الفترة غير المقفلة ضمن حقوق الملكية).</li>
+  <li><b>المطابقة</b>: تتحقق أن الدفاتر الفرعية تطابق الحسابات الرقابية: دفتر الخزينة مقابل 1100، وتكاليف السيارات مقابل 1300، ومستحقات الموردين مقابل 2000، وتوازن ميزان المراجعة. «كل الدفاتر مطابقة» هو الوضع الطبيعي؛ أي فرق يحتاج مراجعة فورية.</li>
+</ul>
+<figure class="shot" id="fig-ledger-statement"><div class="frame" style="width:73.2%"><img src="images/ledger-statement.jpg" alt="كشف حساب الدفعات المقدمة من العملاء (2100)"></div><figcaption>شكل 110: كشف حساب الدفعات المقدمة من العملاء (2100)</figcaption></figure>
+<div class="two">
+<figure class="shot" id="fig-ledger-trial"><div class="frame" style="width:100.0%"><img src="images/ledger-trial.jpg" alt="ميزان المراجعة"></div><figcaption>شكل 111: ميزان المراجعة</figcaption></figure>
+<figure class="shot" id="fig-ledger-reconciliation"><div class="frame" style="width:100.0%"><img src="images/ledger-reconciliation.jpg" alt="المطابقة: كل الدفاتر مطابقة"></div><figcaption>شكل 112: المطابقة: كل الدفاتر مطابقة</figcaption></figure>
+</div>
+<div class="two">
+<figure class="shot" id="fig-ledger-income"><div class="frame" style="width:100.0%"><img src="images/ledger-income.jpg" alt="قائمة الدخل"></div><figcaption>شكل 113: قائمة الدخل</figcaption></figure>
+<figure class="shot" id="fig-ledger-balance"><div class="frame" style="width:100.0%"><img src="images/ledger-balance.jpg" alt="الميزانية العمومية"></div><figcaption>شكل 114: الميزانية العمومية</figcaption></figure>
+</div>
+<figure class="shot" id="fig-ledger-journal"><div class="frame" style="width:73.2%"><img src="images/ledger-journal.jpg" alt="دفتر اليومية"></div><figcaption>شكل 115: دفتر اليومية</figcaption></figure>
+<p>اضغط رقم أي قيد لفتح <b>صفحة القيد</b>: المستند المصدر، والحدث، والتاريخ، والفرع، ومن سجّله ومتى، وأطراف القيد مع الأبعاد (السيارة، المورد، العميل، الخزينة)، وتأكيد «القيد متوازن: المدين = الدائن»، وروابط القيد العكسي إن وُجد.</p>
+<figure class="shot" id="fig-ledger-entry"><div class="frame" style="width:79.0%"><img src="images/ledger-entry.jpg" alt="صفحة قيد يومية"></div><figcaption>شكل 116: صفحة قيد يومية</figcaption></figure>
+<div class="box note"><b>لا قيود يدوية</b>لا يوفر النظام إدخال قيود يومية يدوية حرة؛ كل القيود ناتجة عن العمليات (والأرصدة الافتتاحية للحسابات النقدية). التصحيح يكون بعكس العملية الأصلية.</div>
+
+<h2 id="h56"><span class="pm">QQ056QQ</span>إغلاق يومية الخزينة</h2>
+<span class="who">الإغلاق: «إغلاق يومية الخزينة» · الفروقات: «اعتماد فروقات الخزينة» · إعادة الفتح: «إعادة فتح يوم مغلق» (المالك)</span>
+<p>في نهاية كل يوم يَعُدّ أمين الصندوق النقدية الفعلية ويقارنها بالرصيد المتوقع في الدفتر، ثم يغلق اليوم فلا يمكن تسجيل أي حركة على هذا الحساب بتاريخه أو قبله.</p>
+<figure class="shot" id="fig-cash-closing"><div class="frame" style="width:100.0%"><img src="images/cash-closing.jpg" alt="صفحة إغلاق اليومية لحساب الخزينة الرئيسية"></div><figcaption>شكل 117: صفحة إغلاق اليومية لحساب الخزينة الرئيسية</figcaption></figure>
+<ul>
+  <li><b>الحساب</b>: اختر الخزينة أو الحساب البنكي؛ يظهر الرصيد الحالي في الدفتر. لكل حساب إغلاقه المستقل.</li>
+  <li><b>إغلاق يوم</b>: <b>يوم العمل</b> (لا يمكن إغلاق يوم مستقبلي)، و<b>الرصيد المتوقع</b> من الدفتر حتى نهاية ذلك اليوم، و<b>الرصيد المعدود</b> فعليًا، فيظهر <b>الفرق</b>: مطابق، أو زيادة في الخزينة، أو عجز في الخزينة.</li>
+  <li>إذا وُجد فرق لا يستطيع الإغلاق إلا من يملك صلاحية «اعتماد فروقات الخزينة»، ويُرحَّل الفرق إلى حساب «زيادة وعجز الخزينة» (6200) فيصبح رصيد الدفتر مساويًا للمعدود. فروق حسابات العملات الأجنبية تُصحَّح بتحويل قبل الإغلاق.</li>
+  <li><span class="ui">إغلاق يوم …</span>: ينفذ الإغلاق.</li>
+  <li><b>سجل الإغلاقات</b>: كل يوم مغلق بالمتوقع والمعدود والفرق ومن أغلقه. يمكن <span class="ui">إعادة فتح</span> آخر يوم مغلق فقط، مع السبب (يبقى قيد الفرق المرحَّل كما هو).</li>
+</ul>
+
+<h1 id="h57"><span class="pm">QQ057QQ</span>التقارير<small>تقارير تشغيلية ومالية مبنية على دفتر الأستاذ، مع التصدير والمطابقة</small></h1>
+<span class="who">التقارير التشغيلية: «عرض التقارير التشغيلية» · المالية: «عرض التقارير المالية» · التصدير: «تصدير التقارير»</span>
+<p>صفحة <span class="ui">التقارير</span> هي فهرس التقارير المتاحة لك، مقسمة إلى <b>التقارير التشغيلية</b> و<b>التقارير المالية</b>؛ اضغط <span class="ui">فتح التقرير</span> على أي بطاقة.</p>
+<figure class="shot" id="fig-reports-hub"><div class="frame" style="width:86.2%"><img src="images/reports-hub.jpg" alt="فهرس التقارير"></div><figcaption>شكل 118: فهرس التقارير</figcaption></figure>
+<table>
+  <tr><th>التقرير</th><th>ماذا يعرض</th><th>عوامل التصفية</th></tr>
+  <tr><td><b>تقييم المخزون وأعماره</b></td><td>السيارات في المخزون بالتكلفة وسعر العرض والربح المتوقع، موزعة حسب مدة بقائها (0–30، 31–60، 61–90، أكثر من 90 يومًا).</td><td>الفرع، حالة السيارة، عمر المخزون</td></tr>
+  <tr><td><b>المبيعات والربحية</b></td><td>الإيراد والضريبة وتكلفة المبيعات ومجمل الربح والعمولات لكل عملية بيع، أو مجمّعة حسب المندوب أو الفرع أو مصدر العميل أو طريقة الدفع أو الشهر.</td><td>الفترة، الفرع، التجميع، طريقة الدفع، المندوب</td></tr>
+  <tr><td><b>تحويل العملاء المحتملين</b></td><td>الفرص الجديدة والصفقات الناجحة والخاسرة ونسبة التحويل حسب المصدر أو المسؤول.</td><td>الفترة، الفرع، التجميع، المصدر</td></tr>
+  <tr><td><b>التدفقات النقدية</b></td><td>الرصيد الافتتاحي والوارد والمنصرف والرصيد الختامي لكل خزينة وحساب بنكي.</td><td>الفترة، الفرع، الحساب</td></tr>
+  <tr><td><b>أعمار الذمم المدينة والأقساط</b></td><td>أرصدة العملاء المستحقة والمتأخرة وأعمارها حتى تاريخ محدد.</td><td>حتى تاريخ، الفرع</td></tr>
+</table>
+<figure class="shot" id="fig-report-sales"><div class="frame" style="width:100.0%"><img src="images/report-sales.jpg" alt="تقرير المبيعات والربحية"><span class="hl" style="left:73.47071641156462%;top:19.53125%;width:22.36261692176871%;height:1.9145080798479086%"></span><span class="mk" style="left:95.83333333333334%;top:19.53125%">1</span><span class="hl" style="left:9.56234056122449%;top:12.877257604562736%;width:6.7947491496598635%;height:3.041825095057034%"></span><span class="mk" style="left:16.357089710884352%;top:12.877257604562736%">2</span><span class="hl" style="left:81.48251488095238%;top:75.18417300380229%;width:14.010682397959185%;height:2.2100760456273765%"></span><span class="mk" style="left:95.49319727891157%;top:75.18417300380229%">3</span></div><figcaption>شكل 119: تقرير المبيعات والربحية</figcaption></figure>
+<ol class="co">
+  <li><b>عوامل التصفية</b>: الفترة (هذا الشهر، الشهر الماضي، فترة مخصصة) والفرع والتجميع وغيرها حسب التقرير، مع <span class="ui">إعادة الضبط</span>.</li>
+  <li><b>التصدير</b>: أزرار <span class="ui">CSV</span> و<span class="ui">Excel</span> و<span class="ui">PDF</span>؛ يُصدَّر التقرير بنفس عوامل التصفية والأعمدة المعروضة.</li>
+  <li><b>المطابقة مع دفتر الأستاذ</b>: مقارنة إجماليات التقرير بأرصدة الحسابات (مثلًا صافي الإيراد مقابل الحساب 4000، وتكلفة المبيعات مقابل 5000). «مطابق» يعني أن الأرقام موثوقة؛ وتظهر المطابقة عند تشغيل التقرير على الشركة كلها دون عوامل تصفية إضافية.</li>
+</ol>
+<p>تعرض بطاقات الملخص أعلى الجدول أهم الإجماليات، ويمكن الترتيب بالضغط على عنوان أي عمود، وفتح المستند من الروابط في الجدول.</p>
+<figure class="shot" id="fig-report-inventory"><div class="frame" style="width:100.0%"><img src="images/report-inventory.jpg" alt="تقرير تقييم المخزون وأعماره"></div><figcaption>شكل 120: تقرير تقييم المخزون وأعماره</figcaption></figure>
+<figure class="shot" id="fig-report-receivables"><div class="frame" style="width:99.9%"><img src="images/report-receivables.jpg" alt="تقرير أعمار الذمم المدينة والأقساط"></div><figcaption>شكل 121: تقرير أعمار الذمم المدينة والأقساط</figcaption></figure>
+<div class="box note"><b>حدود التقارير</b>يعرض التقرير الواحد حتى 20,000 صف؛ إذا تجاوزها تظهر رسالة «النتائج مقتطعة» فضيّق عوامل التصفية. وملف PDF محدود بعدد الصفوف؛ استخدم Excel أو CSV للبيانات الكبيرة. إذا رُفض تصدير PDF (لكثرة الطلبات مثلًا) قد يفتح المتصفح رسالة الخطأ بصيغة تقنية؛ أعد المحاولة بعد قليل.</div>
+
+<h1 id="h58"><span class="pm">QQ058QQ</span>المعرض الرقمي<small>إعلانات السيارات على صفحة عامة للعملاء، المشاركة برابط ورمز QR، واستقبال الاستفسارات</small></h1>
+<span class="who">إدارة الإعلانات ونشرها: «نشر السيارات في المعرض الرقمي» (مدير المبيعات، مدير المخزون، مدير الفرع، المالك)</span>
+<p>المعرض الرقمي صفحة إنترنت عامة لشركتك (بلا تسجيل دخول) تعرض السيارات المنشورة بصورها ومواصفاتها وأسعارها، ويستطيع الزائر إرسال استفسار أو طلب تجربة قيادة. يُفعَّل من <b>إعدادات الشركة ← المعرض الرقمي</b> (تفعيل صفحة المعرض العامة، إظهار السيارات المحجوزة، إظهار الأسعار، رقم واتساب، العنوان الترحيبي).</p>
+
+<h2 id="h59"><span class="pm">QQ059QQ</span>صفحة الإعلانات</h2>
+<figure class="shot" id="fig-show-listings"><div class="frame" style="width:100.0%"><img src="images/show-listings.jpg" alt="إعلانات المعرض الرقمي"><span class="hl" style="left:14.005367772108842%;top:11.565972222222221%;width:13.17761479591837%;height:4.444444444444445%"></span><span class="mk" style="left:27.18298256802721%;top:11.565972222222221%">1</span><span class="hl" style="left:2.7210884353741496%;top:11.565972222222221%;width:10.604007227891156%;height:4.444444444444445%"></span><span class="mk" style="left:13.325095663265307%;top:11.565972222222221%">2</span></div><figcaption>شكل 122: إعلانات المعرض الرقمي</figcaption></figure>
+<ol class="co">
+  <li><span class="ui">فتح المعرض العام</span>: يفتح الصفحة العامة كما يراها الزوار.</li>
+  <li><span class="ui">الاستفسارات</span>: ينتقل إلى استفسارات المعرض.</li>
+  <li><span class="ui">إعدادات المعرض</span>: ينتقل إلى قسم المعرض في إعدادات الشركة.</li>
+</ol>
+<p>يعرض الجدول كل سيارة لها إعلان: حالة السيارة، حالة الإعلان (منشور / غير منشور)، الظهور للعامة (ظاهر / غير ظاهر مع السبب)، مصدر الوصف، عدد الصور العامة، تاريخ النشر. التصفية: الكل، منشور، غير منشور. ويُنشأ الإعلان من تبويب <span class="ui">إعلان المعرض</span> في ملف السيارة.</p>
+
+<h2 id="h60"><span class="pm">QQ060QQ</span>محرر الإعلان</h2>
+<p>يُفتح المحرر من صفحة الإعلانات، أو من تبويب <span class="ui">إعلان المعرض</span> في ملف السيارة:</p>
+<figure class="shot" id="fig-veh-tab-listing"><div class="frame" style="width:100.0%"><img src="images/veh-tab-listing.jpg" alt="تبويب إعلان المعرض في ملف السيارة"></div><figcaption>شكل 123: تبويب إعلان المعرض في ملف السيارة</figcaption></figure>
+<figure class="shot" id="fig-show-editor"><div class="frame" style="width:100.0%"><img src="images/show-editor.jpg" alt="محرر إعلان سيارة منشورة"><span class="hl" style="left:36.81972789115646%;top:19.87187199230029%;width:9.283322704081632%;height:3.079884504331088%"></span><span class="mk" style="left:46.103050595238095%;top:19.87187199230029%">1</span><span class="hl" style="left:36.81972789115646%;top:69.22220885466795%;width:8.019770408163266%;height:3.079884504331088%"></span><span class="mk" style="left:44.83949829931973%;top:69.22220885466795%">2</span><span class="hl" style="left:22.063669217687075%;top:37.42631135707411%;width:9.483949829931973%;height:3.849855630413859%"></span><span class="mk" style="left:31.547619047619047%;top:37.42631135707411%">3</span><span class="hl" style="left:22.910023384353742%;top:60.75553416746872%;width:8.637595663265305%;height:3.079884504331088%"></span><span class="mk" style="left:31.547619047619047%;top:60.75553416746872%">4</span><span class="hl" style="left:4.506802721088436%;top:72.51112848893166%;width:27.040816326530614%;height:1.9384624639076036%"></span><span class="mk" style="left:31.547619047619047%;top:72.51112848893166%">5</span></div><figcaption>شكل 124: محرر إعلان سيارة منشورة</figcaption></figure>
+<ol class="co">
+  <li><span class="ui">اقتراح وصف</span>: يقترح وصفًا عربيًا وإنجليزيًا من مواصفات السيارة فقط (بالذكاء الاصطناعي إذا فُعّل تكامله، وإلا من قالب مدمج). لا يُحفظ شيء تلقائيًا: تراجع النص في نافذة ثم <span class="ui">استخدام هذا النص</span>.</li>
+  <li><span class="ui">حفظ المحتوى</span>: يحفظ العنوان والوصف بالعربية والإنجليزية (إن تُرك العنوان فارغًا يُستخدم اسم السيارة).</li>
+  <li><span class="ui">نشر في المعرض</span> / <span class="ui">إلغاء النشر</span>: إلغاء النشر يخفي السيارة فورًا وتعرض روابطها المشاركة صفحة «غير موجود».</li>
+  <li><b>المشاركة</b>: <span class="ui">نسخ الرابط</span> لرابط الإعلان، ورابط واتساب للمعرض.</li>
+  <li><b>رمز QR</b> للإعلان مع تنزيله بصيغة SVG أو PNG (للطباعة على زجاج السيارة مثلًا).</li>
+</ol>
+<p>بطاقة <b>الحالة</b> توضح هل الإعلان ظاهر للعامة، ولماذا لا يظهر إن كان مخفيًا (المعرض غير مفعّل، الإعلان غير منشور، حالة السيارة لا تُعرض…). وبطاقة <b>إرشاد التسعير (تقدير)</b> تقارن سعر العرض بوسيط سعر البيع لمبيعات شركتك المماثلة (نفس الماركة والموديل وسنة الصنع ±2، وتحتاج 3 مبيعات على الأقل) — وليست بيانات سوق خارجية.</p>
+<div class="box warn"><b>شروط النشر</b>تُنشر السيارات المتاحة للبيع فقط (والمحجوزة إن فُعّل إظهارها). وإذا كان «إظهار الأسعار» مفعلًا يجب تحديد سعر عرض قبل النشر. ولا تظهر للعامة إلا الصور المصنفة «عام» والمعلّمة «ظاهرة للعملاء». لا يُعرض رقم الشاسيه ولا التكلفة ولا الحد الأدنى للسعر.</div>
+
+<h2 id="h61"><span class="pm">QQ061QQ</span>الصفحة العامة للزوار</h2>
+<figure class="shot" id="fig-show-public"><div class="frame" style="width:100.0%"><img src="images/show-public.jpg" alt="الصفحة العامة للمعرض على الحاسوب"></div><figcaption>شكل 125: الصفحة العامة للمعرض على الحاسوب</figcaption></figure>
+<p>يرى الزائر اسم المعرض والعنوان الترحيبي، والبحث بالماركة أو الموديل، وتصفية سنة الصنع والسعر الأقصى، وبطاقات السيارات (مع شارة «محجوزة» إن وُجدت، أو «تواصل معنا للسعر» إذا أُخفيت الأسعار)، ونموذج «تواصل معنا» العام، وزر واتساب ورقم الهاتف أسفل الصفحة. ويمكنه التبديل إلى الإنجليزية.</p>
+<div class="two">
+<div><figure class="shot" id="fig-show-public-vehicle"><div class="frame" style="width:100.0%"><img src="images/show-public-vehicle.jpg" alt="صفحة سيارة في المعرض العام مع نموذج الاستفسار"></div><figcaption>شكل 126: صفحة سيارة في المعرض العام مع نموذج الاستفسار</figcaption></figure></div>
+<div>
+<p>في صفحة السيارة: معرض الصور، السعر، المواصفات، المزايا، الوصف، زر <span class="ui">تواصل عبر واتساب</span> و<span class="ui">اتصال</span> و<span class="ui">مشاركة</span>، ونموذج <b>«هل أنت مهتم بهذه السيارة؟»</b> بنوعين: <b>استفسار</b> أو <b>طلب تجربة قيادة</b> (مع التاريخ المفضل)، والاسم والجوال والبريد والرسالة، وموافقة إلزامية على التواصل.</p>
+<p>عند الإرسال يرى الزائر «تم استلام طلبك»، ويُنشأ في النظام عميل وفرصة بيعية ويظهر الطلب في «استفسارات المعرض». تحمي الصفحة نفسها من الإرسال المتكرر بحد للطلبات.</p>
+</div>
+</div>
+<div class="two">
+<figure class="shot mobile" id="fig-mobile-public"><div class="frame" style="width:78.0%"><img src="images/mobile-public.jpg" alt="المعرض العام على الجوال"></div><figcaption>شكل 127: المعرض العام على الجوال</figcaption></figure>
+<div><div class="box note"><b>الرسائل الآلية</b>خيار «إرسال رسالة تأكيد تلقائية للزائر» يعمل فقط عبر تكامل الرسائل. في الوضع الافتراضي «تسجيل فقط» تُحفظ الرسالة في السجل ولا تصل لأحد؛ لا يوجد حساب واتساب أو SMS متصل بالنظام.</div>
+<div class="box tip"><b>نصيحة</b>انسخ رابط الإعلان وأرسله للعميل عبر واتساب من جوالك، أو اطبع رمز QR وضعه على السيارة في الساحة.</div></div>
+</div>
+
+<h1 id="h62"><span class="pm">QQ062QQ</span>الإعدادات والإدارة<small>بيانات الشركة، الفروع، المستخدمون، الأدوار، سجل التدقيق، حماية البيانات، مراحل المبيعات، الموظفون، سياسات العمولة، التكاملات</small></h1>
+<p>تضم مجموعة <b>الإدارة</b>: <span class="ui">بيانات الشركة</span>، <span class="ui">الفروع</span>، <span class="ui">المستخدمون</span>، <span class="ui">الأدوار والصلاحيات</span>، <span class="ui">سجل التدقيق</span>، <span class="ui">حماية البيانات</span>، <span class="ui">مراحل المبيعات</span>، <span class="ui">الموظفون</span>، <span class="ui">سياسات العمولة</span>، <span class="ui">ملفي الوظيفي</span>، <span class="ui">التكاملات</span>.</p>
+
+<h2 id="h63"><span class="pm">QQ063QQ</span>بيانات الشركة والإعدادات</h2>
+<span class="who">العرض: «عرض الإعدادات» · التعديل: «إدارة إعدادات الشركة» (المالك)</span>
+<p>صفحة واحدة طويلة مقسمة إلى أقسام، وزر <span class="ui">حفظ</span> في أسفلها. وفي الجانب بطاقة <b>الاشتراك</b>: الخطة، ونهاية فترة التجربة، والاستخدام (المستخدمون، الفروع، السيارات).</p>
+<figure class="shot" id="fig-set-company-1"><div class="frame" style="width:100.0%"><img src="images/set-company-1.jpg" alt="بيانات الشركة، الضرائب، الاعتراف بالإيراد، أسعار الصرف المرجعية"></div><figcaption>شكل 128: بيانات الشركة، الضرائب، الاعتراف بالإيراد، أسعار الصرف المرجعية</figcaption></figure>
+<ul>
+  <li><b>بيانات الشركة</b>: اسم الشركة، العملة الأساسية (ثابتة)، اللغة الافتراضية، المنطقة الزمنية (تحدد «اليوم» في كل التواريخ)، <b>قاعدة التقريب</b> (تجاري أو بنكي؛ تُقفل بعد أول قيد مالي).</li>
+  <li><b>الضرائب</b>: نظام الضريبة (بدون، على كامل السعر، على هامش الربح)، النسبة، «الأسعار شاملة الضريبة»، الرقم الضريبي. هذه أداة حساب وليست اعتمادًا للامتثال الضريبي أو الفوترة الإلكترونية.</li>
+  <li><b>الاعتراف بالإيراد</b>: عند تسليم السيارة (موصى به) أو عند تأكيد البيع؛ يُقفل بعد أول قيد مالي.</li>
+  <li><b>أسعار الصرف المرجعية</b>: لكل عملة (الجنيه، الدرهم، الدولار، اليورو…) كم تساوي بالعملة الأساسية؛ <b>اتركها فارغة لمنع التعامل بالعملة</b>. و<b>نسبة الانحراف المسموح بها</b> (مثل 2٪): أقصى فرق بين السعر المُدخل في أي عملية والسعر المرجعي. في الأمثلة: 1 USD = 3.75 SAR.</li>
+</ul>
+<figure class="shot" id="fig-set-company-2"><div class="frame" style="width:100.0%"><img src="images/set-company-2.jpg" alt="الحجوزات، المخزون، التقسيط، بيانات المستندات"></div><figcaption>شكل 129: الحجوزات، المخزون، التقسيط، بيانات المستندات</figcaption></figure>
+<ul>
+  <li><b>الحجوزات</b>: مدة الحجز الافتراضية، سياسة العربون الافتراضية (قابل للاسترداد، غير قابل، جزئي) والنسبة القابلة للاسترداد.</li>
+  <li><b>المخزون</b>: تنبيه الركود بعد (يوم)، ركود حرج بعد (يوم)، <b>إلزام الفحص قبل العرض للبيع</b>.</li>
+  <li><b>التقسيط</b>: <b>تفعيل وحدة التقسيط الداخلي</b> وطريقة الحساب الافتراضية. غرامات التأخير غير مفعّلة.</li>
+  <li><b>بيانات المستندات</b>: الاسم القانوني (عربي/إنجليزي)، السجل التجاري، الهاتف، العنوان، لغة المستندات الافتراضية، شروط العقد، تذييل الفاتورة؛ تظهر في العقود والفواتير المطبوعة.</li>
+</ul>
+<figure class="shot" id="fig-set-company-3"><div class="frame" style="width:100.0%"><img src="images/set-company-3.jpg" alt="المعرض الرقمي وحماية البيانات"></div><figcaption>شكل 130: المعرض الرقمي وحماية البيانات</figcaption></figure>
+<ul>
+  <li><b>المعرض الرقمي</b>: تفعيل الصفحة العامة، إظهار السيارات المحجوزة، إظهار الأسعار، رسالة التأكيد الآلية للزائر، رقم واتساب (دولي مثل ‎+9665…‎)، العنوان الترحيبي، ورابط المعرض العام.</li>
+  <li><b>حماية البيانات</b>: <b>مدة الاحتفاظ باستفسارات المعرض</b> (30–3650 يومًا، أو فارغ دون حد)؛ بعدها تُمحى البيانات الشخصية للزوار تلقائيًا.</li>
+</ul>
+<div class="box warn"><b>إعدادات تُقفل</b>قاعدة التقريب وطريقة الاعتراف بالإيراد لا يمكن تغييرهما بعد وجود أي قيد مالي («لا يمكن تغيير هذا الإعداد بعد وجود قيود مالية»). اضبطهما قبل البدء.</div>
+
+<h2 id="h64"><span class="pm">QQ064QQ</span>الفروع</h2>
+<span class="who">«إدارة الفروع» أو «عرض الإعدادات»</span>
+<div class="two">
+<div><figure class="shot" id="fig-set-branches"><div class="frame" style="width:100.0%"><img src="images/set-branches.jpg" alt="قائمة الفروع"><span class="hl" style="left:2.7210884353741496%;top:9.777777777777779%;width:9.592899659863946%;height:4.444444444444445%"></span><span class="mk" style="left:12.313988095238097%;top:9.777777777777779%">1</span></div><figcaption>شكل 131: قائمة الفروع</figcaption></figure></div>
+<div><figure class="shot" id="fig-set-branch-dialog"><div class="frame" style="width:99.4%"><img src="images/set-branch-dialog.jpg" alt="نافذة إضافة فرع"></div><figcaption>شكل 132: نافذة إضافة فرع</figcaption></figure></div>
+</div>
+<p><span class="ui">إضافة فرع</span>: الاسم، <b>الرمز</b> (حروف إنجليزية كبيرة وأرقام، فريد)، المدينة، العنوان، الهاتف، المنطقة الزمنية (فارغة = منطقة الشركة)، والحالة. يجب أن يبقى فرع نشط واحد على الأقل.</p>
+
+<h2 id="h65"><span class="pm">QQ065QQ</span>المستخدمون</h2>
+<span class="who">العرض: «عرض المستخدمين» · الإدارة: «إدارة المستخدمين»</span>
+<figure class="shot" id="fig-set-users"><div class="frame" style="width:100.0%"><img src="images/set-users.jpg" alt="قائمة المستخدمين"><span class="hl" style="left:2.7210884353741496%;top:9.777777777777779%;width:11.955250850340136%;height:4.444444444444445%"></span><span class="mk" style="left:14.676339285714285%;top:9.777777777777779%">1</span></div><figcaption>شكل 133: قائمة المستخدمين</figcaption></figure>
+<p>يعرض كل مستخدم بدوره وفروعه المسموح بها وآخر دخول وحالته، مع زر <span class="ui">تعديل</span> وزر إعادة تعيين كلمة المرور.</p>
+<div class="two">
+<div><figure class="shot" id="fig-set-user-dialog"><div class="frame" style="width:100.0%"><img src="images/set-user-dialog.jpg" alt="نافذة إضافة مستخدم"></div><figcaption>شكل 134: نافذة إضافة مستخدم</figcaption></figure></div>
+<div>
+<p><span class="ui">إضافة مستخدم</span>: الاسم الكامل، الهاتف، البريد، <b>كلمة المرور المبدئية</b> (10 أحرف على الأقل بحرف ورقم؛ سلّمها للموظف ليغيّرها)، <b>الدور</b>، و<b>الوصول إلى كل الفروع</b> أو اختيار <b>الفروع المسموح بها</b>.</p>
+<p>إذا كان البريد مسجّلًا مسبقًا في النظام (لشركة أخرى) <b>تُرسل إليه دعوة</b> ولا يحصل على أي صلاحية حتى يقبلها بنفسه، ولا تتغير كلمة مروره.</p>
+<p>في <span class="ui">تعديل المستخدم</span>: تغيير الدور والفروع، و<span class="ui">إيقاف</span> / <span class="ui">تفعيل</span> الحساب، و<span class="ui">إعادة تعيين كلمة المرور</span>. يجب أن يبقى مالك نشط واحد على الأقل، ولا يستطيع مدير مقيّد بفروع منح صلاحيات خارج فروعه.</p>
+</div>
+</div>
+
+<h2 id="h66"><span class="pm">QQ066QQ</span>الأدوار والصلاحيات</h2>
+<span class="who">العرض: «عرض المستخدمين» · الإدارة: «إدارة الأدوار»</span>
+<figure class="shot" id="fig-set-roles"><div class="frame" style="width:100.0%"><img src="images/set-roles.jpg" alt="قائمة الأدوار: الأساسية والمخصصة"><span class="hl" style="left:2.7210884353741496%;top:9.777777777777779%;width:8.94451530612245%;height:4.444444444444445%"></span><span class="mk" style="left:11.665603741496598%;top:9.777777777777779%">1</span></div><figcaption>شكل 135: قائمة الأدوار: الأساسية والمخصصة</figcaption></figure>
+<p>لكل دور: النوع (دور أساسي أو مخصص)، عدد الصلاحيات، أقصى خصم مسموح، عدد الأعضاء. دور المالك يملك كل الصلاحيات دائمًا ولا يُعدَّل. يمكن تعديل الأدوار الأساسية، وحذف الأدوار المخصصة غير المستخدمة.</p>
+<figure class="shot" id="fig-set-role-dialog"><div class="frame" style="width:87.1%"><img src="images/set-role-dialog.jpg" alt="نافذة دور جديد: الصلاحيات مجمعة حسب المجالات"></div><figcaption>شكل 136: نافذة دور جديد: الصلاحيات مجمعة حسب المجالات</figcaption></figure>
+<p><span class="ui">دور جديد</span>: الاسم، الوصف، <b>أقصى خصم مسموح %</b>، ثم مربعات الصلاحيات مجمعة حسب المجال (لوحة التحكم، السيارات، التسعير، الفحص، المخزون، المشتريات، التكاليف، أوامر العمل، العملاء، المبيعات، المالية، العمولات، التقارير، المعرض الرقمي، الإدارة). لا يمكنك منح صلاحيات لا تملكها.</p>
+<div class="box tip"><b>مثال</b>دور «أمين الصندوق» في الأمثلة: تحصيل المدفوعات وتحصيل الأقساط وتسجيل المصروفات وعرض الخزينة، دون اعتماد المصروفات؛ فتذهب مصروفاته إلى صندوق الموافقات.</div>
+
+<h2 id="h67"><span class="pm">QQ067QQ</span>سجل التدقيق</h2>
+<span class="who">«عرض سجل التدقيق» + الوصول إلى كل الفروع</span>
+<p>سجل غير قابل للتعديل لكل العمليات الحساسة: من فعل ماذا ومتى، مع القيم قبل وبعد التغيير. السجل محمي بسلسلة تجزئة: زر <span class="ui">التحقق من سلامة السجل</span> يتحقق أن أحدًا لم يعدّل أو يحذف أي قيد («السجل سليم — تم التحقق من N قيد»). يمكن التصفية حسب الكيان (مثل sale، vehicle، payment).</p>
+<figure class="shot" id="fig-set-audit"><div class="frame" style="width:100.0%"><img src="images/set-audit.jpg" alt="سجل التدقيق بعد التحقق من سلامته"></div><figcaption>شكل 137: سجل التدقيق بعد التحقق من سلامته</figcaption></figure>
+
+<h2 id="h68"><span class="pm">QQ068QQ</span>حماية البيانات</h2>
+<span class="who">«حماية البيانات» + الوصول إلى كل الفروع (المالك)</span>
+<p>لتنفيذ طلب زائر بمحو بياناته الشخصية (وفق أنظمة حماية البيانات في السعودية والإمارات ومصر): ابحث برقم الجوال أو البريد كما ورد في الطلب، فتظهر <b>استفسارات المعرض</b> و<b>الرسائل المرسلة</b> المطابقة بأرقام مخفية جزئيًا. حدّد السجلات ثم <span class="ui">محو البيانات الشخصية</span> مع كتابة سبب أو رقم الطلب (دون كتابة بيانات الشخص). يُستبدل الاسم والجوال والبريد ونص الرسالة بعلامة «[redacted]» ولا يمكن التراجع.</p>
+<figure class="shot" id="fig-set-privacy"><div class="frame" style="width:100.0%"><img src="images/set-privacy.jpg" alt="صفحة حماية البيانات بعد البحث برقم جوال"></div><figcaption>شكل 138: صفحة حماية البيانات بعد البحث برقم جوال</figcaption></figure>
+<div class="box warn"><b>ما لا تمحوه هذه الصفحة</b>ملفات العملاء والفرص البيعية (تُصحَّح أو تُوقف من شاشاتها)، وسجل التدقيق وقيود الحسابات ومستندات البيع (سجلات قانونية غير قابلة للتعديل)، والنسخ الاحتياطية حتى انتهاء مدة الاحتفاظ بها.</div>
+
+<h2 id="h69"><span class="pm">QQ069QQ</span>مراحل المبيعات</h2>
+<span class="who">«إدارة إعدادات الشركة»</span>
+<p>تخصيص مراحل مسار المبيعات: <span class="ui">إضافة مرحلة</span> (الاسم بالعربية والإنجليزية، الرمز، النوع: مفتوحة/ربح/خسارة، الترتيب، احتمالية الإغلاق)، و<span class="ui">تعديل</span>، و<span class="ui">إيقاف</span> (مع نقل الفرص المفتوحة فيها إلى مرحلة أخرى). يجب أن تبقى مرحلة مفتوحة ومرحلة ربح ومرحلة خسارة نشطة على الأقل؛ واحتمالية الربح والخسارة ثابتة (100٪ و0٪).</p>
+<figure class="shot" id="fig-set-pipeline"><div class="frame" style="width:86.2%"><img src="images/set-pipeline.jpg" alt="مراحل المبيعات"></div><figcaption>شكل 139: مراحل المبيعات</figcaption></figure>
+
+<h2 id="h70"><span class="pm">QQ070QQ</span>الموظفون وسياسات العمولة</h2>
+<span class="who">الموظفون: «عرض المستخدمين» · السياسات: «عرض جميع العمولات» أو «إدارة سياسات العمولات» · ملفي الوظيفي: لكل مستخدم</span>
+<p>صفحة <span class="ui">الموظفون</span> تعرض لكل موظف الرقم الوظيفي والمسمى والدور وسياسة العمولة والمستهدف الشهري وحالة الحساب. وفي <b>الملف الوظيفي</b> (<span class="ui">تعديل الملف</span>): الرقم الوظيفي، المسمى، الجوال، تاريخ التعيين، <b>المستهدف الشهري</b> (عدد السيارات وقيمة المبيعات)، <b>سياسة العمولة</b>، ملاحظات. ويرى كل موظف ملفه من <span class="ui">ملفي الوظيفي</span>.</p>
+<div class="two">
+<figure class="shot" id="fig-emp-list"><div class="frame" style="width:100.0%"><img src="images/emp-list.jpg" alt="قائمة الموظفين"></div><figcaption>شكل 140: قائمة الموظفين</figcaption></figure>
+<figure class="shot" id="fig-emp-profile"><div class="frame" style="width:100.0%"><img src="images/emp-profile.jpg" alt="الملف الوظيفي لمندوبة مبيعات"></div><figcaption>شكل 141: الملف الوظيفي لمندوبة مبيعات</figcaption></figure>
+</div>
+<p><b>سياسات العمولة</b> تحدد طريقة الاحتساب: <b>نسبة من الربح الإجمالي</b>، أو <b>نسبة من صافي البيع</b>، أو <b>مبلغ ثابت لكل سيارة</b>، أو <b>شرائح</b> (على الربح أو المبيعات، بنسبة الشريحة على كامل المبلغ أو تصاعديًا)، مع الحد الأدنى والأقصى للعمولة، وشرط «لا عمولة إذا لم تحقق الصفقة ربحًا»، و<b>استحقاق العمولة</b>: عند التسليم أو عند سداد كامل الثمن.</p>
+<figure class="shot" id="fig-comm-policies"><div class="frame" style="width:100.0%"><img src="images/comm-policies.jpg" alt="سياسات العمولة مع حاسبة العمولة"></div><figcaption>شكل 142: سياسات العمولة مع حاسبة العمولة</figcaption></figure>
+<p><span class="ui">سياسة جديدة</span>: الرمز (لا يتغير)، الاسم، القاعدة، تاريخ السريان (اليوم أو لاحقًا). <b>كل تعديل يُنشئ إصدارًا جديدًا</b> (<span class="ui">إصدار جديد</span> مع تاريخ السريان والسبب) ولا يُطبَّق بأثر رجعي؛ والعمولات المحتسبة تحتفظ بنسخة القاعدة التي طُبّقت. <b>حاسبة العمولة</b> تجرب السياسة على صفقة افتراضية (صافي البيع والربح الإجمالي). <span class="ui">إيقاف السياسة</span> يتطلب نقل الموظفين إلى سياسة أخرى أولًا.</p>
+<figure class="shot" id="fig-comm-policy"><div class="frame" style="width:100.0%"><img src="images/comm-policy.jpg" alt="صفحة سياسة عمولة: الإصدار الساري وسجل الإصدارات والموظفون عليها"></div><figcaption>شكل 143: صفحة سياسة عمولة: الإصدار الساري وسجل الإصدارات والموظفون عليها</figcaption></figure>
+
+<h2 id="h71"><span class="pm">QQ071QQ</span>التكاملات</h2>
+<span class="who">«إدارة التكاملات» (المالك)</span>
+<p>خدمات خارجية اختيارية، كلها معطلة افتراضيًا، وتعطّلها لا يوقف أي عملية أساسية. المفاتيح تُحفظ مشفرة ولا تُعرض مرة أخرى.</p>
+<figure class="shot" id="fig-integrations"><div class="frame" style="width:99.3%"><img src="images/integrations.jpg" alt="صفحة التكاملات"></div><figcaption>شكل 144: صفحة التكاملات</figcaption></figure>
+<ul>
+  <li><b>فك رموز رقم الهيكل (VIN)</b>: يقترح الماركة والموديل والسنة من رقم الهيكل عبر خدمة أمريكية عامة (تغطية السيارات الخليجية والمصرية متفاوتة)، مع خانة <span class="ui">تجربة</span>.</li>
+  <li><b>أوصاف الإعلانات بالذكاء الاصطناعي</b>: يقترح وصفًا من مواصفات السيارة فقط؛ يحتاج مفتاح API للشركة، وإلا يُستخدم القالب المدمج.</li>
+  <li><b>الرسائل (واتساب / SMS)</b>: «تسجيل فقط» (افتراضي؛ يحفظ الرسائل ولا يرسلها لأحد) أو «بوابة الشركة (webhook)» بعنوان https عام لبوابة رسائل تملكها شركتك.</li>
+  <li><b>قراءة المستندات (OCR)</b>: غير متاح في هذا الإصدار.</li>
+</ul>
+
+<h2 id="h72"><span class="pm">QQ072QQ</span>إدارة المنصة (لمدير المنصة فقط)</h2>
+<p>حساب «مدير المنصة» يخص مزوّد الخدمة لا المعرض: يرى قائمة <b>الشركات المشتركة</b> ويستطيع <span class="ui">إنشاء شركة جديدة</span> (الاسم، المعرّف بالإنجليزية، السوق، اسم الفرع الرئيسي، بيانات المالك). لا يظهر هذا القسم لمستخدمي الشركات.</p>
+<figure class="shot" id="fig-platform"><div class="frame" style="width:96.7%"><img src="images/platform.jpg" alt="صفحة إدارة المنصة"></div><figcaption>شكل 145: صفحة إدارة المنصة</figcaption></figure>
+
+<h1 id="h73"><span class="pm">QQ073QQ</span>مسارات عمل كاملة خطوة بخطوة<small>تسلسل العمل اليومي من أول الشراء حتى آخر تحصيل، مع من ينفذ كل خطوة</small></h1>
+
+<h2 id="h74"><span class="pm">QQ074QQ</span>من شراء سيارة حتى بيعها نقدًا</h2>
+<ol class="steps">
+  <li><b>تسجيل الشراء</b> (مدير المخزون): <span class="ui">عمليات الشراء</span> ← <span class="ui">شراء سيارة</span>. اختر المورد وأدخل السعر والتاريخ وتاريخ الاستحقاق وبيانات السيارة، وفعّل <b>إرسال للاعتماد مباشرة</b>، ثم <span class="ui">حفظ عملية الشراء</span>. تدخل السيارة المخزون «واردة حديثًا».</li>
+  <li><b>اعتماد الشراء</b> (مدير الفرع أو المالك — شخص غير المنشئ): من <span class="ui">طلبات الموافقة</span> أو صفحة العملية ← <span class="ui">اعتماد</span>. تُرحَّل القيمة إلى المخزون وذمم المورد. (اختياري: «سداد القيمة كاملة الآن».)</li>
+  <li><b>سداد المورد</b> (المحاسب): <span class="ui">مستحقات الموردين</span> ← <span class="ui">سداد</span>، أو <span class="ui">مدفوعات الموردين</span> ← <span class="ui">دفعة جديدة لمورد</span>، ووزّع الدفعة على عملية الشراء.</li>
+  <li><b>الفحص</b> (الفاحص الفني): ملف السيارة ← <span class="ui">بدء فحص</span>، افحص كل البنود الإلزامية وحدد النتيجة العامة ← <span class="ui">اعتماد الفحص</span>.</li>
+  <li><b>التجهيز</b> (مدير المخزون): إن احتاجت السيارة إصلاحًا افتح <span class="ui">أمر عمل جديد</span>، أضف البنود، ثم <span class="ui">بدء العمل</span> ← <span class="ui">إنهاء وإرسال للاعتماد</span>؛ ويعتمده مدير الفرع فتُضاف تكاليفه على السيارة. التكاليف الأخرى (نقل، تسجيل) من تبويب <span class="ui">التكاليف</span> ← <span class="ui">إضافة تكلفة</span>.</li>
+  <li><b>التسعير والعرض</b>: <span class="ui">تحديث الأسعار</span> (سعر العرض والحد الأدنى)، ارفع الصور، ثم <span class="ui">تغيير الحالة</span> إلى «متاحة للبيع». انشرها في المعرض الرقمي من تبويب <span class="ui">إعلان المعرض</span>.</li>
+  <li><b>البيع</b> (مندوب المبيعات): <span class="ui">عمليات البيع</span> ← <span class="ui">عملية بيع جديدة</span>، اختر السيارة والعميل والسعر وطريقة «نقدًا» ← <span class="ui">حفظ عملية البيع</span>. إن تجاوز الخصم حدّك ينتظر البيع <span class="ui">اعتماد السعر</span> من مدير المبيعات.</li>
+  <li><b>تأكيد البيع</b> (مدير المبيعات): <span class="ui">تأكيد البيع</span> ← تصبح السيارة «مباعة».</li>
+  <li><b>التحصيل</b> (المحاسب أو أمين الصندوق): <span class="ui">تسجيل دفعة</span> بالمستحق قبل التسليم (نقدًا أو تحويلًا). المبلغ دفعة مقدمة وليس إيرادًا بعد.</li>
+  <li><b>المستندات</b>: <span class="ui">إصدار مستند</span> ← عقد البيع ثم <b>الفاتورة</b> (إلزامية قبل التسليم).</li>
+  <li><b>التسليم</b> (مدير المبيعات): <span class="ui">تسليم السيارة</span>، وسجّل قراءة العداد. يُعترف بالإيراد والضريبة وتكلفة المبيعات، وتستحق عمولة المندوب (حسب سياستها)، ويمكن إصدار <b>محضر التسليم</b>.</li>
+  <li><b>العمولة</b> (المحاسب): <span class="ui">العمولات</span> ← <span class="ui">اعتماد</span> ثم <span class="ui">صرف العمولة</span>.</li>
+</ol>
+<div class="box acct"><b>النتيجة في الدفاتر</b>المخزون (1300) ارتفع بالشراء والتكاليف ثم انتقل إلى تكلفة المبيعات (5000) عند التسليم؛ ذمة المورد (2000) أُقفلت بالسداد؛ الإيراد (4000) والضريبة (2200) سُجّلا عند التسليم؛ والمقبوض نُقل من الدفعات المقدمة (2100) إلى تسوية ذمة العميل. افتح تقرير «المبيعات والربحية» لترى مجمل ربح العملية.</div>
+
+<h2 id="h75"><span class="pm">QQ075QQ</span>بيع بالتقسيط وتحصيل قسط</h2>
+<ol class="steps">
+  <li>تأكد أن <b>وحدة التقسيط الداخلي مفعّلة</b> في إعدادات الشركة (المالك).</li>
+  <li>في <span class="ui">عملية بيع جديدة</span> اختر <b>تقسيط داخلي</b>، وأدخل الدفعة المقدمة، وطريقة حساب الفائدة، والنسبة السنوية، وعدد الأقساط، والدورية، وتاريخ أول قسط، والرسوم. راجع <b>جدول الأقساط</b> في ملخص الحساب ثم احفظ.</li>
+  <li><span class="ui">تأكيد البيع</span>: يُنشأ جدول الأقساط ويُثبَّت (الخطة «مجدولة (قبل التسليم)»).</li>
+  <li>حصّل <b>الدفعة المقدمة</b> بـ<span class="ui">تسجيل دفعة</span>، وأصدر الفاتورة، ثم <span class="ui">تسليم السيارة</span>. تصبح الخطة «نشطة»، ويُسجَّل الأصل ذمةً على العميل والفوائد والرسوم إيرادًا مؤجلًا.</li>
+  <li>عند حضور العميل للسداد: <span class="ui">التقسيط</span> ← افتح الخطة ← <span class="ui">تحصيل قسط</span>، اختر الحساب والمبلغ. تُوزَّع الدفعة تلقائيًا على أقدم قسط (الرسوم ← الفائدة ← الأصل)، ويُعترف بالجزء المقابل من الفوائد والرسوم إيرادًا (4100).</li>
+  <li>للسداد المبكر: بطاقة <b>السداد المبكر</b> ← اختر التاريخ والسياسة ← <span class="ui">سداد مبكر للخطة</span>.</li>
+</ol>
+<div class="box tip"><b>متابعة المتأخرات</b>استخدم خيار <span class="ui">المتأخرة فقط</span> في قائمة التقسيط، وبطاقتي «أقساط متأخرة» و«خطط تقسيط متأخرة» في لوحة التحكم، وتقرير «أعمار الذمم المدينة والأقساط».</div>
+
+<h2 id="h76"><span class="pm">QQ076QQ</span>حجز بعربون ثم إلغاؤه واسترداد العربون</h2>
+<ol class="steps">
+  <li><b>الحجز</b> (مدير المبيعات أو من يملك تحصيل المدفوعات): <span class="ui">الحجوزات</span> ← <span class="ui">حجز جديد</span>، اختر السيارة المتاحة والعميل والمدة والسعر المتفق عليه والعربون المطلوب وسياسة الرد، وفعّل <b>استلام العربون الآن</b> ← <span class="ui">تأكيد الحجز</span>. السيارة «محجوزة» والعربون التزام على المعرض (2100).</li>
+  <li>دفعات إضافية على العربون: <span class="ui">إضافة عربون</span>. والتمديد: <span class="ui">تمديد</span> مع السبب.</li>
+  <li><b>الإلغاء</b>: <span class="ui">إلغاء الحجز</span>، اختر «حسب سياسة الحجز» (أو «رد كامل» / «مصادرة كاملة» بصلاحية اعتماد الاسترداد) واكتب السبب. تعود السيارة «متاحة»، ويُنشأ <b>طلب استرداد</b> بالمبلغ المردود، أما الجزء المصادَر فيُسجَّل إيرادًا آخر (4200).</li>
+  <li><b>اعتماد الاسترداد</b> (مسؤول غير من ألغى): <span class="ui">المبالغ المستردة</span> أو <span class="ui">طلبات الموافقة</span> ← <span class="ui">اعتماد</span>.</li>
+  <li><b>الصرف</b> (المحاسب): <span class="ui">المبالغ المستردة</span> ← <span class="ui">صرف</span>، اختر الخزينة وطريقة الدفع والمرجع ← <span class="ui">تأكيد الصرف</span>. يخرج المبلغ من الخزينة ويُقفل الالتزام.</li>
+</ol>
+<div class="box note"><b>تحويل الحجز إلى بيع</b>بدل الإلغاء، أنشئ عملية بيع للسيارة المحجوزة لنفس العميل؛ عند تأكيد البيع يُحوَّل العربون تلقائيًا إلى ثمن السيارة ويصبح الحجز «تحوّل إلى بيع».</div>
+
+<h2 id="h77"><span class="pm">QQ077QQ</span>إغلاق يومية الخزينة</h2>
+<ol class="steps">
+  <li>في نهاية اليوم، تأكد أن كل المقبوضات والمدفوعات النقدية لليوم مسجلة.</li>
+  <li>افتح <span class="ui">إغلاق اليومية</span> واختر الخزينة. في <b>إغلاق يوم</b> اختر يوم العمل؛ يظهر <b>الرصيد المتوقع</b> من الدفتر.</li>
+  <li>عُدّ النقدية فعليًا وأدخل <b>الرصيد المعدود</b>. إذا ظهر فرق فراجع السندات أولًا (حركة منسية أو مكررة).</li>
+  <li>إذا بقي الفرق، يغلق اليوم مستخدم يملك «اعتماد فروقات الخزينة» (محاسب أو مدير)؛ يُرحَّل الفرق إلى «زيادة وعجز الخزينة» (6200).</li>
+  <li>اضغط <span class="ui">إغلاق يوم …</span>. لا تُقبل بعدها حركات على هذا الحساب بتاريخ ذلك اليوم أو قبله؛ ولتصحيح خطأ يعيد المالك فتح آخر يوم مغلق مع السبب.</li>
+</ol>
+
+<h2 id="h78"><span class="pm">QQ078QQ</span>تحويل بعملة أجنبية</h2>
+<ol class="steps">
+  <li>تأكد أن للعملة <b>سعرًا مرجعيًا</b> في إعدادات الشركة (مثلًا 1 USD = 3.75 SAR مع انحراف مسموح 2٪)؛ وإلا يرفض النظام أي مبلغ بها.</li>
+  <li>لإنشاء حساب بالدولار: <span class="ui">الخزينة والبنوك</span> ← <span class="ui">حساب جديد</span>، العملة USD، مع الرصيد الافتتاحي وسعر صرفه.</li>
+  <li>للتحويل: <span class="ui">التحويلات بين الحسابات</span> ← <span class="ui">تحويل جديد</span>، من حساب الدولار إلى حساب بالريال، أدخل المبلغ المحوَّل بالدولار وسعر الصرف الفعلي (ضمن النطاق المعروض) أو المبلغ المستلم بالريال كما في كشف البنك ← <span class="ui">تنفيذ التحويل</span>.</li>
+  <li>افتح صفحة التحويل: يظهر <b>التقييم بالعملة الأساسية</b> و<b>فرق العملة</b> = القيمة المستلمة − التكلفة الدفترية المخصومة؛ الموجب ربح والسالب خسارة، ويُرحَّل إلى 4300.</li>
+</ol>
+<div class="box note"><b>عمليات أخرى بعملة أجنبية</b>بالطريقة نفسها يمكن تسجيل عملية شراء أو تكلفة أو مصروف بعملة أجنبية مع سعر الصرف؛ ويحسب النظام فروق العملة المحققة عند السداد. لا يعيد النظام تقييم الأرصدة الأجنبية المفتوحة في نهاية الفترة.</div>
+
+<h1 id="h79"><span class="pm">QQ079QQ</span>أسئلة شائعة ورسائل الأخطاء<small>إجابات سريعة لأكثر المواقف تكرارًا، ومعنى الرسائل التي قد تظهر لك وماذا تفعل</small></h1>
+
+<h2 id="h80"><span class="pm">QQ080QQ</span>أسئلة شائعة</h2>
+<h4>لا أرى صفحة أو زرًا مذكورًا في الدليل؟</h4>
+<p>القائمة والأزرار تظهر حسب صلاحيات دورك وفروعك. اطلب من مدير النظام مراجعة دورك في <span class="ui">الأدوار والصلاحيات</span>. وبعض الصفحات (دفتر الأستاذ، سجل التدقيق، حماية البيانات، كشف حساب المورد) تتطلب الوصول إلى كل الفروع.</p>
+<h4>لماذا لا أستطيع اعتماد طلب لديّ صلاحية اعتماده؟</h4>
+<p>لأنك أنشأته أو عدّلته أو أرسلته بنفسك (الفصل بين المُنشئ والمعتمِد). يجب أن يعتمده مستخدم آخر.</p>
+<h4>سجّلت مبلغًا خطأ، كيف أحذفه؟</h4>
+<p>لا تُحذف الحركات المالية. استخدم زر الإلغاء أو العكس في المستند نفسه (<span class="ui">إلغاء السند</span>، <span class="ui">إلغاء الدفعة</span>، <span class="ui">عكس القيد</span>، <span class="ui">عكس المصروف</span>، <span class="ui">عكس التحويل</span>) ثم سجّل الصحيح. يبقى الأصل والعكس في السجل.</p>
+<h4>لماذا لا أستطيع جعل السيارة «متاحة للبيع»؟</h4>
+<p>غالبًا لأن الشركة تشترط اعتماد فحص فني قبل العرض للبيع. أجرِ الفحص واعتمده أولًا.</p>
+<h4>العميل دفع عربونًا لكنه لا يظهر في الإيرادات؟</h4>
+<p>هذا صحيح محاسبيًا: العربون والدفعات قبل التسليم التزام على المعرض (دفعات مقدمة من العملاء) وليست إيرادًا. يُعترف بالإيراد عند تسليم السيارة.</p>
+<h4>لماذا لا يظهر زر «تسليم السيارة» أو يرفض التسليم؟</h4>
+<p>يجب تأكيد البيع، وإصدار الفاتورة، وسداد المستحق قبل التسليم (أو موافقة جهة التمويل للتمويل الخارجي). نافذة التسليم تعرض ما ينقص. التسليم برصيد مستحق يحتاج صلاحية خاصة وسببًا.</p>
+<h4>أريد تعديل عملية بيع مؤكدة؟</h4>
+<p>التعديل متاح قبل التأكيد فقط. بعد التأكيد: ألغِ العملية (قبل التسليم) وأنشئ غيرها، أو سجّل إرجاع السيارة (بعد التسليم).</p>
+<h4>كيف أرد مبلغًا لعميل ألغى بيعه أو انتهى حجزه؟</h4>
+<p>من <span class="ui">المبالغ المستردة</span> ← <span class="ui">طلب استرداد</span> (المصدر: رصيد العميل أو الحجز)، ثم يعتمده مسؤول آخر، ثم <span class="ui">صرف</span>.</p>
+<h4>لماذا لا تظهر سيارتي في المعرض الرقمي؟</h4>
+<p>افتح تبويب <span class="ui">إعلان المعرض</span> واقرأ «لماذا لا يظهر للعامة؟»: قد تكون صفحة المعرض غير مفعّلة، أو الإعلان غير منشور، أو السيارة ليست متاحة، أو لا يوجد سعر عرض، أو لا توجد صور عامة.</p>
+<h4>هل يرسل النظام رسائل واتساب أو بريدًا للعملاء؟</h4>
+<p>لا يوجد مزود واتساب أو SMS أو بريد متصل افتراضيًا. التنبيهات داخل النظام للموظفين فقط، ورسائل المعرض تُسجَّل ولا تُرسل إلا إذا ربطت الشركة بوابة رسائل خاصة بها في <span class="ui">التكاملات</span>.</p>
+<h4>هل الفاتورة الصادرة فاتورة إلكترونية معتمدة لدى الزكاة والضريبة؟</h4>
+<p>لا. العقود والفواتير والإشعارات الدائنة مستندات تجارية مرقمة، وليست فواتير إلكترونية معتمدة (لا ربط مع منصات الفوترة الإلكترونية ولا رمز QR ضريبي).</p>
+
+<h2 id="h81"><span class="pm">QQ081QQ</span>رسائل الأخطاء الشائعة</h2>
+<table>
+  <tr><th>الرسالة</th><th>المعنى وماذا تفعل</th></tr>
+  <tr><td>ليست لديك صلاحية لتنفيذ هذا الإجراء</td><td>دورك لا يسمح بالعملية. اطلبها ممن يملك الصلاحية أو اطلب تعديل دورك.</td></tr>
+  <tr><td>هذا المستند يتبع فرعًا ليست لديك صلاحية عليه</td><td>المستند في فرع خارج فروعك.</td></tr>
+  <tr><td>لا يمكنك اعتماد طلب أنشأته أو قدّمته بنفسك؛ يجب أن يعتمده مستخدم آخر</td><td>فصل المهام؛ اطلب الاعتماد من زميل.</td></tr>
+  <tr><td>تغيّر هذا السجل بعد أن فتحته. أعد تحميل الصفحة…</td><td>عدّل مستخدم آخر المستند في الوقت نفسه. أعد التحميل وراجع ثم أعد المحاولة.</td></tr>
+  <tr><td>يومية الخزينة لهذا التاريخ مغلقة على هذا الحساب</td><td>اختر تاريخًا لاحقًا لآخر يوم مغلق، أو اطلب من المالك إعادة فتح اليوم.</td></tr>
+  <tr><td>رصيد الخزينة لا يكفي لهذه العملية في هذا التاريخ</td><td>الخزينة النقدية لا تسمح بالسحب على المكشوف. سجّل التحويل أو المقبوضات أولًا أو اختر حسابًا آخر.</td></tr>
+  <tr><td>سعر الصرف بعيد جدًا عن السعر المرجعي للشركة</td><td>راجع السعر (يظهر النطاق المسموح أسفل الحقل) أو اطلب من المالك تحديث السعر المرجعي.</td></tr>
+  <tr><td>لا يوجد سعر صرف مرجعي لهذه العملة</td><td>يجب أن يحدده المالك في إعدادات الشركة أولًا.</td></tr>
+  <tr><td>يلزم اعتماد فحص للسيارة قبل عرضها للبيع</td><td>أجرِ فحصًا فنيًا واعتمده.</td></tr>
+  <tr><td>السيارة غير متاحة لهذه العملية في حالتها الحالية</td><td>السيارة محجوزة أو مباعة أو قيد النقل… راجع حالتها في ملف السيارة.</td></tr>
+  <tr><td>السيارة قيد النقل بين الفروع؛ أكّد استلامها في الفرع المستلم أولًا</td><td>أكمل عملية النقل من صفحة نقل السيارات.</td></tr>
+  <tr><td>يوجد عميل مسجّل بنفس رقم الجوال أو رقم الهوية</td><td>افتح ملف العميل الموجود بدل إنشاء عميل مكرر.</td></tr>
+  <tr><td>البيع بالتقسيط غير مفعّل لهذه الشركة</td><td>يفعّله المالك من إعدادات الشركة ← التقسيط.</td></tr>
+  <tr><td>أصدر الفاتورة قبل تسليم السيارة / لم يُسدَّد المبلغ المطلوب لتسليم السيارة بعد</td><td>أكمل شروط التسليم.</td></tr>
+  <tr><td>لا يمكن إلغاء عملية بيع مُسلَّمة؛ سجّل إرجاع السيارة بدلًا من ذلك</td><td>استخدم <span class="ui">إرجاع السيارة</span>.</td></tr>
+  <tr><td>توجد دفعات للمورد على عملية الشراء هذه…</td><td>ألغِ دفعات المورد أولًا ثم ألغِ الشراء أو اعكس التكلفة.</td></tr>
+  <tr><td>المبلغ يتجاوز المتبقي المستحق</td><td>المبلغ أكبر من المستحق على المستند؛ عدّله.</td></tr>
+  <tr><td>يجب أن يساوي مجموع المبالغ الموزَّعة المبلغ الإجمالي تمامًا</td><td>في الدفعات والتوزيع: اجعل مجموع التوزيع مساويًا للمبلغ (استخدم أزرار التوزيع التلقائي).</td></tr>
+  <tr><td>انتهت الجلسة. سجّل الدخول مرة أخرى / انتهت صلاحية رمز الأمان</td><td>أعد تحميل الصفحة وسجّل الدخول.</td></tr>
+  <tr><td>طلبات كثيرة جدًا. انتظر قليلًا ثم حاول</td><td>تجاوزت حد المحاولات (مثلًا محاولات دخول خاطئة)؛ انتظر دقيقة.</td></tr>
+  <tr><td>هذه العملية ما زالت قيد التنفيذ</td><td>ضغطت الزر مرتين؛ انتظر لحظة وأعد تحميل الصفحة لمعرفة النتيجة. النظام لا يكرر العملية المالية نفسها.</td></tr>
+  <tr><td>لا يمكن تغيير هذا الإعداد بعد وجود قيود مالية</td><td>بعض الإعدادات (التقريب، الاعتراف بالإيراد) تُقفل بعد أول عملية مالية.</td></tr>
+</table>
+
+<h1 id="h82"><span class="pm">QQ082QQ</span>حدود النظام الحالية<small>ما لا يفعله أوتوهب برو في هذا الإصدار، حتى تخطط عملك على أساس واضح</small></h1>
+<p>هذه القائمة مأخوذة من سجل المسائل المعروفة لدى فريق التطوير، ومكتوبة بلغة مبسطة.</p>
+<h2 id="h83"><span class="pm">QQ083QQ</span>التكاملات الخارجية</h2>
+<ul>
+  <li><b>الفوترة الإلكترونية غير مدعومة</b>: العقود والفواتير والإشعارات الدائنة مستندات تجارية، وليست فواتير إلكترونية معتمدة لدى هيئة الزكاة والضريبة والجمارك (السعودية) أو الهيئة الاتحادية للضرائب (الإمارات) أو مصلحة الضرائب (مصر). ولا تحمل رمز QR ضريبيًا.</li>
+  <li><b>لا يوجد مزود واتساب أو SMS أو بريد إلكتروني متصل</b>: الرسائل تُسجَّل فقط، أو تُرسل إلى بوابة رسائل تملكها شركتك عبر «webhook» إن ربطتها.</li>
+  <li><b>قراءة المستندات (OCR)</b> غير متاحة.</li>
+  <li><b>أوصاف الذكاء الاصطناعي</b> تحتاج مفتاح API للشركة، وإلا يُستخدم قالب نصي ثابت.</li>
+  <li><b>فك رقم الهيكل (VIN)</b> يعتمد على قاعدة بيانات أمريكية مجانية؛ تغطيتها للسيارات الخليجية والمصرية جزئية، والنتيجة اقتراح يراجعه الموظف.</li>
+  <li><b>لا توجد بيانات أسعار سوق</b> ولا ربط مع المخالفات المرورية أو التأمين؛ إرشاد التسعير مبني على مبيعات شركتك فقط (ويحتاج 3 مبيعات مماثلة على الأقل).</li>
+  <li><b>بوابة دفع للاشتراك</b> غير مفعّلة.</li>
+  <li>لا يوجد اختبار «CAPTCHA» في نموذج استفسار المعرض العام؛ الحماية من الإساءة بحد عدد الطلبات وفخ آلي.</li>
+</ul>
+<h2 id="h84"><span class="pm">QQ084QQ</span>المبيعات والمالية</h2>
+<ul>
+  <li>عملية البيع تشمل <b>سيارة واحدة</b> دون بنود إضافية (إكسسوارات، رسوم تسجيل، ضمان إضافي، رسوم معرض).</li>
+  <li>لا تُحتسب <b>غرامات تأخير</b> على الأقساط.</li>
+  <li>بعد إلغاء البيع أو إرجاعه يصبح كل المقبوض رصيدًا قابلًا للاسترداد للعميل؛ لا توجد رسوم إلغاء تلقائية، ولا يمكن حاليًا تطبيق رصيد عميل متبقٍ على عملية بيع أخرى.</li>
+  <li>عند إلغاء أو إرجاع بيع فيه سيارة استبدال مستلمة، تبقى سيارة الاستبدال في المخزون وتبقى قيمتها رصيدًا للعميل؛ إعادة سيارة الاستبدال للعميل تتم يدويًا.</li>
+  <li>في التمويل الخارجي يُسجَّل مبلغ جهة التمويل كدفعة على عملية بيع العميل؛ لا يوجد حساب ذمم منفصل لجهة التمويل.</li>
+  <li>العمولة تبقى مستحقة إذا أُلغيت دفعة بعد استحقاقها، ولا تتأثر بتكاليف تُرحَّل بعد تأكيد البيع؛ تُعكس فقط عند إلغاء البيع أو إرجاعه.</li>
+  <li>فروقات إغلاق اليومية تُرحَّل لحسابات العملة الأساسية فقط؛ حسابات العملات الأجنبية تُصحَّح بتحويل أولًا.</li>
+  <li>لا يعيد النظام تقييم الأرصدة المفتوحة بالعملات الأجنبية في نهاية الفترة (تُسجَّل فروق العملة المحققة فقط).</li>
+  <li>لا يدعم دفعات مقدمة للموردين غير مرتبطة بمستند.</li>
+  <li>لا يوجد إدخال قيود يومية يدوية حرة، ولا قيد إقفال سنوي.</li>
+</ul>
+<h2 id="h85"><span class="pm">QQ085QQ</span>عام</h2>
+<ul>
+  <li>التقرير الواحد يعرض حتى 20,000 صف؛ وملفات PDF للتقارير محدودة بعدد الصفوف.</li>
+  <li>ملخصات طلبات الموافقة قد تظهر بالإنجليزية وبأرقام غير منسقة؛ عمود المبلغ منسق ومترجم.</li>
+  <li>بعض الجداول العريضة تتمرر أفقيًا داخل بطاقتها على الشاشات الصغيرة.</li>
+  <li>دعوات الانضمام لا تنتهي تلقائيًا ولا يمكن سحبها من الشركة الداعية.</li>
+  <li>محو البيانات الشخصية يشمل استفسارات المعرض والرسائل فقط؛ ملفات العملاء والفرص وسجل التدقيق والقيود والنسخ الاحتياطية لا تُمحى من صفحة حماية البيانات.</li>
+  <li>في النسخة الحالية يظهر عنوان حقل «نوع الضمان» في نموذج السيارة بنص تقني (vehicles.warrantyType)، وتظهر طريقة التقسيط الافتراضية في الإعدادات بنص مختلط («Flat / ثابت»).</li>
+</ul>
+
+</div>
+</body>
+</html>

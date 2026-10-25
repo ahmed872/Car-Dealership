@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>دليل المستخدم — أوتوهب برو</title>
+<style>
+@font-face { font-family: 'Plex Arabic'; font-weight: 300; src: url(assets/fonts/ibm-plex-sans-arabic-arabic-300-normal.woff2) format('woff2'); unicode-range: U+0600-06FF, U+0750-077F, U+0870-088E, U+0890-0891, U+0897-08E1, U+08E3-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FE74, U+FE76-FEFC; }
+@font-face { font-family: 'Plex Arabic'; font-weight: 400; src: url(assets/fonts/ibm-plex-sans-arabic-arabic-400-normal.woff2) format('woff2'); unicode-range: U+0600-06FF, U+0750-077F, U+0870-088E, U+0890-0891, U+0897-08E1, U+08E3-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FE74, U+FE76-FEFC; }
+@font-face { font-family: 'Plex Arabic'; font-weight: 500; src: url(assets/fonts/ibm-plex-sans-arabic-arabic-500-normal.woff2) format('woff2'); unicode-range: U+0600-06FF, U+0750-077F, U+0870-088E, U+0890-0891, U+0897-08E1, U+08E3-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FE74, U+FE76-FEFC; }
+@font-face { font-family: 'Plex Arabic'; font-weight: 600; src: url(assets/fonts/ibm-plex-sans-arabic-arabic-600-normal.woff2) format('woff2'); unicode-range: U+0600-06FF, U+0750-077F, U+0870-088E, U+0890-0891, U+0897-08E1, U+08E3-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FE74, U+FE76-FEFC; }
+@font-face { font-family: 'Plex Arabic'; font-weight: 700; src: url(assets/fonts/ibm-plex-sans-arabic-arabic-700-normal.woff2) format('woff2'); unicode-range: U+0600-06FF, U+0750-077F, U+0870-088E, U+0890-0891, U+0897-08E1, U+08E3-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FE74, U+FE76-FEFC; }
+@font-face { font-family: 'Plex Arabic'; font-weight: 300; src: url(assets/fonts/ibm-plex-sans-arabic-latin-300-normal.woff2) format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: 'Plex Arabic'; font-weight: 400; src: url(assets/fonts/ibm-plex-sans-arabic-latin-400-normal.woff2) format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: 'Plex Arabic'; font-weight: 500; src: url(assets/fonts/ibm-plex-sans-arabic-latin-500-normal.woff2) format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: 'Plex Arabic'; font-weight: 600; src: url(assets/fonts/ibm-plex-sans-arabic-latin-600-normal.woff2) format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+@font-face { font-family: 'Plex Arabic'; font-weight: 700; src: url(assets/fonts/ibm-plex-sans-arabic-latin-700-normal.woff2) format('woff2'); unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+
+:root {
+  --ink: #111827; --muted: #5b6472; --line: #e3e6eb; --brand: #f59e0b; --brand-strong: #b45309;
+  --navy: #0f172a; --soft: #fff7e6; --info: #eef4ff; --info-line: #c7d7fe; --warn: #fff1f0; --warn-line: #fecaca;
+  --ok: #ecfdf3; --ok-line: #bbf7d0; --bg: #ffffff;
+}
+@page { size: A4; }
+* { box-sizing: border-box; }
+html { background: var(--bg); }
+body {
+  margin: 0; color: var(--ink); background: var(--bg);
+  font-family: 'Plex Arabic', 'DejaVu Sans', sans-serif; font-size: 10.6pt; line-height: 1.75;
+  -webkit-print-color-adjust: exact; print-color-adjust: exact;
+}
+.wrap { max-width: 182mm; margin: 0 auto; }
+@media screen { .wrap { padding: 16px; } }
+h1, h2, h3, h4 { line-height: 1.4; break-after: avoid; page-break-after: avoid; position: relative; }
+h1 {
+  break-before: page; page-break-before: always; margin: 0 0 6mm; padding: 6mm 7mm; border-radius: 4mm;
+  background: var(--navy); color: #fff; font-size: 20pt; font-weight: 700;
+}
+h1 small { display: block; font-size: 10pt; font-weight: 400; color: #cbd5e1; margin-top: 1mm; }
+h2 { font-size: 14.5pt; font-weight: 700; color: var(--navy); margin: 8mm 0 2.5mm; padding-bottom: 1.5mm; border-bottom: 2px solid var(--brand); }
+h3 { font-size: 12pt; font-weight: 600; color: var(--brand-strong); margin: 5.5mm 0 1.5mm; }
+h4 { font-size: 10.8pt; font-weight: 600; margin: 4mm 0 1mm; }
+p { margin: 0 0 2.5mm; }
+ul, ol { margin: 0 0 3mm; padding-inline-start: 6mm; }
+li { margin-bottom: 1mm; }
+b, strong { font-weight: 600; }
+.ui { font-weight: 600; color: var(--brand-strong); white-space: nowrap; }
+.ui::before { content: '«'; } .ui::after { content: '»'; }
+.pm { position: absolute; font-size: 1px; color: transparent; line-height: 0; }
+h1 .pm { color: var(--navy); } h2 .pm, h3 .pm { color: #fff; }
+.ltr { direction: ltr; unicode-bidi: isolate; display: inline-block; }
+
+figure.shot { margin: 3mm 0 4mm; break-inside: avoid; page-break-inside: avoid; text-align: center; }
+figure.shot .frame { position: relative; display: inline-block; max-width: 100%; border: 1px solid var(--line); overflow: visible; }
+figure.shot img { display: block; width: 100%; height: auto; }
+figure.shot figcaption { margin-top: 1.5mm; font-size: 8.8pt; color: var(--muted); }
+.hl { position: absolute; border: 1.6px solid var(--brand); border-radius: 4px; background: rgba(245,158,11,.06); pointer-events: none; }
+.mk {
+  position: absolute; transform: translate(-50%, -50%); width: 5.2mm; height: 5.2mm; border-radius: 50%;
+  background: #e11d48; color: #fff; font: 700 8pt/5.2mm 'Plex Arabic', sans-serif; text-align: center;
+  border: 1.2px solid #fff;
+}
+ol.co { list-style: none; padding: 0; margin: 0 0 4mm; counter-reset: co; }
+ol.co > li { counter-increment: co; position: relative; padding-inline-start: 8mm; margin-bottom: 1.6mm; break-inside: avoid; }
+ol.co > li::before {
+  content: counter(co); position: absolute; inset-inline-start: 0; top: .5mm; width: 5.2mm; height: 5.2mm; border-radius: 50%;
+  background: #e11d48; color: #fff; font: 700 8pt/5.2mm 'Plex Arabic', sans-serif; text-align: center;
+}
+.box { border: 1px solid var(--line); border-radius: 2.5mm; padding: 2.5mm 4mm; margin: 2.5mm 0 3.5mm; break-inside: avoid; font-size: 10pt; }
+.box > b:first-child { display: block; margin-bottom: .8mm; }
+.tip { background: var(--ok); border-color: var(--ok-line); }
+.note { background: var(--info); border-color: var(--info-line); }
+.warn { background: var(--warn); border-color: var(--warn-line); }
+.acct { background: var(--soft); border-color: #fde4b0; }
+.who { display: inline-block; background: #f1f5f9; border: 1px solid var(--line); border-radius: 99px; padding: 0 3mm; font-size: 9pt; color: #334155; margin: 0 0 2.5mm; }
+table { width: 100%; border-collapse: collapse; margin: 2mm 0 4mm; font-size: 9.6pt; break-inside: auto; }
+th, td { border: 1px solid var(--line); padding: 1.4mm 2.4mm; text-align: start; vertical-align: top; }
+th { background: #f8fafc; font-weight: 600; }
+tr { break-inside: avoid; }
+.missing { color: #b91c1c; font-weight: 600; }
+.steps { counter-reset: st; list-style: none; padding: 0; }
+.steps > li { counter-increment: st; position: relative; padding-inline-start: 10mm; margin-bottom: 2mm; }
+.steps > li::before { content: counter(st); position: absolute; inset-inline-start: 0; top: 0; width: 7mm; height: 7mm; border-radius: 2mm; background: var(--navy); color: #fff; font-weight: 700; text-align: center; line-height: 7mm; font-size: 9.5pt; }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 5mm; align-items: start; }
+
+/* Table of contents */
+.toc { break-after: page; }
+.toc h1.tt { break-before: auto; }
+.toc ol { list-style: none; padding: 0; margin: 0; columns: 1; }
+.toc li { margin: 0; }
+.toc li a { display: flex; align-items: baseline; gap: 2mm; color: inherit; text-decoration: none; }
+.toc li.l1 { font-weight: 700; margin-top: 2.6mm; font-size: 10.8pt; color: var(--navy); }
+.toc li.l2 { padding-inline-start: 6mm; font-size: 9.6pt; color: #374151; line-height: 1.6; }
+.toc .dots { flex: 1; border-bottom: 1px dotted #b6bcc6; transform: translateY(-1.2mm); }
+.toc .p { min-width: 8mm; text-align: left; font-variant-numeric: tabular-nums; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<section class="toc">
+  <h1 class="tt" style="break-before:auto">المحتويات<small>أرقام الصفحات تبدأ من الصفحة التالية للغلاف</small></h1>
+  <ol>{{TOC}}</ol>
+</section>
+{{BODY}}
+</div>
+</body>
+</html>
