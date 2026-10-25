@@ -23,7 +23,7 @@ function toolEnv(): NodeJS.ProcessEnv {
 /** Runs a PostgreSQL tool and resolves with its output; rejects with the output on a non-zero exit. */
 function tool(name: string, args: string[], logFile: string): Promise<string> {
   return new Promise((resolve, reject) => {
-    const child = spawn(exe(name), args, { windowsHide: true, env: toolEnv() });
+    const child = spawn(exe(name), args, { windowsHide: true, env: toolEnv(), stdio: ['ignore', 'pipe', 'pipe'] });
     let out = '';
     child.stdout.on('data', (d: Buffer) => (out += d.toString()));
     child.stderr.on('data', (d: Buffer) => (out += d.toString()));
@@ -32,6 +32,29 @@ function tool(name: string, args: string[], logFile: string): Promise<string> {
       fs.appendFileSync(logFile, `\n$ ${name} ${args.join(' ')}\n${out}`);
       if (code === 0) resolve(out);
       else reject(new Error(`${name} exited with code ${code}: ${out.trim().slice(-800)}`));
+    });
+  });
+}
+
+/**
+ * `pg_ctl start`: the server it launches inherits pg_ctl's stdout/stderr, and on Windows those
+ * handles stay open for the server's lifetime, so waiting for piped output to end would hang. Its
+ * messages go straight to the log file instead, and the exit code decides.
+ */
+function startTool(args: string[], logFile: string): Promise<void> {
+  return new Promise((resolve, reject) => {
+    fs.appendFileSync(logFile, `\n$ pg_ctl ${args.join(' ')}\n`);
+    const fd = fs.openSync(logFile, 'a');
+    let child;
+    try {
+      child = spawn(exe('pg_ctl'), args, { windowsHide: true, env: toolEnv(), stdio: ['ignore', fd, fd] });
+    } finally {
+      fs.closeSync(fd);
+    }
+    child.on('error', reject);
+    child.on('exit', (code) => {
+      if (code === 0) resolve();
+      else reject(new Error(`pg_ctl start exited with code ${code}: ${fs.readFileSync(logFile, 'utf8').trim().slice(-800)}`));
     });
   });
 }
@@ -91,8 +114,7 @@ export class Postgres {
       await tool('pg_ctl', ['stop', '-D', this.dataDir, '-m', 'fast', '-w', '-t', '60'], this.log).catch(() => undefined);
     }
     this.port = await freePort();
-    await tool(
-      'pg_ctl',
+    await startTool(
       ['start', '-D', this.dataDir, '-w', '-t', '120', '-l', path.join(paths.logs, 'postgres-server.log'), '-o', `-p ${this.port}`],
       this.log,
     );
