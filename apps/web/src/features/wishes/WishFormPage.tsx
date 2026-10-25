@@ -77,7 +77,7 @@ export function WishFormPage() {
         <CardBody>
           <form id="wish-form" onSubmit={submit} noValidate>
             <FormSection title={t('wishes.sections.customer')} description={t('wishes.sections.customerHint')}>
-              <div className="sm:col-span-2">
+              <div className="min-w-0 sm:col-span-2">
                 {presetMissing && (
                   <Alert tone="warning" className="mb-3">
                     {describe(preset.error)}

@@ -1,5 +1,5 @@
 import { randomInt } from 'node:crypto';
-import { computeVinCheckDigit, d, type Permission } from '@autohub/shared';
+import { computeVinCheckDigit, d, type Permission, type RoundingMode } from '@autohub/shared';
 import { ApiClient, expectStatus, idem, uniq } from './api';
 import { PASSWORD } from './env';
 
@@ -369,4 +369,64 @@ export async function provisionCompany(admin: ApiClient) {
     'provision company',
   );
   return { ...res, slug, ownerEmail, owner: await ApiClient.login(ownerEmail, PASSWORD) };
+}
+
+/** The company settings the UI computes with (time zone for calendars, rounding for money). */
+export async function tenantSettings(c: ApiClient) {
+  const res = await c.json<{
+    tenant: { settings: { timezone: string; rounding: RoundingMode } } | null;
+  }>('/auth/me');
+  if (!res.tenant) throw new Error('no company in the session');
+  return res.tenant.settings;
+}
+
+// ── CRM ─────────────────────────────────────────────────────────────────────────────────────
+
+/** Reserves an available vehicle, optionally receiving the deposit now into a cash account. */
+export async function createReservation(
+  c: ApiClient,
+  input: {
+    vehicleId: string;
+    customerId: string;
+    depositAmount: string;
+    refundPolicy?: 'refundable' | 'non_refundable' | 'partial';
+    refundablePct?: string;
+    depositInto?: string;
+  },
+) {
+  const { depositInto, ...body } = input;
+  return expectStatus<{
+    id: string;
+    number: string;
+    status: string;
+    receipt: { id: string; number: string } | null;
+  }>(
+    await c.post(
+      '/reservations',
+      {
+        ...body,
+        ...(depositInto
+          ? { deposit: { cashAccountId: depositInto, amount: input.depositAmount, method: 'cash' } }
+          : {}),
+      },
+      idem(),
+    ),
+    201,
+    'create reservation',
+  );
+}
+
+/** An open lead for a customer in the main branch (unassigned unless `assignedUserId` is given). */
+export async function createLead(c: ApiClient, customerId: string, overrides: Record<string, unknown> = {}) {
+  return expectStatus<{ id: string; number: string; assignedUserId: string | null }>(
+    await c.post('/leads', {
+      customerId,
+      branchId: await mainBranchId(c),
+      source: 'walk_in',
+      assignedUserId: null,
+      ...overrides,
+    }),
+    201,
+    'create lead',
+  );
 }
