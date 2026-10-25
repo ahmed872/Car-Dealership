@@ -91,9 +91,6 @@ console.log(`guide.html: ${figNo} figures, ${toc.length} headings`);
 if (process.argv.includes('--html')) process.exit(0);
 
 // ── PDF ────────────────────────────────────────────────────────────────────────────────────
-const fontData = (w) => readFileSync(`${ROOT}assets/fonts/ibm-plex-sans-arabic-arabic-${w}-normal.woff2`).toString('base64');
-const latinData = (w) => readFileSync(`${ROOT}assets/fonts/ibm-plex-sans-arabic-latin-${w}-normal.woff2`).toString('base64');
-const hfFont = `<style>@font-face{font-family:P;src:url(data:font/woff2;base64,${fontData(400)})}@font-face{font-family:P;src:url(data:font/woff2;base64,${latinData(400)});unicode-range:U+0000-00FF}</style>`;
 const header = `<div dir="rtl" style="font-family:'DejaVu Sans',sans-serif;font-size:7pt;color:#8a8f98;width:100%;padding:0 15mm;display:flex;justify-content:space-between"><span>دليل المستخدم — أوتوهب برو</span><span>نظام إدارة معارض السيارات</span></div>`;
 const footer = `<div dir="rtl" style="font-family:'DejaVu Sans',sans-serif;font-size:7.5pt;color:#6b7280;width:100%;padding:0 15mm;display:flex;justify-content:space-between"><span>صفحة <span class="pageNumber"></span> من <span class="totalPages"></span></span><span>بيانات الأمثلة في الصور تجريبية وغير حقيقية</span></div>`;
 

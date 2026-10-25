@@ -331,7 +331,7 @@ export const SHOTS = [
     callouts: [(p) => btn(p, 'اقتراح وصف'), (p) => btn(p, 'حفظ المحتوى'), (p) => btn(p, 'إلغاء النشر'), (p) => btn(p, 'نسخ الرابط'), (p) => txt(p, 'رمز QR')],
   },
   { id: 'show-public', as: null, path: '/showroom/demo-e', target: 'page', grow: true, maxH: 1500 },
-  { id: 'show-public-vehicle', as: null, path: async ({ api }) => '/showroom/demo-e', target: 'page', grow: true, maxH: 2200, prep: async (p) => { await p.getByRole('link', { name: /سبورتاج|التفاصيل/ }).first().click(); await p.waitForLoadState('networkidle'); await p.waitForTimeout(1200); } },
+  { id: 'show-public-vehicle', as: null, path: async () => '/showroom/demo-e', target: 'page', grow: true, maxH: 2200, prep: async (p) => { await p.getByRole('link', { name: /سبورتاج|التفاصيل/ }).first().click(); await p.waitForLoadState('networkidle'); await p.waitForTimeout(1200); } },
   { id: 'mobile-public', as: null, path: '/showroom/demo-e', w: 390, h: 844, mobile: true },
   { id: 'integrations', path: '/app/settings/integrations', grow: true, maxH: 2400 },
 

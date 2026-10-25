@@ -37,6 +37,11 @@ export default tseslint.config(
     },
   },
   {
+    // Guide tooling: Node scripts that also pass callbacks to page.evaluate (run in the browser).
+    files: ['docs/user-guide/scripts/**/*.mjs'],
+    languageOptions: { globals: { ...globals.node, ...globals.browser } },
+  },
+  {
     files: ['**/*.spec.ts', '**/*.test.ts', 'apps/api/test/**'],
     rules: { '@typescript-eslint/no-non-null-assertion': 'off' },
   },

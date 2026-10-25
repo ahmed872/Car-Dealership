@@ -424,7 +424,7 @@ await step('appointments', async () => {
 });
 
 // ── Reservations ───────────────────────────────────────────────────────────────────────────
-const resv = await step('reservations', async () => {
+await step('reservations', async () => {
   // Active reservation with deposit (Patrol, customer Hind).
   const r1 = await sm.post('/reservations', { vehicleId: veh.patrol.vehicleId, customerId: cust.hind, leadId: leads.hind, days: 7, agreedPrice: '230000.00', depositAmount: '10000.00', deposit: { cashAccountId: cash.mainBox, amount: '5000.00', method: 'cash', reference: 'إيصال يدوي 0091' } }, { idem: true });
   const c = await Client.login('cashier@demo.test');
@@ -440,7 +440,7 @@ const resv = await step('reservations', async () => {
 });
 
 // ── Sales ──────────────────────────────────────────────────────────────────────────────────
-const sales = await step('sales', async () => {
+await step('sales', async () => {
   // 1) Cash sale delivered: Camry to Ahmad by Reem (rep).
   const s1 = await rep.post('/sales', { vehicleId: veh.camry.vehicleId, customerId: cust.ahmad, leadId: leads.ahmad, paymentType: 'cash', agreedPrice: '114000.00', notes: 'بيع نقدي' });
   let cur = await sm.get(`/sales/${s1.id}`);

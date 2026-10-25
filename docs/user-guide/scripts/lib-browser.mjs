@@ -26,7 +26,9 @@ export async function contextFor(browser, email, { width = 1440, height = 900, m
     try {
       localStorage.setItem('ah.lang', 'ar');
       localStorage.setItem('ah.theme', 'light');
-    } catch {}
+    } catch {
+      // storage unavailable: the app falls back to its defaults
+    }
   });
   if (email) {
     const res = await ctx.request.post('/api/v1/auth/login', {
