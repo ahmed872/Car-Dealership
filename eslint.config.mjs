@@ -13,6 +13,8 @@ export default tseslint.config(
       '**/*.tmp.mjs',
       'e2e/test-results/**',
       'e2e/playwright-report/**',
+      'apps/desktop/stage/**',
+      'apps/desktop/release/**',
     ],
   },
   js.configs.recommended,
@@ -35,6 +37,11 @@ export default tseslint.config(
       'react-hooks/rules-of-hooks': 'error',
       'react-hooks/exhaustive-deps': 'warn',
     },
+  },
+  {
+    // Desktop start-up pages run in the browser; the smoke test passes callbacks to page.evaluate.
+    files: ['apps/desktop/src/renderer/**/*.js', 'apps/desktop/test/**/*.mjs'],
+    languageOptions: { globals: { ...globals.node, ...globals.browser } },
   },
   {
     // Guide tooling: Node scripts that also pass callbacks to page.evaluate (run in the browser).

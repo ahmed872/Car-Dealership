@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'">
+<link rel="stylesheet" href="style.css">
+<title>إعداد الشركة — أوتوهب برو</title>
+</head>
+<body>
+<main>
+  <h1>إعداد الشركة</h1>
+  <p>مرة واحدة فقط: بيانات المعرض وحساب المالك. بهذا البريد وكلمة المرور ستدخل إلى البرنامج، ومن داخله تضيف الفروع والموظفين.</p>
+  <form id="form" novalidate>
+    <label for="name">اسم المعرض / الشركة</label>
+    <input id="name" maxlength="200" required>
+    <div class="grid">
+      <div>
+        <label for="market">الدولة</label>
+        <select id="market">
+          <option value="EG">مصر</option>
+          <option value="SA">السعودية</option>
+          <option value="AE">الإمارات</option>
+        </select>
+      </div>
+      <div>
+        <label for="branch">اسم الفرع الرئيسي</label>
+        <input id="branch" maxlength="120" value="الفرع الرئيسي" required>
+      </div>
+    </div>
+    <label for="fullName">اسم المالك</label>
+    <input id="fullName" maxlength="120" required>
+    <label for="email">البريد الإلكتروني (لتسجيل الدخول)</label>
+    <input id="email" type="email" dir="ltr" required>
+    <div class="grid">
+      <div>
+        <label for="password">كلمة المرور</label>
+        <input id="password" type="password" dir="ltr" required>
+        <div class="hint">10 أحرف على الأقل، فيها حرف إنجليزي ورقم.</div>
+      </div>
+      <div>
+        <label for="password2">تأكيد كلمة المرور</label>
+        <input id="password2" type="password" dir="ltr" required>
+      </div>
+    </div>
+    <div class="row">
+      <button id="submit" class="primary" type="submit">إنشاء الشركة</button>
+    </div>
+    <div id="msg" class="msg" role="alert"></div>
+  </form>
+</main>
+<script src="setup.js"></script>
+</body>
+</html>

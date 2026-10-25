@@ -64,8 +64,8 @@ rotated (KI-024), supplier IDs written before the upgrade stay plain until the b
    TLS, `TRUST_PROXY` behind a proxy, secrets (`APP_ENCRYPTION_KEY` generated once and stored safely —
    it cannot be rotated yet, KI-024).
 2. Run migrations, then `node dist/cli.js encrypt-supplier-ids` (OPERATIONS §1 step 7).
-3. Observe the CI workflow (including the E2E job) run green on GitHub — it has not yet been
-   observed running there.
+3. Keep the CI workflow green on GitHub. It has run there: run 46 on `0945b60` passed both jobs
+   (lint, typecheck, unit and API integration tests, build, and the browser E2E suite).
 4. Run a load test against staging (k6 or similar) at the pilot's expected volume; size the database
    and the PDF renderer from it (KI-023).
 5. Do a first restore drill on the real environment (`scripts/restore-drill.sh`) and schedule it.

@@ -1,0 +1,88 @@
+name: Desktop (Windows)
+
+# Builds the Windows desktop edition and tests the real program end to end on Windows:
+# activation, first-run setup, sign-in, Arabic search, PDF via Edge, automatic backup, restart and
+# restore (apps/desktop/test/smoke.mjs). The test build embeds a throwaway license key generated in
+# the job. When apps/desktop/resources/license-public-key.txt (the seller's key) exists, the job also
+# builds the installer for customers and uploads it as an artifact.
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, 'claude/**']
+    tags: ['desktop-v*']
+    paths:
+      - 'apps/**'
+      - 'packages/**'
+      - 'pnpm-lock.yaml'
+      - '.github/workflows/desktop.yml'
+
+concurrency:
+  group: desktop-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 45
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Build shared, API and web
+        run: |
+          pnpm --filter @autohub/shared build
+          pnpm --filter @autohub/api build
+          pnpm --filter @autohub/web build
+      - name: Typecheck and stage the desktop resources
+        working-directory: apps/desktop
+        run: |
+          pnpm typecheck
+          pnpm stage
+
+      - name: Test build (throwaway license key)
+        working-directory: apps/desktop
+        run: |
+          node scripts/license.mjs keygen "$RUNNER_TEMP/testkeys"
+          LICENSE_PUBLIC_KEY_FILE="$RUNNER_TEMP/testkeys/public-key.txt" pnpm bundle
+          pnpm exec electron-builder --win dir --x64 --publish never
+      - name: End-to-end test of the packaged program
+        working-directory: apps/desktop
+        env:
+          LICENSE_PRIVATE_KEY_FILE: ${{ runner.temp }}/testkeys/private-key.txt
+          DESKTOP_EXECUTABLE: ${{ github.workspace }}/apps/desktop/release/win-unpacked/AutoHub Pro.exe
+          SMOKE_SCREENSHOT_DIR: ${{ runner.temp }}/desktop-screens
+        run: node test/smoke.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: desktop-smoke-screenshots
+          path: ${{ runner.temp }}/desktop-screens
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Customer installer (seller's license key)
+        id: release
+        working-directory: apps/desktop
+        run: |
+          if [ ! -f resources/license-public-key.txt ]; then
+            echo "::notice::No seller key (apps/desktop/resources/license-public-key.txt) yet: customer installer not built."
+            exit 0
+          fi
+          rm -rf release dist
+          pnpm bundle
+          pnpm exec electron-builder --win nsis --x64 --publish never
+          echo "built=true" >> "$GITHUB_OUTPUT"
+      - uses: actions/upload-artifact@v4
+        if: steps.release.outputs.built == 'true'
+        with:
+          name: AutoHub-Pro-Windows-Installer
+          path: apps/desktop/release/*.exe
+          if-no-files-found: error
+          retention-days: 30

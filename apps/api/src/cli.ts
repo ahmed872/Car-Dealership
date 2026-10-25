@@ -13,10 +13,16 @@ import { ProvisioningService } from './modules/tenancy/provisioning.service';
 /**
  * Operational CLI.
  *   create-platform-admin --email a@b.com --name "Admin"   (password from AUTOHUB_ADMIN_PASSWORD)
- *   provision-tenant '<json>'                                (zProvisionTenant payload)
+ *   provision-tenant '<json>' | -                            (zProvisionTenant payload; '-' = read it from stdin)
  *   encrypt-supplier-ids [--tenant <uuid>] [--batch-size 500] (upgrade step after migration 0018, D-047:
  *                                                            encrypts plain-text supplier national IDs; idempotent)
  */
+async function readStdin(): Promise<string> {
+  const chunks: Buffer[] = [];
+  for await (const chunk of process.stdin) chunks.push(chunk as Buffer);
+  return Buffer.concat(chunks).toString('utf8');
+}
+
 async function main() {
   const [command, ...rest] = process.argv.slice(2);
   const arg = (name: string) => {
@@ -47,7 +53,9 @@ async function main() {
       });
       console.log(`Platform admin ready: ${email}`);
     } else if (command === 'provision-tenant') {
-      const input = zProvisionTenant.parse(JSON.parse(rest[0] ?? '{}'));
+      // '-' reads the payload from stdin, keeping the owner's password off the command line.
+      const raw = rest[0] === '-' ? await readStdin() : (rest[0] ?? '{}');
+      const input = zProvisionTenant.parse(JSON.parse(raw));
       const result = await app.get(ProvisioningService).provision(input, null);
       console.log(JSON.stringify(result));
     } else if (command === 'encrypt-supplier-ids') {

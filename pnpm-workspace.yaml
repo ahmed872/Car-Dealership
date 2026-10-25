@@ -6,3 +6,4 @@ onlyBuiltDependencies:
   - "@swc/core"
   - "esbuild"
   - "@node-rs/argon2"
+  - "electron"

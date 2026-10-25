@@ -6,6 +6,8 @@ const EnvSchema = z
   .object({
     NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
     PORT: z.coerce.number().int().min(1).max(65535).default(3000),
+    /** Listen address. The desktop edition sets 127.0.0.1 so the API is not reachable from the network. */
+    HOST: z.string().min(1).default('0.0.0.0'),
     /** Application role connection (RLS enforced). Must NOT be a superuser, BYPASSRLS, or table owner. */
     DATABASE_URL: z.string().url(),
     /** Owner role connection, used only by the migrator. */

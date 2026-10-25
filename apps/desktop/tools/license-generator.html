@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'">
+<title>مولّد مفاتيح التفعيل — أوتوهب برو</title>
+<style>
+  :root { --ink: #111827; --muted: #6b7280; --line: #e5e7eb; --brand: #d97706; --bad: #b91c1c; --good: #047857; }
+  body { margin: 0; font-family: 'Segoe UI', Tahoma, sans-serif; color: var(--ink); background: #f9fafb; }
+  main { max-width: 760px; margin: 0 auto; padding: 24px 16px 48px; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  h2 { font-size: 17px; margin: 0 0 8px; }
+  section { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 18px; margin-top: 18px; }
+  p, li { color: var(--muted); line-height: 1.8; margin: 0 0 10px; }
+  label { display: block; font-weight: 600; font-size: 14px; margin: 12px 0 6px; }
+  input, textarea { width: 100%; box-sizing: border-box; font: inherit; padding: 9px 11px; border: 1px solid var(--line); border-radius: 8px; }
+  textarea, .mono { direction: ltr; font-family: Consolas, monospace; font-size: 12px; }
+  textarea { min-height: 84px; }
+  button { font: inherit; padding: 9px 16px; border-radius: 8px; border: 1px solid var(--line); background: #fff; cursor: pointer; margin-top: 12px; }
+  button.primary { background: var(--brand); border-color: var(--brand); color: #fff; font-weight: 600; }
+  .warn { background: #fffbeb; border: 1px solid #fcd34d; color: #92400e; border-radius: 8px; padding: 10px 12px; line-height: 1.8; }
+  .msg { margin-top: 10px; font-weight: 600; }
+  .bad { color: var(--bad); } .good { color: var(--good); }
+</style>
+</head>
+<body>
+<main>
+  <h1>مولّد مفاتيح التفعيل</h1>
+  <p>للبائع فقط. افتح هذا الملف في Edge أو Chrome على جهازك. لا يتصل بالإنترنت ولا يرسل أي بيانات.</p>
+
+  <section>
+    <h2>1) مفتاح البائع (مرة واحدة فقط)</h2>
+    <p>ينشئ زوج مفاتيح: <b>مفتاح خاص</b> تحتفظ به أنت وتوقّع به مفاتيح العملاء، و<b>مفتاح عام</b> يُبنى داخل البرنامج.</p>
+    <div class="warn">احفظ ملف المفتاح الخاص في مكانين آمنين (مثلًا فلاشة وحساب سحابي). من يحصل عليه يستطيع تفعيل البرنامج على أي جهاز، ومن يفقده لا يستطيع إصدار مفاتيح جديدة لنفس النسخة.</div>
+    <button id="gen" class="primary" type="button">إنشاء مفتاح بائع جديد</button>
+    <div id="genOut" hidden>
+      <label>المفتاح العام (يوضع في البرنامج — ليس سرًّا)</label>
+      <textarea id="pub" readonly></textarea>
+      <button id="copyPub" type="button">نسخ المفتاح العام</button>
+      <p class="msg good">تم تنزيل ملف المفتاح الخاص <span class="mono">autohub-seller-private-key.txt</span>.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>2) مفتاح تفعيل لعميل</h2>
+    <label for="priv">المفتاح الخاص (افتح الملف أو الصق محتواه)</label>
+    <input id="privFile" type="file" accept=".txt">
+    <textarea id="priv" placeholder="MC4CAQAwBQYDK2VwBCIEI…"></textarea>
+    <label for="code">رمز جهاز العميل (يظهر له في شاشة التفعيل)</label>
+    <input id="code" class="mono" placeholder="XXXX-XXXX-XXXX-XXXX-XXXX">
+    <label for="name">اسم العميل / المعرض</label>
+    <input id="name" maxlength="120">
+    <label for="exp">ينتهي في (اتركه فارغًا لترخيص دائم — أو حدد تاريخًا لنسخة تجريبية)</label>
+    <input id="exp" type="date">
+    <button id="sign" class="primary" type="button">إنشاء مفتاح التفعيل</button>
+    <div id="signMsg" class="msg"></div>
+    <div id="signOut" hidden>
+      <label>مفتاح التفعيل (أرسله للعميل كما هو)</label>
+      <textarea id="license" readonly></textarea>
+      <button id="copyLicense" type="button">نسخ مفتاح التفعيل</button>
+    </div>
+  </section>
+</main>
+<script>
+  const $ = (id) => document.getElementById(id);
+  const b64 = (buf) => btoa(String.fromCharCode(...new Uint8Array(buf)));
+  const b64url = (buf) => b64(buf).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  const unb64 = (s) => Uint8Array.from(atob(s.trim()), (c) => c.charCodeAt(0));
+  const supported = !!(window.crypto && crypto.subtle);
+
+  $('gen').addEventListener('click', async () => {
+    if (!supported) return alert('هذا المتصفح لا يدعم التوقيع. استخدم أحدث Edge أو Chrome.');
+    if (!confirm('إنشاء مفتاح بائع جديد؟ المفتاح الجديد لا يعمل مع نسخة البرنامج المبنية على مفتاح قديم.')) return;
+    let pair;
+    try {
+      pair = await crypto.subtle.generateKey({ name: 'Ed25519' }, true, ['sign', 'verify']);
+    } catch {
+      return alert('هذا المتصفح لا يدعم Ed25519. استخدم أحدث Edge أو Chrome.');
+    }
+    const priv = b64(await crypto.subtle.exportKey('pkcs8', pair.privateKey));
+    const pub = b64(await crypto.subtle.exportKey('spki', pair.publicKey));
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([priv + '\n'], { type: 'text/plain' }));
+    a.download = 'autohub-seller-private-key.txt';
+    a.click();
+    $('pub').value = pub;
+    $('priv').value = priv;
+    $('genOut').hidden = false;
+  });
+  $('copyPub').addEventListener('click', () => navigator.clipboard.writeText($('pub').value));
+  $('privFile').addEventListener('change', async (e) => {
+    const f = e.target.files[0];
+    if (f) $('priv').value = (await f.text()).trim();
+  });
+
+  $('sign').addEventListener('click', async () => {
+    const msg = (t, ok) => { $('signMsg').textContent = t; $('signMsg').className = 'msg ' + (ok ? 'good' : 'bad'); };
+    $('signOut').hidden = true;
+    const code = $('code').value.toUpperCase().replace(/[^0-9A-F]/g, '');
+    if (code.length !== 20) return msg('رمز الجهاز يتكون من 20 حرفًا/رقمًا (5 مجموعات × 4).', false);
+    const name = $('name').value.trim();
+    if (name.length < 2) return msg('اكتب اسم العميل.', false);
+    const exp = $('exp').value || null;
+    let key;
+    try {
+      key = await crypto.subtle.importKey('pkcs8', unb64($('priv').value), { name: 'Ed25519' }, false, ['sign']);
+    } catch {
+      return msg('المفتاح الخاص غير صحيح أو المتصفح لا يدعم Ed25519.', false);
+    }
+    const payload = {
+      v: 1,
+      mid: code.match(/.{4}/g).join('-'),
+      name,
+      iat: new Date().toISOString().slice(0, 10),
+      exp,
+    };
+    const data = new TextEncoder().encode(JSON.stringify(payload));
+    const sig = await crypto.subtle.sign({ name: 'Ed25519' }, key, data);
+    $('license').value = b64url(data) + '.' + b64url(sig);
+    $('signOut').hidden = false;
+    msg(exp ? `مفتاح صالح حتى ${exp}.` : 'مفتاح دائم.', true);
+  });
+  $('copyLicense').addEventListener('click', () => navigator.clipboard.writeText($('license').value));
+</script>
+</body>
+</html>

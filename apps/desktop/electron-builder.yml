@@ -1,0 +1,43 @@
+# AutoHub Pro desktop installer. Run after `pnpm build` and `pnpm stage` in apps/desktop.
+appId: pro.autohub.desktop
+productName: AutoHub Pro
+copyright: AutoHub Pro
+directories:
+  output: release
+  buildResources: resources
+# The main process is bundled by esbuild (scripts/bundle.mjs): nothing from node_modules ships.
+files:
+  - dist/**/*
+  - package.json
+  - '!node_modules/**/*'
+includeSubNodeModules: false
+asar: true
+extraResources:
+  - from: stage/api
+    to: api
+  - from: stage/web
+    to: web
+  - from: stage/postgres
+    to: postgres
+  - from: stage/guide.pdf
+    to: guide.pdf
+icon: resources/icon.png
+win:
+  target:
+    - target: nsis
+      arch: [x64]
+  artifactName: AutoHub-Pro-Setup-${version}.${ext}
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: AutoHub Pro
+  # Uninstalling keeps %APPDATA%\AutoHub Pro (the database, settings and license).
+  deleteAppDataOnUninstall: false
+  installerLanguages: [ar_SA, en_US]
+  language: '1025'
+linux:
+  target: [dir]
+  category: Office

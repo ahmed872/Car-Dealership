@@ -34,7 +34,10 @@ UAE, in Arabic (default, right-to-left) and English. This report closes the mast
 - Restore drill: 31/31 checks passed on a clean database (row counts, content hashes, balanced
   ledger, verified audit chain, RLS active).
 
-What was **not** run: a load test at production volume, the CI workflow on GitHub, any deployment,
+GitHub Actions CI (lint, typecheck, API integration tests, build, browser E2E) passed on GitHub
+(run 46, commit `0945b60`).
+
+What was **not** run: a load test at production volume, any deployment,
 and any real external integration (no credentials were provided, and none were invented).
 
 ## 4. Financial and security guarantees, and how they are enforced

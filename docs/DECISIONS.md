@@ -509,6 +509,32 @@ and backups are out of scope (OPERATIONS §9, KI-034).
 - **Downloads**: `GET /files/:id` builds its header with `contentDisposition()` (inline for images,
   video and PDF as before), so stored files also get the ASCII fallback of D-051.
 
+### D-055 Desktop edition for one PC (2026-10-25)
+The owner wants to sell installable copies before running a hosted service. `apps/desktop` packages
+the unchanged system as a Windows program (Electron): PostgreSQL 16 binaries started on loopback
+with password authentication and the same two roles as `infra/db/bootstrap-roles.sql` (the API
+still runs as `autohub_app`, so RLS and every database trigger apply), the API run by Electron's
+Node with `HOST=127.0.0.1` (new env var, default `0.0.0.0`), and a small local server that serves
+the web build with the nginx security headers and forwards `/api/`. One company per installation,
+created on first run through the API's own `provision-tenant` (payload on stdin: the CLI now
+accepts `-`).
+- **Activation:** offline Ed25519 signatures. The seller's private key never leaves the seller
+  (`tools/license-generator.html`, WebCrypto); the public key is embedded in the app archive. A key
+  binds `sha256("autohub-pro|" + Windows MachineGuid)` (shown as 20 hex digits), a customer name and
+  an optional expiry; with an expiry, a clock set back more than two days is refused. No
+  environment variable or file next to the program can change the machine code or the key. This
+  stops copying an installation to another PC; it does not stop someone who modifies the program
+  (KI-036).
+- **Backups:** PostgreSQL's Windows package has no `pg_dump`, and a cold copy is always consistent,
+  so a backup is a `.tar.gz` of `pgdata/`, `storage/` and `secrets.json` taken while the database
+  is stopped: on every exit and at start-up when the last one is older than a day (14 automatic ones
+  kept), and from the File menu. Restore keeps the replaced data beside it. Backups hold the
+  encryption key, so they are as sensitive as the data.
+- **PDF:** rendered with Microsoft Edge (shipped with Windows 10/11) or Chrome instead of bundling
+  Chromium.
+- **Tested** by `apps/desktop/test/smoke.mjs` against the packaged program on `windows-latest`
+  (`.github/workflows/desktop.yml`), with a throwaway key pair generated in the job.
+
 ## Business assumptions
 
 ### B-001 Revenue recognition default = on delivery **[PO-CONFIRM]**

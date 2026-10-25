@@ -25,6 +25,8 @@ jobs:
       PGHOST: localhost
       PGUSER: postgres
       PGPASSWORD: postgres
+      # The desktop edition is built and tested by desktop.yml; these jobs never run Electron.
+      ELECTRON_SKIP_BINARY_DOWNLOAD: '1'
       TEST_DATABASE_URL: postgres://autohub_app:ci_app_pw@localhost:5432/autohub_test
       TEST_DATABASE_MIGRATION_URL: postgres://autohub_owner:ci_owner_pw@localhost:5432/autohub_test
     steps:
@@ -69,6 +71,7 @@ jobs:
       PGHOST: localhost
       PGUSER: postgres
       PGPASSWORD: postgres
+      ELECTRON_SKIP_BINARY_DOWNLOAD: '1'
       # One database for the run; the API start script drops, migrates and provisions it.
       E2E_DATABASE_URL: postgres://autohub_app:ci_app_pw@localhost:5432/autohub_test_e2e
       E2E_DATABASE_MIGRATION_URL: postgres://autohub_owner:ci_owner_pw@localhost:5432/autohub_test_e2e

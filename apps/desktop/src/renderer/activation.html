@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'">
+<link rel="stylesheet" href="style.css">
+<title>تفعيل أوتوهب برو</title>
+</head>
+<body>
+<main>
+  <h1>تفعيل أوتوهب برو</h1>
+  <p id="reason">هذه النسخة تحتاج إلى تفعيل على هذا الجهاز. أرسل رمز الجهاز التالي إلى البائع ليرسل لك مفتاح التفعيل.</p>
+  <label>رمز الجهاز</label>
+  <div class="code" id="code">…</div>
+  <button id="copy" type="button">نسخ رمز الجهاز</button>
+  <label for="key">مفتاح التفعيل</label>
+  <textarea id="key" spellcheck="false" placeholder="الصق مفتاح التفعيل هنا"></textarea>
+  <div class="row">
+    <button id="activate" class="primary" type="button">تفعيل</button>
+    <button id="quit" type="button">خروج</button>
+  </div>
+  <div id="msg" class="msg" role="alert"></div>
+</main>
+<script src="activation.js"></script>
+</body>
+</html>
