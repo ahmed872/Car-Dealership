@@ -313,9 +313,11 @@ export function CompanySettingsPage() {
                   <Field label={t('settings.defaultMethod')}>
                     {(id) => (
                       <Select id={id} {...reg('settings.installments.defaultMethod')}>
-                        <option value="flat">Flat / ثابت</option>
-                        <option value="reducing_balance">Reducing balance / متناقص</option>
-                        <option value="zero_interest">0% / بدون فوائد</option>
+                        {(['flat', 'reducing_balance', 'zero_interest'] as const).map((m) => (
+                          <option key={m} value={m}>
+                            {t(`sales.instMethod.${m}`)}
+                          </option>
+                        ))}
                       </Select>
                     )}
                   </Field>
