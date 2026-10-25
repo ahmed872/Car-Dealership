@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>غلاف دليل المستخدم — أوتوهب برو</title>
+<style>
+@font-face { font-family: 'Plex Arabic'; font-weight: 400; src: url(assets/fonts/ibm-plex-sans-arabic-arabic-400-normal.woff2) format('woff2'); }
+@font-face { font-family: 'Plex Arabic'; font-weight: 700; src: url(assets/fonts/ibm-plex-sans-arabic-arabic-700-normal.woff2) format('woff2'); }
+@font-face { font-family: 'Plex Latin'; font-weight: 400; src: url(assets/fonts/ibm-plex-sans-arabic-latin-400-normal.woff2) format('woff2'); }
+@font-face { font-family: 'Plex Latin'; font-weight: 700; src: url(assets/fonts/ibm-plex-sans-arabic-latin-700-normal.woff2) format('woff2'); }
+@page { size: A4; margin: 0; }
+html, body { margin: 0; height: 100%; }
+body { font-family: 'Plex Latin', 'Plex Arabic', sans-serif; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.page { width: 210mm; height: 297mm; position: relative; overflow: hidden; background: #0f172a; color: #fff; }
+.band { position: absolute; inset: 0 0 auto 0; height: 118mm; background: linear-gradient(135deg, #0f172a 0%, #1e293b 60%, #3b2a0a 100%); }
+.logo { position: absolute; top: 22mm; right: 20mm; display: flex; align-items: center; gap: 4mm; }
+.logo span.m { width: 16mm; height: 16mm; border-radius: 4mm; background: #f59e0b; display: flex; align-items: center; justify-content: center; }
+.logo b { font-size: 17pt; font-family: 'Plex Arabic'; }
+.logo small { display: block; font-size: 9.5pt; color: #cbd5e1; font-family: 'Plex Arabic'; font-weight: 400; }
+h1 { position: absolute; top: 52mm; right: 20mm; left: 20mm; margin: 0; font: 700 32pt/1.3 'Plex Arabic'; }
+h1 small { display: block; font: 400 13pt/1.6 'Plex Arabic'; color: #fcd34d; margin-top: 3mm; }
+.shot { position: absolute; top: 118mm; right: 18mm; left: 18mm; border-radius: 4mm; overflow: hidden; border: 1px solid rgba(255,255,255,.15); }
+.shot img { display: block; width: 100%; }
+.foot { position: absolute; bottom: 16mm; right: 20mm; left: 20mm; font: 400 9.5pt/1.8 'Plex Arabic'; color: #cbd5e1; display: flex; justify-content: space-between; gap: 10mm; }
+.foot b { color: #fff; }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="band"></div>
+  <div class="logo">
+    <span class="m"><svg viewBox="0 0 64 64" width="44" height="44"><path d="M10 40l6-14c1-3 4-5 7-5h18c3 0 6 2 7 5l6 14v6a2 2 0 0 1-2 2h-3a2 2 0 0 1-2-2v-2H17v2a2 2 0 0 1-2 2h-3a2 2 0 0 1-2-2z" fill="#0f172a"/><circle cx="20" cy="38" r="3.4" fill="#fff4dc"/><circle cx="44" cy="38" r="3.4" fill="#fff4dc"/></svg></span>
+    <div><b>أوتوهب برو</b><small>نظام إدارة معارض السيارات</small></div>
+  </div>
+  <h1>دليل المستخدم<small>شرح كل صفحة وزر ونافذة في النظام، بصور من التطبيق نفسه — للمالك ومدير الفرع والمبيعات والمحاسبة والمخزون والفحص</small></h1>
+  <div class="shot"><img src="images/shell-overview.jpg" alt=""></div>
+  <div class="foot">
+    <div><b>الإصدار:</b> أكتوبر 2026 · واجهة باللغة العربية<br>السوق في الأمثلة: المملكة العربية السعودية (ريال سعودي، ضريبة 15٪)</div>
+    <div style="text-align:left">جميع الأسماء والأرقام والشركات في الصور<br>بيانات تجريبية مختلقة لأغراض الشرح فقط</div>
+  </div>
+</div>
+</body>
+</html>
